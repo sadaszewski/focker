@@ -1,0 +1,14 @@
+from: freebsd-12.1
+
+steps:
+  - run: |
+      pkg install python3 && \
+      pkg install py37-pip
+
+jail:
+  name: xxx
+  mount.devfs: true
+  ip4.address: 127.0.0.2
+  interface: lo1
+  exec.start: /bin/sh /etc/rc
+  exec.stop: /bin/sh /etc/rc.shutdown
