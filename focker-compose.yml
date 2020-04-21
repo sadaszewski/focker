@@ -1,0 +1,15 @@
+defaults:
+  jail:
+    mount.devfs: true
+    interface: lo1
+    exec.start: /bin/sh /etc/rc
+    exec.stop: /bin/sh /etc/rc.shutdown
+
+services:
+  gateway:
+    image: freebsd-12.1
+    jail:
+      ip4.address: 127.0.0.2
+
+volumes:
+  gateway-data: {}
