@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import yaml
 import os
 from weir import zfs, process
+from .build import build
 
 
 def clone(self, name, props={}, force=False):
@@ -20,20 +21,7 @@ def clone(self, name, props={}, force=False):
 zfs.ZFSSnapshot.clone = clone
 
 
-def process_step(step, name):
-    cmd=['jail', '-c']
-    cmd.append('path=' + '/focker/' + name)
-
-
-def process_steps(steps, name):
-    if isinstance(steps, list):
-        for step in steps:
-            process_step(step, name)
-    else:
-        process_step(steps, name)
-
-
-def build(args):
+def command_build(args):
     fname = os.path.join(args.focker_dir, 'Fockerfile.yml')
     print('fname:', fname)
     if not os.path.exists(fname):
@@ -41,24 +29,7 @@ def build(args):
     with open(fname, 'r') as f:
         spec = yaml.safe_load(f)
     print('spec:', spec)
-    if 'from' not in spec:
-        raise ValueError('Missing base specification')
-    from_ = zfs.findprops('/', props=['focker:tags'])
-    from_ = filter(lambda a: a['value'] == spec['from'] \
-        and '@' in a['name'], from_)
-    from_ = list(from_)
-    if len(from_) == 0:
-        raise ValueError('Requested base not found')
-    if len(from_) > 1:
-        raise ValueError('Ambiguous base specification')
-    base = from_[0]['name']
-    root = '/'.join(base.split('/')[:-1])
-    print('base:', base)
-    print('root:', root)
-    base = zfs.open(base)
-    name = '/'.join([root, 'x y z'])
-    base.clone(name)
-    process_steps(args['steps'], name)
+    build(spec)
 
 
 def run(args):
@@ -69,7 +40,7 @@ def create_parser():
     parser = ArgumentParser()
     subparsers = parser.add_subparsers()
     parser_build = subparsers.add_parser('build')
-    parser_build.set_defaults(func=build)
+    parser_build.set_defaults(func=command_build)
     parser_build.add_argument('focker_dir', type=str)
     parser_run = subparsers.add_parser('run')
     parser_run.set_defaults(func=run)
@@ -82,4 +53,6 @@ def create_parser():
 
 parser = create_parser()
 args = parser.parse_args()
+if not hasattr(args, 'func'):
+    raise ValueError('You must choose the mode')
 args.func(args)

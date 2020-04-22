@@ -1,15 +1,23 @@
+variables:
+  ext_if: em0
+  gateway_ip: 127.0.0.2
+
 defaults:
   jail:
     mount.devfs: true
     interface: lo1
     exec.start: /bin/sh /etc/rc
     exec.stop: /bin/sh /etc/rc.shutdown
+  pf: |
+    rdr on $(ext_if) proto tcp from any to any port 80 -> $(jail_ip)
 
 services:
   gateway:
     image: freebsd-12.1
     jail:
-      ip4.address: 127.0.0.2
+      ip4.address: $(gateway_ip)
+    pf:
+      - pass on $(ext_if)
 
 volumes:
   gateway-data: {}
