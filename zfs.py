@@ -78,6 +78,7 @@ def zfs_tag(name, tags, replace=False):
         tags = list(tags)
         tags.extend(lst[0][0].split(' '))
         tags = list(set(tags))
+        tags = list(filter(lambda a: a != '-', tags))
     if len(tags) > 0:
         zfs_run(['zfs', 'set', 'focker:tags=' + ' '.join(tags), name])
     else:
