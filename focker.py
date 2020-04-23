@@ -6,6 +6,7 @@ from .image import command_image_build, \
     command_image_untag
 import sys
 from .zfs import zfs_init
+from .jail import command_jail_run
 
 
 def create_parser():
@@ -21,6 +22,12 @@ def create_parser():
     parser = subparsers.add_parser('untag')
     parser.set_defaults(func=command_image_untag)
     parser.add_argument('tags', type=str, nargs='+', default=[])
+
+    subparsers = subparsers_top.add_parser('jail').add_subparsers()
+    parser = subparsers.add_parser('run')
+    parser.set_defaults(func=command_jail_run)
+    parser.add_argument('image', type=str)
+    parser.add_argument('--command', '-c', type=str, default='/bin/sh')
 
     return parser_top
 

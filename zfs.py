@@ -111,5 +111,5 @@ def zfs_init():
         zfs_run(['zfs', 'create', '-o', 'canmount=off', poolname + '/focker/images'])
     if not zfs_exists(poolname + '/focker/volumes'):
         zfs_run(['zfs', 'create', '-o', 'canmount=off', poolname + '/focker/volumes'])
-    if not zfs_exists(poolname + '/focker/volumes'):
+    if not zfs_exists(poolname + '/focker/jails'):
         zfs_run(['zfs', 'create', '-o', 'canmount=off', poolname + '/focker/jails'])
