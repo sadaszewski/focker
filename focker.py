@@ -2,7 +2,8 @@ from argparse import ArgumentParser
 import yaml
 import os
 # from weir import zfs, process
-from .image import command_image_build
+from .image import command_image_build, \
+    command_image_untag
 import sys
 from .zfs import zfs_init
 
@@ -16,6 +17,10 @@ def create_parser():
     parser.set_defaults(func=command_image_build)
     parser.add_argument('focker_dir', type=str)
     parser.add_argument('--tag', '-t', type=str, nargs='+', default=[])
+
+    parser = subparsers.add_parser('untag')
+    parser.set_defaults(func=command_image_untag)
+    parser.add_argument('tags', type=str, nargs='+', default=[])
 
     return parser_top
 

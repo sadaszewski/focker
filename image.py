@@ -70,3 +70,6 @@ def command_image_build(args):
     image, image_sha256 = build(spec)
     zfs_untag(args.tag)
     zfs_tag(image.split('@')[0], args.tag)
+
+def command_image_untag(args):
+    zfs_untag(args.tags)
