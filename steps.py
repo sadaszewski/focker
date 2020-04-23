@@ -2,6 +2,7 @@ import hashlib
 import json
 from .jail import jail_run
 import shutil
+import os
 
 
 def filehash(fname):
@@ -23,13 +24,13 @@ class RunStep(object):
             raise ValueError('Run spec must be a list or a string')
         self.spec = spec
 
-    def hash(self, base):
+    def hash(self, base, **kwargs):
         res = hashlib.sha256(
             json.dumps(( base, self.spec ))
             .encode('utf-8')).hexdigest()
         return res
 
-    def execute(self, path):
+    def execute(self, path, **kwargs):
         spec = self.spec
         if isinstance(spec, list):
             spec = ' && ' .join(self.spec)
@@ -42,24 +43,28 @@ class CopyStep(object):
             raise ValueError('CopyStep spec should be a list')
         self.spec = spec
 
-    def hash(self, base):
+    def hash(self, base, args, **kwargs):
         if len(self.spec) == 0:
             fh = []
         elif isinstance(self.spec[0], list):
-            fh = list(map(lambda a: filehash(a[0]), self.spec))
+            fh = list(map(lambda a: filehash(os.path.join(args.focker_dir, a[0])), self.spec))
         else:
-            fh = [ filehash(self.spec[0]) ]
+            fh = [ filehash(os.path.join(args.focker_dir, self.spec[0])) ]
         res = hashlib.sha256(
             json.dumps(( base, fh, self.spec ))
             .encode('utf-8')).hexdigest()
         return res
 
-    def execute(self, path):
+    def execute(self, path, **kwargs):
         lst = [ self.spec ] \
             if not isinstance(self.spec[0], list) \
             else self.spec
         for a in lst:
-            shutil.copyfile(a[0], os.path.join(path, a[1]))
+            source, target = a
+            if target.startswith('/'):
+                target = target[1:]
+            shutil.copyfile(os.path.join(kwargs['args'].focker_dir, source),
+                os.path.join(path, target))
 
 
 def create_step(spec):

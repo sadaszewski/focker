@@ -18,7 +18,7 @@ def process_steps(steps, name):
         process_step(steps, name)
 
 
-def build(spec):
+def build(spec, args):
     if 'base' not in spec:
         raise ValueError('Missing base in specification')
 
@@ -37,7 +37,7 @@ def build(spec):
 
     for st in steps:
         st = create_step(st)
-        st_sha256 = st.hash(base_sha256)
+        st_sha256 = st.hash(base_sha256, args=args)
         if zfs_exists_snapshot_sha256(st_sha256):
             base = zfs_snapshot_by_sha256(st_sha256)
             base_sha256 = st_sha256
@@ -47,7 +47,7 @@ def build(spec):
             name = root + '/' + st_sha256[:pre]
             if not zfs_exists(name):
                 break
-        snap_name = new_snapshot(base, lambda: st.execute(zfs_mountpoint(name)), name)
+        snap_name = new_snapshot(base, lambda: st.execute(zfs_mountpoint(name), args=args), name)
         feed = {
             'focker:sha256': st_sha256
         }
@@ -60,6 +60,7 @@ def build(spec):
 
 
 def command_image_build(args):
+    # os.chdir(args.focker_dir)
     fname = os.path.join(args.focker_dir, 'Fockerfile')
     print('fname:', fname)
     if not os.path.exists(fname):
@@ -67,9 +68,10 @@ def command_image_build(args):
     with open(fname, 'r') as f:
         spec = yaml.safe_load(f)
     print('spec:', spec)
-    image, image_sha256 = build(spec)
+    image, image_sha256 = build(spec, args)
     zfs_untag(args.tag)
     zfs_tag(image.split('@')[0], args.tag)
+
 
 def command_image_untag(args):
     zfs_untag(args.tags)

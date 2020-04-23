@@ -6,3 +6,6 @@ steps:
       pkg -y install -y py37-pip
   - run: |
       pkg install -y py37-yaml
+  - copy:
+    - [ '/tmp/x', '/etc/x' ]
+    - [ 'focker-compose.yml', '/etc/focker-compose.yml' ]
