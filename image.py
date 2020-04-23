@@ -38,6 +38,11 @@ def build(spec):
     for st in steps:
         st = create_step(st)
         st_sha256 = st.hash(base_sha256)
+        if zfs_exists_snapshot_sha256(st_sha256):
+            base = zfs_snapshot_by_sha256(st_sha256)
+            base_sha256 = st_sha256
+            print('Reusing:', base)
+            continue
         for pre in range(7, 64):
             name = root + '/' + st_sha256[:pre]
             if not zfs_exists(name):

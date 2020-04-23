@@ -1,6 +1,8 @@
-base: freebsd-12.1
+base: freebsd-latest
 
 steps:
   - run: |
       pkg -y install -y python3 && \
       pkg -y install -y py37-pip
+  - run: |
+      pkg install -y py37-yaml

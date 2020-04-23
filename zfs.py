@@ -54,6 +54,24 @@ def zfs_mountpoint(name):
     return lst[0][0]
 
 
+def zfs_exists_snapshot_sha256(sha256):
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256', '-t', 'snap'])
+    lst = list(filter(lambda a: a[0] == sha256, lst))
+    if len(lst) == 0:
+        return False
+    return True
+
+
+def zfs_snapshot_by_sha256(sha256):
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256,name', '-t', 'snap', '-H'])
+    lst = list(filter(lambda a: a[0] == sha256, lst))
+    if len(lst) == 0:
+        raise ValueError('Snapshot with given sha256 does not exist: ' + sha256)
+    if len(lst) > 1:
+        raise ValueError('Ambiguous snapshot sha256: ' + sha256)
+    return lst[0][1]
+
+
 def zfs_init():
     poolname = zfs_parse_output(['zfs', 'list', '-H', '/'])
     if len(poolname) == 0:
