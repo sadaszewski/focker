@@ -73,6 +73,10 @@ def zfs_snapshot_by_sha256(sha256):
 
 
 def zfs_tag(name, tags):
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:tags', '-H', name])
+    tags = list(tags)
+    tags.extend(lst[0][0].split(' '))
+    tags = list(set(tags))
     if len(tags) > 0:
         zfs_run(['zfs', 'set', 'focker:tags=' + ' '.join(tags), name])
     else:
@@ -85,7 +89,8 @@ def zfs_untag(tags):
     for row in lst:
         cur_tags = row[1].split(' ')
         for t in tags:
-            cur_tags.remove(t)
+            if t in cur_tags:
+                cur_tags.remove(t)
         zfs_tag(row[0], cur_tags)
 
 
