@@ -1,6 +1,6 @@
 import hashlib
 import json
-from jail import jail_run
+from .jail import jail_run
 import shutil
 
 
@@ -31,7 +31,7 @@ class RunStep(object):
 
     def execute(self, path):
         spec = self.spec
-        if isinstance(spec, list)
+        if isinstance(spec, list):
             spec = ' && ' .join(self.spec)
         jail_run(path, spec)
 

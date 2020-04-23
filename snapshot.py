@@ -1,4 +1,4 @@
-from zfs import *
+from .zfs import *
 
 
 def new_snapshot(base, fun, name):
@@ -15,4 +15,6 @@ def new_snapshot(base, fun, name):
         zfs_run(['zfs', 'destroy', name])
         raise
     zfs_run(['zfs', 'set', 'readonly=on', name])
-    zfs_run(['zfs', 'snapshot', name + '@1'])
+    snap_name = name + '@1'
+    zfs_run(['zfs', 'snapshot', snap_name])
+    return snap_name

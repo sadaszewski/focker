@@ -2,5 +2,5 @@ base: freebsd-12.1
 
 steps:
   - run: |
-      pkg install python3 && \
-      pkg install py37-pip
+      pkg -y install -y python3 && \
+      pkg -y install -y py37-pip

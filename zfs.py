@@ -29,7 +29,7 @@ def zfs_snapshot_by_tag_or_sha256(s):
         raise ValueError('Reference not found: ' + s)
     if len(lst) > 1:
         raise ValueError('Ambiguous reference: ' + s)
-    return lst[0][3]
+    return (lst[0][3], lst[0][0])
 
 
 def zfs_clone(name, target_name):
@@ -42,6 +42,16 @@ def zfs_exists(name):
     except subprocess.CalledProcessError as e:
         return False
     return True
+
+
+def zfs_tag(name, props):
+    for (k, v) in props.items():
+        zfs_run(['zfs', 'set', k + '=' + v, name])
+
+
+def zfs_mountpoint(name):
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'mountpoint', '-H', name])
+    return lst[0][0]
 
 
 def zfs_init():

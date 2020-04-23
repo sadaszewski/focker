@@ -1,6 +1,8 @@
 from .zfs import *
 import os
 import yaml
+from .steps import create_step
+from .snapshot import new_snapshot
 
 
 def process_step(step, name):
@@ -18,12 +20,36 @@ def process_steps(steps, name):
 
 def build(spec):
     if 'base' not in spec:
-        raise ValueError('Missing base specification')
+        raise ValueError('Missing base in specification')
+
+    if 'steps' not in spec:
+        raise ValueError('Missing steps in specification')
+
     base = spec['base']
-    base = zfs_snapshot_by_tag_or_sha256(base)
+    base, base_sha256 = zfs_snapshot_by_tag_or_sha256(base)
 
     root = '/'.join(base.split('/')[:-1])
     print('base:', base, 'root:', root)
+
+    steps = spec['steps']
+    if not isinstance(steps, list):
+        steps = [ steps ]
+
+    for st in steps:
+        st = create_step(st)
+        st_sha256 = st.hash(base_sha256)
+        for pre in range(7, 64):
+            name = root + '/' + st_sha256[:pre]
+            if not zfs_exists(name):
+                break
+        snap_name = new_snapshot(base, lambda: st.execute(zfs_mountpoint(name)), name)
+        feed = {
+            'focker:sha256': st_sha256
+        }
+        zfs_tag(name, feed)
+        # zfs_tag(snap_name, feed)
+        base = snap_name
+        base_sha256 = st_sha256
 
 
 def command_image_build(args):
