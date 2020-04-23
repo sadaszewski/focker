@@ -51,10 +51,12 @@ def build(spec):
         feed = {
             'focker:sha256': st_sha256
         }
-        zfs_tag(name, feed)
-        # zfs_tag(snap_name, feed)
+        zfs_set_props(name, feed)
+        # zfs_set_props(snap_name, feed)
         base = snap_name
         base_sha256 = st_sha256
+
+    return (base, base_sha256)
 
 
 def command_image_build(args):
@@ -65,4 +67,6 @@ def command_image_build(args):
     with open(fname, 'r') as f:
         spec = yaml.safe_load(f)
     print('spec:', spec)
-    build(spec)
+    image, image_sha256 = build(spec)
+    zfs_untag(args.tag)
+    zfs_tag(image.split('@')[0], args.tag)

@@ -44,7 +44,7 @@ def zfs_exists(name):
     return True
 
 
-def zfs_tag(name, props):
+def zfs_set_props(name, props):
     for (k, v) in props.items():
         zfs_run(['zfs', 'set', k + '=' + v, name])
 
@@ -70,6 +70,23 @@ def zfs_snapshot_by_sha256(sha256):
     if len(lst) > 1:
         raise ValueError('Ambiguous snapshot sha256: ' + sha256)
     return lst[0][1]
+
+
+def zfs_tag(name, tags):
+    if len(tags) > 0:
+        zfs_run(['zfs', 'set', 'focker:tags=' + ' '.join(tags), name])
+    else:
+        zfs_run(['zfs', 'inherit', 'focker:tags', name])
+
+
+def zfs_untag(tags):
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'name,focker:tags', '-H'])
+    lst = filter(lambda a: any([b in a[1].split(' ') for b in tags]), lst)
+    for row in lst:
+        cur_tags = row[1].split(' ')
+        for t in tags:
+            cur_tags.remove(t)
+        zfs_tag(row[0], cur_tags)
 
 
 def zfs_init():

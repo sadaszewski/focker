@@ -15,6 +15,7 @@ def create_parser():
     parser = subparsers.add_parser('build')
     parser.set_defaults(func=command_image_build)
     parser.add_argument('focker_dir', type=str)
+    parser.add_argument('--tag', '-t', type=str, nargs='+', default=[])
 
     return parser_top
 
