@@ -20,7 +20,7 @@ def command_jail_run(args):
     base, _ = zfs_snapshot_by_tag_or_sha256(args.image)
     # root = '/'.join(base.split('/')[:-1])
     for _ in range(10**6):
-        name = bytes([ random.randint(0, 256) for _ in range(4) ]).hex()[:7]
+        name = bytes([ random.randint(0, 255) for _ in range(4) ]).hex()[:7]
         name = base.split('/')[0] + '/focker/jails/' + name
         if not zfs_exists(name):
             break
