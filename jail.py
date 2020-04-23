@@ -22,7 +22,10 @@ def jail_run(path, command):
     try:
         res = subprocess.run(command)
     finally:
-        subprocess.run(['jail', '-r', get_jid(path)])
+        try:
+            subprocess.run(['jail', '-r', get_jid(path)])
+        except ValueError:
+            pass
         subprocess.run(['umount', '-f', os.path.join(path, 'dev')])
     if res.returncode != 0:
         # subprocess.run(['umount', os.path.join(path, 'dev')])
