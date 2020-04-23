@@ -50,7 +50,10 @@ def build(spec, args):
         feed = {
             'focker:sha256': st_sha256
         }
-        snap_name = new_snapshot(base, lambda: st.execute(zfs_mountpoint(name), args=args) and zfs_set_props(name, feed), name)
+        def atomic():
+            st.execute(zfs_mountpoint(name), args=args)
+            zfs_set_props(name, feed)
+        snap_name = new_snapshot(base, atomic, name)
         # zfs_set_props(name, feed)
         # zfs_set_props(snap_name, feed)
         base = snap_name
