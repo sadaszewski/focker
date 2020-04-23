@@ -7,8 +7,12 @@ import shutil
 def jail_run(path, command):
     command = ['jail', '-c', 'host.hostname=' + os.path.split(path)[1], 'mount.devfs=1', 'interface=lo1', 'ip4.addr=127.0.1.0', 'path=' + path, 'command', '/bin/sh', '-c', command]
     print('Running:', ' '.join(command))
-    res = subprocess.run(command)
+    try:
+        res = subprocess.run(command)
+    finally:
+        subprocess.run(['umount', os.path.join(path, 'dev')])
     if res.returncode != 0:
+        subprocess.run(['umount', os.path.join(path, 'dev')])
         raise RuntimeError('Command failed')
 
 

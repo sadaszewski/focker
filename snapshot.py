@@ -11,10 +11,10 @@ def new_snapshot(base, fun, name):
     zfs_run(['zfs', 'clone', base, name])
     try:
         fun()
+        zfs_run(['zfs', 'set', 'readonly=on', name])
+        snap_name = name + '@1'
+        zfs_run(['zfs', 'snapshot', snap_name])
     except:
-        zfs_run(['zfs', 'destroy', name])
+        zfs_run(['zfs', 'destroy', '-f', name])
         raise
-    zfs_run(['zfs', 'set', 'readonly=on', name])
-    snap_name = name + '@1'
-    zfs_run(['zfs', 'snapshot', snap_name])
     return snap_name

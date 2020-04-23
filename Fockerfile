@@ -9,3 +9,5 @@ steps:
   - copy:
     - [ '/tmp/x', '/etc/x' ]
     - [ 'focker-compose.yml', '/etc/focker-compose.yml' ]
+  - run: |
+      pkg install py37-certbot

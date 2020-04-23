@@ -47,11 +47,11 @@ def build(spec, args):
             name = root + '/' + st_sha256[:pre]
             if not zfs_exists(name):
                 break
-        snap_name = new_snapshot(base, lambda: st.execute(zfs_mountpoint(name), args=args), name)
         feed = {
             'focker:sha256': st_sha256
         }
-        zfs_set_props(name, feed)
+        snap_name = new_snapshot(base, lambda: st.execute(zfs_mountpoint(name), args=args) and zfs_set_props(name, feed), name)
+        # zfs_set_props(name, feed)
         # zfs_set_props(snap_name, feed)
         base = snap_name
         base_sha256 = st_sha256
