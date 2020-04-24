@@ -57,6 +57,7 @@ def create_parser():
     parser.set_defaults(func=command_jail_run)
     parser.add_argument('image', type=str)
     parser.add_argument('--command', '-c', type=str, default='/bin/sh')
+    parser.add_argument('--mounts', '-m', type=str, nargs='+', default=[])
 
     # volume
     subparsers = subparsers_top.add_parser('volume').add_subparsers()

@@ -20,11 +20,12 @@ def command_volume_prune(args):
 
 def command_volume_list(args):
     poolname = zfs_poolname()
-    lst = zfs_parse_output(['zfs', 'list', '-o', 'name,refer,focker:sha256,focker:tags', '-H', '-r', poolname + '/focker/volumes'])
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'name,refer,focker:sha256,focker:tags,mountpoint', '-H', '-r', poolname + '/focker/volumes'])
     lst = list(filter(lambda a: a[2] != '-', lst))
     lst = list(map(lambda a: [ a[3], a[1],
-        a[2] if args.full_sha256 else a[2][:7] ], lst))
-    print(tabulate(lst, headers=['Tags', 'Size', 'SHA256']))
+        a[2] if args.full_sha256 else a[2][:7],
+        a[4] ], lst))
+    print(tabulate(lst, headers=['Tags', 'Size', 'SHA256', 'Mountpoint']))
 
 
 def command_volume_tag(args):
