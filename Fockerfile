@@ -1,13 +1,15 @@
 base: freebsd-latest
 
 steps:
-  - run: |
-      pkg -y install -y python3 && \
-      pkg -y install -y py37-pip
-  - run: |
-      pkg install -y py37-yaml
   - copy:
     - [ '/tmp/x', '/etc/x' ]
     - [ 'focker-compose.yml', '/etc/focker-compose.yml' ]
   - run: |
-      pkg install py37-certbot
+      pkg install -y python3 && \
+      pkg install -y py37-pip && \
+      pkg install -y py37-yaml && \
+      pkg install -y py37-certbot && \
+      mkdir -p /persist/etc/ssh && \
+      sed -i '' -e 's/\/etc\/ssh\/ssh_host_/\/persist\/etc\/ssh\/ssh_host_/g' /etc/rc.d/sshd && \
+      sed -i '' -e 's/\/etc\/ssh\/ssh_host_/\/persist\/etc\/ssh\/ssh_host_/g' /etc/ssh/sshd_config && \
+      sed -i '' -e 's/#HostKey/HostKey/g' /etc/ssh/sshd_config

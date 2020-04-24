@@ -8,6 +8,11 @@ from .image import command_image_build, \
     command_image_list, \
     command_image_prune, \
     command_image_remove
+from .volume import command_volume_create, \
+    command_volume_prune, \
+    command_volume_list, \
+    command_volume_tag, \
+    command_volume_untag
 import sys
 from .zfs import zfs_init
 from .jail import command_jail_run
@@ -17,6 +22,7 @@ def create_parser():
     parser_top = ArgumentParser()
     subparsers_top = parser_top.add_subparsers()
 
+    # image
     subparsers = subparsers_top.add_parser('image').add_subparsers()
     parser = subparsers.add_parser('build')
     parser.set_defaults(func=command_image_build)
@@ -45,11 +51,32 @@ def create_parser():
     # parser.add_argument('--remove-children', '-r', action='store_true')
     parser.add_argument('--remove-dependents', '-R', action='store_true')
 
+    # jail
     subparsers = subparsers_top.add_parser('jail').add_subparsers()
     parser = subparsers.add_parser('run')
     parser.set_defaults(func=command_jail_run)
     parser.add_argument('image', type=str)
     parser.add_argument('--command', '-c', type=str, default='/bin/sh')
+
+    # volume
+    subparsers = subparsers_top.add_parser('volume').add_subparsers()
+    parser = subparsers.add_parser('create')
+    parser.set_defaults(func=command_volume_create)
+    parser.add_argument('--tag', '-t', type=str, nargs='+', default=[])
+
+    parser = subparsers.add_parser('prune')
+    parser.set_defaults(func=command_volume_prune)
+
+    parser = subparsers.add_parser('list')
+    parser.set_defaults(func=command_volume_list)
+
+    parser = subparsers.add_parser('tag')
+    parser.set_defaults(func=command_volume_tag)
+    parser.add_argument('tags', type=str, nargs='+')
+
+    parser = subparsers.add_parser('untag')
+    parser.set_defaults(func=command_volume_untag)
+    parser.add_argument('tags', type=str, nargs='+')
 
     return parser_top
 
