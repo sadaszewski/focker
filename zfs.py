@@ -32,6 +32,23 @@ def zfs_snapshot_by_tag_or_sha256(s):
     return (lst[0][3], lst[0][0])
 
 
+def zfs_find(reference, focker_type='image', zfs_type='filesystem'):
+    poolname = zfs_poolname()
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256,focker:tags,type,name', '-H', '-t', zfs_type, '-r', poolname + '/focker/' + focker_type + 's'])
+    def match(sha256, tags, type, name):
+        if sha256.startswith(reference) or \
+            any(map(lambda a: a.startswith(reference), tags.split(' '))) or \
+            name.split('/')[-1].startswith(reference):
+            return True
+        return False
+    lst = list(filter(lambda a: match(*a), lst))
+    if len(lst) == 0:
+        raise ValueError('Reference not found: ' + reference)
+    if len(lst) > 1:
+        raise ValueError('Ambiguous reference: ' + reference)
+    return (lst[0][3], lst[0][0])
+
+
 def zfs_clone(name, target_name):
     zfs_run(['zfs', 'clone', name, target_name])
 
@@ -97,11 +114,16 @@ def zfs_untag(tags):
         zfs_tag(row[0], cur_tags, replace=True)
 
 
-def zfs_init():
+def zfs_poolname():
     poolname = zfs_parse_output(['zfs', 'list', '-H', '/'])
     if len(poolname) == 0:
         raise ValueError('Not a ZFS root')
     poolname = poolname[0][0].split('/')[0]
+    return poolname
+
+
+def zfs_init():
+    poolname = zfs_poolname()
     print('poolname:', poolname)
     for path in ['/focker', '/focker/images', '/focker/volumes', '/focker/jails']:
         if not os.path.exists(path):

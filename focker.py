@@ -3,6 +3,7 @@ import yaml
 import os
 # from weir import zfs, process
 from .image import command_image_build, \
+    command_image_tag, \
     command_image_untag, \
     command_image_list, \
     command_image_prune, \
@@ -21,6 +22,11 @@ def create_parser():
     parser.set_defaults(func=command_image_build)
     parser.add_argument('focker_dir', type=str)
     parser.add_argument('--tag', '-t', type=str, nargs='+', default=[])
+
+    parser = subparsers.add_parser('tag')
+    parser.set_defaults(func=command_image_tag)
+    parser.add_argument('reference', type=str)
+    parser.add_argument('tags', type=str, nargs='+')
 
     parser = subparsers.add_parser('untag')
     parser.set_defaults(func=command_image_untag)

@@ -20,6 +20,7 @@ def jail_run(path, command):
     command = ['jail', '-c', 'host.hostname=' + os.path.split(path)[1], 'persist=1', 'mount.devfs=1', 'interface=lo1', 'ip4.addr=127.0.1.0', 'path=' + path, 'command', '/bin/sh', '-c', command]
     print('Running:', ' '.join(command))
     try:
+        shutil.copyfile('/etc/resolv.conf', os.path.join(path, 'etc/resolv.conf'))
         res = subprocess.run(command)
     finally:
         try:
@@ -42,7 +43,6 @@ def command_jail_run(args):
             break
     zfs_run(['zfs', 'clone', base, name])
     try:
-        shutil.copyfile('/etc/resolv.conf', os.path.join(zfs_mountpoint(name), 'etc/resolv.conf'))
         jail_run(zfs_mountpoint(name), args.command)
         # subprocess.check_output(['jail', '-c', 'interface=lo1', 'ip4.addr=127.0.1.0', 'path=' + zfs_mountpoint(name), 'command', command])
     finally:
