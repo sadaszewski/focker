@@ -4,6 +4,7 @@ import yaml
 from .steps import create_step
 from .snapshot import new_snapshot
 from tabulate import tabulate
+import subprocess
 
 
 def process_step(step, name):
@@ -108,3 +109,16 @@ def command_image_prune(args):
                 zfs_run(['zfs', 'destroy', '-f', r[3]])
                 again = True
     # zfs_parse_output(['zfs'])
+
+
+def command_image_remove(args):
+    snap, snap_sha256 = zfs_snapshot_by_tag_or_sha256(args.reference)
+    ds = snap.split('@')[0]
+    command = ['zfs', 'destroy', '-r']
+    #if args.remove_children:
+    #    command.append('-r')
+    if args.remove_dependents:
+        command.append('-R')
+    command.append(ds)
+    subprocess.run(command)
+    # zfs_run(['zfs', 'destroy', ds])

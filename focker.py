@@ -5,7 +5,8 @@ import os
 from .image import command_image_build, \
     command_image_untag, \
     command_image_list, \
-    command_image_prune
+    command_image_prune, \
+    command_image_remove
 import sys
 from .zfs import zfs_init
 from .jail import command_jail_run
@@ -32,6 +33,12 @@ def create_parser():
     parser = subparsers.add_parser('prune')
     parser.set_defaults(func=command_image_prune)
 
+    parser = subparsers.add_parser('remove')
+    parser.set_defaults(func=command_image_remove)
+    parser.add_argument('reference', type=str)
+    # parser.add_argument('--remove-children', '-r', action='store_true')
+    parser.add_argument('--remove-dependents', '-R', action='store_true')
+
     subparsers = subparsers_top.add_parser('jail').add_subparsers()
     parser = subparsers.add_parser('run')
     parser.set_defaults(func=command_jail_run)
@@ -48,6 +55,7 @@ def main():
     if not hasattr(args, 'func'):
         sys.exit('You must choose a mode')
     args.func(args)
+
 
 if __name__ == '__main__':
     main()
