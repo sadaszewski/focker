@@ -74,8 +74,8 @@ def command_image_build(args):
         spec = yaml.safe_load(f)
     print('spec:', spec)
     image, image_sha256 = build(spec, args)
-    zfs_untag(args.tag)
-    zfs_tag(image.split('@')[0], args.tag)
+    zfs_untag(args.tags)
+    zfs_tag(image.split('@')[0], args.tags)
 
 
 def command_image_tag(args):

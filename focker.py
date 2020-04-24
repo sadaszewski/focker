@@ -27,7 +27,7 @@ def create_parser():
     parser = subparsers.add_parser('build')
     parser.set_defaults(func=command_image_build)
     parser.add_argument('focker_dir', type=str)
-    parser.add_argument('--tag', '-t', type=str, nargs='+', default=[])
+    parser.add_argument('--tags', '-t', type=str, nargs='+', default=[])
 
     parser = subparsers.add_parser('tag')
     parser.set_defaults(func=command_image_tag)
@@ -62,7 +62,7 @@ def create_parser():
     subparsers = subparsers_top.add_parser('volume').add_subparsers()
     parser = subparsers.add_parser('create')
     parser.set_defaults(func=command_volume_create)
-    parser.add_argument('--tag', '-t', type=str, nargs='+', default=[])
+    parser.add_argument('--tags', '-t', type=str, nargs='+', default=[])
 
     parser = subparsers.add_parser('prune')
     parser.set_defaults(func=command_volume_prune)
