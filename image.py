@@ -112,7 +112,7 @@ def command_image_prune(args):
                 continue
             if r[3] not in used:
                 print('Removing:', r[3])
-                zfs_run(['zfs', 'destroy', '-f', r[3]])
+                zfs_run(['zfs', 'destroy', '-r', '-f', r[3]])
                 again = True
     # zfs_parse_output(['zfs'])
 
