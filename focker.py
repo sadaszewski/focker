@@ -69,9 +69,11 @@ def create_parser():
 
     parser = subparsers.add_parser('list')
     parser.set_defaults(func=command_volume_list)
+    parser.add_argument('--full-sha256', '-f', action='store_true')
 
     parser = subparsers.add_parser('tag')
     parser.set_defaults(func=command_volume_tag)
+    parser.add_argument('reference', type=str)
     parser.add_argument('tags', type=str, nargs='+')
 
     parser = subparsers.add_parser('untag')

@@ -1,5 +1,6 @@
 from .misc import random_sha256_hexdigest
 from .zfs import *
+from tabulate import tabulate
 
 
 def command_volume_create(args):
@@ -14,16 +15,23 @@ def command_volume_create(args):
 
 
 def command_volume_prune(args):
-    raise NotImplementedError
+    zfs_prune(focker_type='volume')
 
 
 def command_volume_list(args):
-    raise NotImplementedError
+    poolname = zfs_poolname()
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'name,refer,focker:sha256,focker:tags', '-H', '-r', poolname + '/focker/volumes'])
+    lst = list(filter(lambda a: a[2] != '-', lst))
+    lst = list(map(lambda a: [ a[3], a[1],
+        a[2] if args.full_sha256 else a[2][:7] ], lst))
+    print(tabulate(lst, headers=['Tags', 'Size', 'SHA256']))
 
 
 def command_volume_tag(args):
-    raise NotImplementedError
+    name, _ = zfs_find(args.reference, focker_type='volume')
+    zfs_untag(args.tags)
+    zfs_tag(name, args.tags)
 
 
 def command_volume_untag(args):
-    raise NotImplementedError
+    zfs_untag(args.tags)

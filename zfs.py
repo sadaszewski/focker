@@ -49,6 +49,26 @@ def zfs_find(reference, focker_type='image', zfs_type='filesystem'):
     return (lst[0][3], lst[0][0])
 
 
+def zfs_prune(focker_type='image'):
+    poolname = zfs_poolname()
+    again = True
+    while again:
+        again = False
+        lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256,focker:tags,origin,name', '-H', '-r', poolname + '/focker/' + focker_type + 's'])
+        used = set()
+        for r in lst:
+            if r[2] == '-':
+                continue
+            used.add(r[2].split('@')[0])
+        for r in lst:
+            if r[0] == '-' or r[1] != '-':
+                continue
+            if r[3] not in used:
+                print('Removing:', r[3])
+                zfs_run(['zfs', 'destroy', '-r', '-f', r[3]])
+                again = True
+
+
 def zfs_clone(name, target_name):
     zfs_run(['zfs', 'clone', name, target_name])
 
