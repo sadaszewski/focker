@@ -3,6 +3,7 @@ import os
 import yaml
 from .steps import create_step
 from .snapshot import new_snapshot
+from tabulate import tabulate
 
 
 def process_step(step, name):
@@ -78,3 +79,12 @@ def command_image_build(args):
 
 def command_image_untag(args):
     zfs_untag(args.tags)
+
+
+def command_image_list(args):
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'name,refer,focker:sha256,focker:tags,origin', '-H'])
+    lst = list(filter(lambda a: a[2] != '-', lst))
+    lst = list(map(lambda a: [ a[3], a[1],
+        a[2] if args.full_sha256 else a[2][:7],
+        a[4].split('/')[-1].split('@')[0] ], lst))
+    print(tabulate(lst, headers=['Tags', 'Size', 'SHA256', 'Base']))
