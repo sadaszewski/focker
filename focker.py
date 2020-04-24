@@ -4,7 +4,8 @@ import os
 # from weir import zfs, process
 from .image import command_image_build, \
     command_image_untag, \
-    command_image_list
+    command_image_list, \
+    command_image_prune
 import sys
 from .zfs import zfs_init
 from .jail import command_jail_run
@@ -27,6 +28,9 @@ def create_parser():
     parser = subparsers.add_parser('list')
     parser.set_defaults(func=command_image_list)
     parser.add_argument('--full-sha256', '-f', action='store_true')
+
+    parser = subparsers.add_parser('prune')
+    parser.set_defaults(func=command_image_prune)
 
     subparsers = subparsers_top.add_parser('jail').add_subparsers()
     parser = subparsers.add_parser('run')

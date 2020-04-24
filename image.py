@@ -88,3 +88,23 @@ def command_image_list(args):
         a[2] if args.full_sha256 else a[2][:7],
         a[4].split('/')[-1].split('@')[0] ], lst))
     print(tabulate(lst, headers=['Tags', 'Size', 'SHA256', 'Base']))
+
+
+def command_image_prune(args):
+    again = True
+    while again:
+        again = False
+        lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256,focker:tags,origin,name', '-H'])
+        used = set()
+        for r in lst:
+            if r[2] == '-':
+                continue
+            used.add(r[2].split('@')[0])
+        for r in lst:
+            if r[0] == '-' or r[1] != '-':
+                continue
+            if r[3] not in used:
+                print('Removing:', r[3])
+                zfs_run(['zfs', 'destroy', '-f', r[3]])
+                again = True
+    # zfs_parse_output(['zfs'])
