@@ -56,6 +56,10 @@ def jail_run(path, command, mounts=[]):
         raise RuntimeError('Command failed')
 
 
+def jail_remove(path):
+    print('Removing jail:', path)
+
+
 def command_jail_run(args):
     base, _ = zfs_snapshot_by_tag_or_sha256(args.image)
     # root = '/'.join(base.split('/')[:-1])
@@ -95,3 +99,15 @@ def command_jail_tag(args):
 
 def command_jail_untag(args):
     zfs_untag(args.tags, focker_type='jail')
+
+
+def command_jail_prune(args):
+    jails = subprocess.check_output(['jls', '--libxo=json'])
+    jails = json.loads(jails)['jail-information']['jail']
+    used = set()
+    for j in jails:
+        used.add(j['path'])
+    lst = zfs_list(fields=['focker:sha256,focker:tags,mountpoint,name'], focker_type='jail')
+    for j in lst:
+        if j[1] == '-' and j[2] not in used:
+            jail_remove(j[3])
