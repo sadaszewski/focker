@@ -49,6 +49,15 @@ def zfs_find(reference, focker_type='image', zfs_type='filesystem'):
     return (lst[0][3], lst[0][0])
 
 
+def zfs_list(fields=['name'], focker_type='image', zfs_type='filesystem'):
+    poolname = zfs_poolname()
+    fields.append('focker:sha256')
+    lst = zfs_parse_output(['zfs', 'list', '-o', ','.join(fields),
+        '-H', '-t', zfs_type, '-r', poolname + '/focker/' + focker_type + 's'])
+    lst = list(filter(lambda a: a[-1] != '-', lst))
+    return lst
+
+
 def zfs_prune(focker_type='image'):
     poolname = zfs_poolname()
     again = True

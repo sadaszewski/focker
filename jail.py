@@ -3,6 +3,7 @@ from .zfs import *
 import random
 import shutil
 import json
+from tabulate import tabulate
 
 
 def get_jid(path):
@@ -59,11 +60,12 @@ def command_jail_run(args):
     base, _ = zfs_snapshot_by_tag_or_sha256(args.image)
     # root = '/'.join(base.split('/')[:-1])
     for _ in range(10**6):
-        name = bytes([ random.randint(0, 255) for _ in range(4) ]).hex()[:7]
+        sha256 = bytes([ random.randint(0, 255) for _ in range(32) ]).hex()
+        name = sha256[:7]
         name = base.split('/')[0] + '/focker/jails/' + name
         if not zfs_exists(name):
             break
-    zfs_run(['zfs', 'clone', base, name])
+    zfs_run(['zfs', 'clone', '-o', 'focker:sha256=' + sha256, base, name])
     try:
         mounts = list(map(lambda a: a.split(':'), args.mounts))
         jail_run(zfs_mountpoint(name), args.command, mounts)
@@ -72,3 +74,14 @@ def command_jail_run(args):
         # subprocess.run(['umount', zfs_mountpoint(name) + '/dev'])
         zfs_run(['zfs', 'destroy', '-f', name])
         # raise
+
+def command_jail_list(args):
+    lst = zfs_list(fields=['focker:sha256,focker:tags,mountpoint'], focker_type='jail')
+    jails = subprocess.check_output(['jls', '--libxo=json'])
+    jails = json.loads(jails)['jail-information']['jail']
+    jails = { j['path']: j for j in jails }
+    lst = list(map(lambda a: [ a[1],
+        a[0] if args.full_sha256 else a[0][:7],
+        a[2],
+        jails[a[2]]['jid'] if a[2] in jails else '-' ], lst))
+    print(tabulate(lst, headers=['Tags', 'SHA256', 'mountpoint', 'JID']))

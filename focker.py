@@ -15,7 +15,8 @@ from .volume import command_volume_create, \
     command_volume_untag
 import sys
 from .zfs import zfs_init
-from .jail import command_jail_run
+from .jail import command_jail_run, \
+    command_jail_list
 
 
 def create_parser():
@@ -58,6 +59,10 @@ def create_parser():
     parser.add_argument('image', type=str)
     parser.add_argument('--command', '-c', type=str, default='/bin/sh')
     parser.add_argument('--mounts', '-m', type=str, nargs='+', default=[])
+
+    parser = subparsers.add_parser('list')
+    parser.set_defaults(func=command_jail_list)
+    parser.add_argument('--full-sha256', '-f', action='store_true')
 
     # volume
     subparsers = subparsers_top.add_parser('volume').add_subparsers()
