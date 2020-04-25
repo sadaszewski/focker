@@ -131,9 +131,10 @@ def zfs_tag(name, tags, replace=False):
         zfs_run(['zfs', 'inherit', 'focker:tags', name])
 
 
-def zfs_untag(tags):
+def zfs_untag(tags, focker_type='image'):
     # print('zfs_untag(), tags:', tags)
-    lst = zfs_parse_output(['zfs', 'list', '-o', 'name,focker:tags', '-H'])
+    poolname = zfs_poolname()
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'name,focker:tags', '-H', '-r', poolname + '/focker/' + focker_type + 's'])
     lst = filter(lambda a: any([b in a[1].split(' ') for b in tags]), lst)
     for row in lst:
         cur_tags = row[1].split(' ')

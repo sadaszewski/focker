@@ -85,3 +85,13 @@ def command_jail_list(args):
         a[2],
         jails[a[2]]['jid'] if a[2] in jails else '-' ], lst))
     print(tabulate(lst, headers=['Tags', 'SHA256', 'mountpoint', 'JID']))
+
+
+def command_jail_tag(args):
+    name, _ = zfs_find(args.reference, focker_type='jail')
+    zfs_untag(args.tags, focker_type='jail')
+    zfs_tag(name, args.tags)
+
+
+def command_jail_untag(args):
+    zfs_untag(args.tags, focker_type='jail')

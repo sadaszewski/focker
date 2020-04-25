@@ -16,7 +16,9 @@ from .volume import command_volume_create, \
 import sys
 from .zfs import zfs_init
 from .jail import command_jail_run, \
-    command_jail_list
+    command_jail_list, \
+    command_jail_tag, \
+    command_jail_untag
 
 
 def create_parser():
@@ -63,6 +65,15 @@ def create_parser():
     parser = subparsers.add_parser('list')
     parser.set_defaults(func=command_jail_list)
     parser.add_argument('--full-sha256', '-f', action='store_true')
+
+    parser = subparsers.add_parser('tag')
+    parser.set_defaults(func=command_jail_tag)
+    parser.add_argument('reference', type=str)
+    parser.add_argument('tags', type=str, nargs='+')
+
+    parser = subparsers.add_parser('untag')
+    parser.set_defaults(func=command_jail_untag)
+    parser.add_argument('tags', type=str, nargs='+')
 
     # volume
     subparsers = subparsers_top.add_parser('volume').add_subparsers()
