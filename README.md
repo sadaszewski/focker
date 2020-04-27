@@ -61,6 +61,8 @@ At this point, Focker is ready to use.
 
 ### `focker` command syntax
 
+The `focker` command is the single entrypoint to all of the Focker's functionality. The overview of its syntax is presented below as a tree where the `focker` command is the root, the first level of descendants represents the choice of Level 1 mode (`image`, `jail`, `volume` or `compose`), the second level - the Level 2 mode (dependent on L1 mode) and the final third level lists required and optional arguments specific to the given combination of L1/L2 modes.
+
 ```
 focker
 |- image|img|im|i
@@ -76,11 +78,11 @@ focker
 |  |  `- --full-sha256|-f
 |  |- prune|p
 |  `- remove|r
-|  |  |- REFERENCE
-|  |  `- --remove-dependents|-R
+|     |- REFERENCE
+|     `- --remove-dependents|-R
 |- jail|j
 |  |- create|c
-|  |  |- image
+|  |  |- IMAGE
 |  |  |- --command|-c COMMAND (default: /bin/sh)
 |  |  |- --env|-e VAR1:VALUE1 [...VARN:VALUEN]
 |  |  |- --mounts|-m FROM1:ON1 [...FROMN:ONN]
@@ -107,14 +109,78 @@ focker
 |  |- untag|u
 |  |  `- TAG [...TAG]
 |  `- prune|p
-|  |  `- --force|-f
+|     `- --force|-f
 |- volume
 |  |- create
+|  |  `- --tags|-t TAG [...TAG]
 |  |- prune
 |  |- list
+|  |  `- --full-sha256|-f
 |  |- tag
+|  |  |- REFERENCE
+|  |  `- TAG [...TAG]
 |  `- untag
+|     `- TAG [...TAG]
 `- compose
    |- build
+   |  `- FILENAME
    `- run
+      |- FILENAME
+      `- COMMAND
 ```
+
+Individual combinations are briefly described below:
+
+#### focker image
+
+##### build 
+
+##### tag
+
+##### untag
+
+##### list
+
+##### prune
+
+##### remove
+
+#### focker jail
+
+##### create
+
+##### start
+
+##### stop
+
+##### remove
+
+##### exec
+
+##### oneshot
+
+##### list
+
+##### tag
+
+##### untag
+
+##### prune
+
+#### focker volume
+
+##### create
+
+##### prune
+
+##### list
+
+##### tag
+
+##### untag
+
+#### focker compose
+
+##### build
+
+##### run
