@@ -1,3 +1,10 @@
+#
+# Copyright (C) Stanislaw Adaszewski, 2020
+# License: GNU General Public License v3.0
+# URL: https://github.com/sadaszewski/focker
+# URL: https://adared.ch/focker
+#
+
 import hashlib
 import json
 from .jail import jail_run
