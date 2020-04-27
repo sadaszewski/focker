@@ -116,9 +116,12 @@ def jail_run(path, command, mounts=[]):
 def jail_stop(path):
     try:
         jid = get_jid(path)
-        subprocess.run(['jail', '-r', jid])
+        jailname = os.path.split(path)[-1]
+        subprocess.run(['jail', '-r', jailname])
     except ValueError:
         print('JID could not be determined')
+    # import time
+    # time.sleep(1)
     mi = getmntinfo()
     for m in mi:
         mntonname = m['f_mntonname'].decode('utf-8')
@@ -163,6 +166,32 @@ def command_jail_create(args):
         args.hostname )
     print(sha256)
     print(path)
+
+
+def command_jail_start(args):
+    name, _ = zfs_find(args.reference, focker_type='jail')
+    path = zfs_mountpoint(name)
+    jailname = os.path.split(path)[-1]
+    subprocess.run(['jail', '-c', jailname])
+
+
+def command_jail_stop(args):
+    name, _ = zfs_find(args.reference, focker_type='jail')
+    path = zfs_mountpoint(name)
+    jail_stop(path)
+
+
+def command_jail_remove(args):
+    name, _ = zfs_find(args.reference, focker_type='jail')
+    path = zfs_mountpoint(name)
+    jail_remove(path)
+
+
+def command_jail_exec(args):
+    name, _ = zfs_find(args.reference, focker_type='jail')
+    path = zfs_mountpoint(name)
+    jid = get_jid(path)
+    subprocess.run(['jexec', str(jid)] + args.command)
 
 
 def command_jail_run(args):

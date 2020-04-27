@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import argparse
 import yaml
 import os
 # from weir import zfs, process
@@ -16,6 +17,10 @@ from .volume import command_volume_create, \
 import sys
 from .zfs import zfs_init
 from .jail import command_jail_create, \
+    command_jail_start, \
+    command_jail_stop, \
+    command_jail_remove, \
+    command_jail_exec, \
     command_jail_run, \
     command_jail_list, \
     command_jail_tag, \
@@ -66,6 +71,23 @@ def create_parser():
     parser.add_argument('--env', '-e', type=str, nargs='+', default=[])
     parser.add_argument('--mounts', '-m', type=str, nargs='+', default=[])
     parser.add_argument('--hostname', '-n', type=str)
+
+    parser = subparsers.add_parser('start')
+    parser.set_defaults(func=command_jail_start)
+    parser.add_argument('reference', type=str)
+
+    parser = subparsers.add_parser('stop')
+    parser.set_defaults(func=command_jail_stop)
+    parser.add_argument('reference', type=str)
+
+    parser = subparsers.add_parser('remove')
+    parser.set_defaults(func=command_jail_remove)
+    parser.add_argument('reference', type=str)
+
+    parser = subparsers.add_parser('exec')
+    parser.set_defaults(func=command_jail_exec)
+    parser.add_argument('reference', type=str)
+    parser.add_argument('command', type=str, nargs=argparse.REMAINDER, default=['/bin/sh'])
 
     parser = subparsers.add_parser('run')
     parser.set_defaults(func=command_jail_run)
