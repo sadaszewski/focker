@@ -4,7 +4,7 @@ import io
 import os
 
 
-class AmbiguousReference(ValueError):
+class AmbiguousValueError(ValueError):
     def __init__(self, msg):
         super().__init__(msg)
 
@@ -34,24 +34,31 @@ def zfs_snapshot_by_tag_or_sha256(s, focker_type='image'):
     if len(lst) == 0:
         raise ValueError('Reference not found: ' + s)
     if len(lst) > 1:
-        raise AmbiguousReference('Ambiguous reference: ' + s)
+        raise AmbiguousValueError('Ambiguous reference: ' + s)
     return (lst[0][3], lst[0][0])
 
 
 def zfs_find(reference, focker_type='image', zfs_type='filesystem'):
     poolname = zfs_poolname()
     lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256,focker:tags,type,name', '-H', '-t', zfs_type, '-r', poolname + '/focker/' + focker_type + 's'])
-    def match(sha256, tags, type, name):
-        if sha256.startswith(reference) or \
-            any(map(lambda a: a.startswith(reference), tags.split(' '))) or \
-            name.split('/')[-1].startswith(reference):
+    def match(sha256, tags, type, name, exact=False):
+        if exact:
+            predicate = lambda a: (a == reference)
+        else:
+            predicate = lambda a: a.startswith(reference)
+        if predicate(sha256) or \
+            any(map(predicate, tags.split(' '))) or \
+            predicate(name.split('/')[-1]):
             return True
         return False
     lst = list(filter(lambda a: match(*a), lst))
+    exact_lst = list(filter(lambda a: match(*a, exact=True), lst))
     if len(lst) == 0:
         raise ValueError('Reference not found: ' + reference)
     if len(lst) > 1:
-        raise AmbiguousReference('Ambiguous reference: ' + reference)
+        if len(exact_lst) == 1:
+            return (exact_lst[0][3], exact_lst[0][0])
+        raise AmbiguousValueError('Ambiguous reference: ' + reference)
     return (lst[0][3], lst[0][0])
 
 
@@ -124,7 +131,7 @@ def zfs_snapshot_by_sha256(sha256, focker_type='image'):
     if len(lst) == 0:
         raise ValueError('Snapshot with given sha256 does not exist: ' + sha256)
     if len(lst) > 1:
-        raise AmbiguousReference('Ambiguous snapshot sha256: ' + sha256)
+        raise AmbiguousValueError('Ambiguous snapshot sha256: ' + sha256)
     return lst[0][1]
 
 
@@ -163,7 +170,7 @@ def zfs_name(path):
     if len(lst) == 0:
         raise ValueError('Not a ZFS path')
     if len(lst) > 1:
-        raise AmbiguousReference('Ambiguous ZFS path')
+        raise AmbiguousValueError('Ambiguous ZFS path')
     return lst[0][0]
 
 

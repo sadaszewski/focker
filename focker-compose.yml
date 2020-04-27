@@ -9,12 +9,12 @@ jails:
     image: wordpress-5
     mounts:
       test-volume2: /mnt/volume2
-      test-volume: /mnt/volume1
+      test-volume2: /mnt/volume1
     ip4.addr: 127.0.1.1
 
 volumes:
   test-volume2: {}
-  test-volume: {}
+  test-volume2: {}
 
 commands:
   backup:

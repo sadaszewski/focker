@@ -27,6 +27,9 @@ from .jail import command_jail_create, \
     command_jail_tag, \
     command_jail_untag, \
     command_jail_prune
+from .compose import \
+    command_compose_build, \
+    command_compose_run
 
 
 class ListForwarderFunctor(object):
@@ -63,7 +66,7 @@ def create_parser():
 
     # image
     subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \
-        for cmd in ['image', 'i'] ])
+        for cmd in ['image', 'img', 'im', 'i'] ])
     subparsers.required = True
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['build', 'b']])
     parser.set_defaults(func=command_image_build)
@@ -148,7 +151,7 @@ def create_parser():
 
     # volume
     subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \
-        for cmd in ['volume', 'v'] ])
+        for cmd in ['volume', 'vol', 'v'] ])
     subparsers.required = True
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['create', 'c']])
     parser.set_defaults(func=command_volume_create)
@@ -169,6 +172,19 @@ def create_parser():
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['untag', 'u']])
     parser.set_defaults(func=command_volume_untag)
     parser.add_argument('tags', type=str, nargs='+')
+
+    # compose
+    subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \
+        for cmd in ['compose', 'comp', 'c'] ])
+    subparsers.required = True
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['build', 'b']])
+    parser.set_defaults(func=command_compose_build)
+    parser.add_argument('filename', type=str)
+
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['run', 'r']])
+    parser.set_defaults(func=command_compose_run)
+    parser.add_argument('filename', type=str)
+    parser.add_argument('command', type=str)
 
     return parser_top
 
