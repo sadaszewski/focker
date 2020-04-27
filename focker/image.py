@@ -98,8 +98,9 @@ def command_image_prune(args):
     again = True
     while again:
         again = False
-        lst = zfs_list(fields=['focker:sha256', 'focker:tags', 'origin', 'name'],
-            focker_type='image')
+        fields=['focker:sha256', 'focker:tags', 'origin', 'name']
+        lst = zfs_list(fields=fields, focker_type='image')
+        lst += zfs_list(fields=fields, focker_type='jail')
         # lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256,focker:tags,origin,name', '-H', '-r', poolname + '/focker/images'])
         used = set()
         for r in lst:
