@@ -2,10 +2,17 @@ import os
 import yaml
 from .zfs import AmbiguousValueError, \
     zfs_find, \
-    zfs_tag
+    zfs_tag, \
+    zfs_untag, \
+    zfs_mountpoint
+from .jail import jail_fs_create, \
+    jail_create, \
+    jail_remove
 from .misc import random_sha256_hexdigest, \
     find_prefix
 import subprocess
+import jailconf
+import os
 
 
 def build_volumes(spec):
@@ -34,7 +41,33 @@ def build_images(spec, path):
 
 
 def build_jails(spec):
-    print('build_jails(): NotImplementedError')
+    #if os.path.exists('/etc/jail.conf'):
+    #    conf = jailconf.load('/etc/jail.conf')
+    #else:
+    #    conf = jailconf.JailConf()
+    for (jailname, jailspec) in spec.items():
+        try:
+            name, _ = zfs_find(jailname, focker_type='jail')
+            jail_remove(zfs_mountpoint(name))
+        except AmbiguousValueError:
+            raise
+        except ValueError:
+            pass
+        name = jail_fs_create(jailspec['image'])
+        zfs_untag([ jailname ], focker_type='jail')
+        zfs_tag(name, [ jailname ])
+        path = zfs_mountpoint(name)
+        jail_create(path,
+            jailspec.get('exec.start', '/bin/sh /etc/rc'),
+            jailspec.get('env', {}),
+            [ [from_, on] \
+                for (from_, on) in jailspec.get('mounts', {}).items() ],
+            hostname=jailname,
+            overrides={
+                'exec.stop': jailspec.get('exec.stop', '/bin/sh /etc/rc.shutdown'),
+                'ip4.addr': jailspec.get('ip4.addr', '127.0.1.0'),
+                'interface': jailspec.get('interface', 'lo1')
+            })
 
 
 def command_compose_build(args):

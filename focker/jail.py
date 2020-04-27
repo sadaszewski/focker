@@ -47,7 +47,7 @@ def quote(s):
     return s
 
 
-def jail_create(path, command, env, mounts, hostname=None):
+def jail_create(path, command, env, mounts, hostname=None, overrides={}):
     name = os.path.split(path)[-1]
     if os.path.exists('/etc/jail.conf'):
         conf = jailconf.load('/etc/jail.conf')
@@ -83,6 +83,8 @@ def jail_create(path, command, env, mounts, hostname=None):
     blk['mount.devfs'] = True
     blk['exec.clean'] = True
     blk['host.hostname'] = hostname or name
+    for (k, v) in overrides.items():
+        blk[k] = quote(v)
     conf.write('/etc/jail.conf')
     return name
 
