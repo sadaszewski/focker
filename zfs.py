@@ -4,6 +4,11 @@ import io
 import os
 
 
+class AmbiguousReference(ValueError):
+    def __init__(self, msg):
+        super().__init__(msg)
+
+
 def zfs_run(command):
     # print('Running:', command)
     out = subprocess.check_output(command, stderr=subprocess.STDOUT)
@@ -29,7 +34,7 @@ def zfs_snapshot_by_tag_or_sha256(s, focker_type='image'):
     if len(lst) == 0:
         raise ValueError('Reference not found: ' + s)
     if len(lst) > 1:
-        raise ValueError('Ambiguous reference: ' + s)
+        raise AmbiguousReference('Ambiguous reference: ' + s)
     return (lst[0][3], lst[0][0])
 
 
@@ -46,7 +51,7 @@ def zfs_find(reference, focker_type='image', zfs_type='filesystem'):
     if len(lst) == 0:
         raise ValueError('Reference not found: ' + reference)
     if len(lst) > 1:
-        raise ValueError('Ambiguous reference: ' + reference)
+        raise AmbiguousReference('Ambiguous reference: ' + reference)
     return (lst[0][3], lst[0][0])
 
 
@@ -119,7 +124,7 @@ def zfs_snapshot_by_sha256(sha256, focker_type='image'):
     if len(lst) == 0:
         raise ValueError('Snapshot with given sha256 does not exist: ' + sha256)
     if len(lst) > 1:
-        raise ValueError('Ambiguous snapshot sha256: ' + sha256)
+        raise AmbiguousReference('Ambiguous snapshot sha256: ' + sha256)
     return lst[0][1]
 
 
@@ -158,7 +163,7 @@ def zfs_name(path):
     if len(lst) == 0:
         raise ValueError('Not a ZFS path')
     if len(lst) > 1:
-        raise ValueError('Ambiguous ZFS path')
+        raise AmbiguousReference('Ambiguous ZFS path')
     return lst[0][0]
 
 
