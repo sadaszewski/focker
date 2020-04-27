@@ -1,23 +1,30 @@
-variables:
-  ext_if: em0
-  gateway_ip: 127.0.0.2
+#
+# focker compose wordpress.yml
+# focker compose wordpress.yml backup
+# focker compose wordpress.yml restore
+#
 
-defaults:
-  jail:
-    mount.devfs: true
-    interface: lo1
-    exec.start: /bin/sh /etc/rc
-    exec.stop: /bin/sh /etc/rc.shutdown
-  pf: |
-    rdr on $(ext_if) proto tcp from any to any port 80 -> $(jail_ip)
-
-services:
-  gateway:
-    image: freebsd-12.1
-    jail:
-      ip4.address: $(gateway_ip)
-    pf:
-      - pass on $(ext_if)
+jails:
+  wordpress:
+    image: wordpress-5
+    mounts:
+      test-volume2: /mnt/volume2
+      test-volume: /mnt/volume1
+    ip4.addr: 127.0.1.1
 
 volumes:
-  gateway-data: {}
+  test-volume2: {}
+  test-volume: {}
+
+commands:
+  backup:
+    jail: wordpress
+    command: |
+      mysqldump >/mnt/volume2/backup.sql
+    mounts:
+      test-volume2: /mnt/volume2
+
+  restore:
+    jail: wordpress
+    command: |
+      mysql </mnt/volume2/backup.sql

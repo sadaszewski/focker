@@ -66,13 +66,13 @@ def command_image_build(args):
 
 
 def command_image_tag(args):
-    zfs_untag(args.tags)
+    zfs_untag(args.tags, focker_type='image')
     name, _ = zfs_find(args.reference, focker_type='image', zfs_type='filesystem')
     zfs_tag(name, args.tags)
 
 
 def command_image_untag(args):
-    zfs_untag(args.tags)
+    zfs_untag(args.tags, focker_type='image')
 
 
 def command_image_list(args):
