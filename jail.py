@@ -6,15 +6,37 @@ import json
 from tabulate import tabulate
 import os
 import jailconf
-import shlex
 from .mount import getmntinfo
 
 
+def jail_fs_create(image):
+    image, _ = zfs_find(image, focker_type='image', zfs_type='snapshot')
+    sha256 = bytes([ random.randint(0, 255) for _ in range(32) ]).hex()
+    lst = zfs_list(fields=['focker:sha256'], focker_type='image')
+    lst = list(filter(lambda a: a[0] == sha256, lst))
+    if lst:
+        raise ValueError('Whew, a collision...')
+    poolname = zfs_poolname()
+    for pre in range(7, 32):
+        name = poolname + '/focker/jails/' + sha256[:pre]
+        if not zfs_exists(name):
+            break
+    zfs_run(['zfs', 'clone', '-o', 'focker:sha256=' + sha256, image, name])
+    return name
+
+
 def gen_env_command(command, env):
-    env = [ 'export ' + k + '=' + shlex.quote(v) \
+    env = [ 'export ' + k + '=' + quote(v) \
         for (k, v) in env.items() ]
     command = ' && '.join(env + [ command ])
     return command
+
+
+def quote(s):
+    s = s.replace('\\', '\\\\')
+    s = s.replace('\'', '\\\'')
+    s = '\'' + s + '\''
+    return s
 
 
 def jail_create(path, command, env, mounts, hostname=None):
@@ -27,24 +49,26 @@ def jail_create(path, command, env, mounts, hostname=None):
     blk['path'] = path
     if command:
         command = gen_env_command(command, env)
+        command = quote(command)
+        print('command:', command)
         blk['exec.start'] = command
     prestart = [ 'cp /etc/resolv.conf ' +
-        shlex.quote(os.path.join(path, 'etc/resolv.conf')) ]
+        quote(os.path.join(path, 'etc/resolv.conf')) ]
     poststop = []
     if mounts:
         for (from_, on) in mounts:
             if not from_.startswith('/'):
                 from_, _ = zfs_find(from_, focker_type='volume')
                 from_ = zfs_mountpoint(from_)
-            prestart.append('mount -t nullfs ' + shlex.quote(from_) +
-                ' ' + shlex.quote(os.path.join(path, on.strip('/'))))
+            prestart.append('mount -t nullfs ' + quote(from_) +
+                ' ' + quote(os.path.join(path, on.strip('/'))))
         poststop += [ 'umount -f ' +
             os.path.join(path, on.strip('/')) \
             for (_, on) in reversed(mounts) ]
     if prestart:
-        blk['exec.prestart'] = shlex.quote(' && '.join(prestart))
+        blk['exec.prestart'] = quote(' && '.join(prestart))
     if poststop:
-        blk['exec.poststop'] = shlex.quote(' && '.join(poststop))
+        blk['exec.poststop'] = quote(' && '.join(poststop))
     blk['persist'] = True
     blk['interface'] = 'lo1'
     blk['ip4.addr'] = '127.0.1.0'
@@ -52,6 +76,7 @@ def jail_create(path, command, env, mounts, hostname=None):
     blk['exec.clean'] = True
     blk['host.hostname'] = hostname or name
     conf.write('/etc/jail.conf')
+    return name
 
 
 def jail_run_v2(path, command, env, mounts):
@@ -143,18 +168,7 @@ def jail_remove(path):
 
 
 def command_jail_create(args):
-    image, _ = zfs_find(args.image, focker_type='image', zfs_type='snapshot')
-    sha256 = bytes([ random.randint(0, 255) for _ in range(32) ]).hex()
-    lst = zfs_list(fields=['focker:sha256'], focker_type='image')
-    lst = list(filter(lambda a: a[0] == sha256, lst))
-    if lst:
-        raise ValueError('Whew, a collision...')
-    poolname = zfs_poolname()
-    for pre in range(7, 32):
-        name = poolname + '/focker/jails/' + sha256[:pre]
-        if not zfs_exists(name):
-            break
-    zfs_run(['zfs', 'clone', '-o', 'focker:sha256=' + sha256, image, name])
+    name = jail_fs_create(args.image)
     if args.tags:
         zfs_tag(name, args.tags)
     path = zfs_mountpoint(name)
@@ -194,7 +208,19 @@ def command_jail_exec(args):
     subprocess.run(['jexec', str(jid)] + args.command)
 
 
-def command_jail_run(args):
+def command_jail_oneshot(args):
+    name = jail_fs_create(args.image)
+    path = zfs_mountpoint(name)
+    env = { a.split(':')[0]: ':'.join(a.split(':')[1:]) \
+        for a in args.env }
+    mounts = [ [ a.split(':')[0], a.split(':')[1] ] \
+        for a in args.mounts]
+    jailname = jail_create(path, ' '.join(map(quote, args.command)), env, mounts)
+    subprocess.run(['jail', '-c', jailname])
+    jail_remove(path)
+
+# Deprecated
+def command_jail_oneshot_old():
     base, _ = zfs_snapshot_by_tag_or_sha256(args.image)
     # root = '/'.join(base.split('/')[:-1])
     for _ in range(10**6):

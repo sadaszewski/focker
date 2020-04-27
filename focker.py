@@ -21,7 +21,7 @@ from .jail import command_jail_create, \
     command_jail_stop, \
     command_jail_remove, \
     command_jail_exec, \
-    command_jail_run, \
+    command_jail_oneshot, \
     command_jail_list, \
     command_jail_tag, \
     command_jail_untag, \
@@ -89,11 +89,12 @@ def create_parser():
     parser.add_argument('reference', type=str)
     parser.add_argument('command', type=str, nargs=argparse.REMAINDER, default=['/bin/sh'])
 
-    parser = subparsers.add_parser('run')
-    parser.set_defaults(func=command_jail_run)
+    parser = subparsers.add_parser('oneshot')
+    parser.set_defaults(func=command_jail_oneshot)
     parser.add_argument('image', type=str)
-    parser.add_argument('--command', '-c', type=str, default='/bin/sh')
+    parser.add_argument('--env', '-e', type=str, nargs='+', default=[])
     parser.add_argument('--mounts', '-m', type=str, nargs='+', default=[])
+    parser.add_argument('command', type=str, nargs=argparse.REMAINDER, default=['/bin/sh'])
 
     parser = subparsers.add_parser('list')
     parser.set_defaults(func=command_jail_list)
