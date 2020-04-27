@@ -30,9 +30,9 @@ def command_volume_list(args):
 
 def command_volume_tag(args):
     name, _ = zfs_find(args.reference, focker_type='volume')
-    zfs_untag(args.tags)
+    zfs_untag(args.tags, focker_type='volume')
     zfs_tag(name, args.tags)
 
 
 def command_volume_untag(args):
-    zfs_untag(args.tags)
+    zfs_untag(args.tags, focker_type='volume')
