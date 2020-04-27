@@ -123,6 +123,8 @@ def zfs_snapshot_by_sha256(sha256, focker_type='image'):
 
 
 def zfs_tag(name, tags, replace=False):
+    if any(map(lambda a: ' ' in a, tags)):
+        raise ValueError('Tags cannot contain spaces')
     lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:tags', '-H', name])
     if not replace:
         tags = list(tags)
@@ -136,6 +138,8 @@ def zfs_tag(name, tags, replace=False):
 
 
 def zfs_untag(tags, focker_type='image'):
+    if any(map(lambda a: ' ' in a, tags)):
+        raise ValueError('Tags cannot contain spaces')
     # print('zfs_untag(), tags:', tags)
     poolname = zfs_poolname()
     lst = zfs_parse_output(['zfs', 'list', '-o', 'name,focker:tags', '-H', '-r', poolname + '/focker/' + focker_type + 's'])
