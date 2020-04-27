@@ -24,10 +24,10 @@ def jail_fs_create(image=None):
             break
     if image:
         image, _ = zfs_find(image, focker_type='image', zfs_type='snapshot')
-        zfs_run(['zfs', 'clone', '-o', 'focker:sha256=' + sha256, image, name])
+        zfs_parse_output(['zfs', 'clone', '-o', 'focker:sha256=' + sha256, image, name])
     else:
         print('Creating empty jail:', name)
-        zfs_run(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
+        zfs_parse_output(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
     return name
 
 
