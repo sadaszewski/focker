@@ -7,19 +7,6 @@ from tabulate import tabulate
 import subprocess
 
 
-def process_step(step, name):
-    cmd=['jail', '-c']
-    cmd.append('path=' + '/focker/' + name)
-
-
-def process_steps(steps, name):
-    if isinstance(steps, list):
-        for step in steps:
-            process_step(step, name)
-    else:
-        process_step(steps, name)
-
-
 def build(spec, args):
     if 'base' not in spec:
         raise ValueError('Missing base in specification')
@@ -28,7 +15,7 @@ def build(spec, args):
         raise ValueError('Missing steps in specification')
 
     base = spec['base']
-    base, base_sha256 = zfs_snapshot_by_tag_or_sha256(base)
+    base, base_sha256 = zfs_find(base, focker_type='image', zfs_type='snapshot')
 
     root = '/'.join(base.split('/')[:-1])
     print('base:', base, 'root:', root)
@@ -89,7 +76,9 @@ def command_image_untag(args):
 
 
 def command_image_list(args):
-    lst = zfs_parse_output(['zfs', 'list', '-o', 'name,refer,focker:sha256,focker:tags,origin', '-H'])
+    lst = zfs_list(fields=['name', 'refer', 'focker:sha256', 'focker:tags', 'origin'],
+        focker_type='image')
+    # zfs_parse_output(['zfs', 'list', '-o', 'name,refer,focker:sha256,focker:tags,origin', '-H'])
     lst = list(filter(lambda a: a[2] != '-', lst))
     lst = list(map(lambda a: [ a[3], a[1],
         a[2] if args.full_sha256 else a[2][:7],
@@ -102,7 +91,9 @@ def command_image_prune(args):
     again = True
     while again:
         again = False
-        lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256,focker:tags,origin,name', '-H', '-r', poolname + '/focker/images'])
+        lst = zfs_list(fields=['focker:sha256', 'focker:tags', 'origin', 'name'],
+            focker_type='image')
+        # lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256,focker:tags,origin,name', '-H', '-r', poolname + '/focker/images'])
         used = set()
         for r in lst:
             if r[2] == '-':
@@ -119,9 +110,10 @@ def command_image_prune(args):
 
 
 def command_image_remove(args):
-    snap, snap_sha256 = zfs_snapshot_by_tag_or_sha256(args.reference)
+    snap, snap_sha256 = zfs_find(args.reference, focker_type='image',
+        zfs_type='snapshot')
     ds = snap.split('@')[0]
-    command = ['zfs', 'destroy', '-r']
+    command = ['zfs', 'destroy', '-r', '-f']
     #if args.remove_children:
     #    command.append('-r')
     if args.remove_dependents:
