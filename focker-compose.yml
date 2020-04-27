@@ -4,6 +4,9 @@
 # focker compose wordpress.yml restore
 #
 
+images:
+  wordpress-5: .
+
 jails:
   wordpress:
     image: wordpress-5
