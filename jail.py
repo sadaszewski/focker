@@ -17,7 +17,7 @@ def gen_env_command(command, env):
     return command
 
 
-def jail_create(path, command, env, mounts, hostname):
+def jail_create(path, command, env, mounts, hostname=None):
     name = os.path.split(path)[-1]
     if os.path.exists('/etc/jail.conf'):
         conf = jailconf.load('/etc/jail.conf')
@@ -159,7 +159,8 @@ def command_jail_create(args):
         { a.split(':')[0]: ':'.join(a.split(':')[1:]) \
             for a in args.env },
         [ [a.split(':')[0], ':'.join(a.split(':')[1:])] \
-            for a in args.mounts ] )
+            for a in args.mounts ],
+        args.hostname )
     print(sha256)
     print(path)
 
@@ -213,5 +214,5 @@ def command_jail_prune(args):
         used.add(j['path'])
     lst = zfs_list(fields=['focker:sha256,focker:tags,mountpoint,name'], focker_type='jail')
     for j in lst:
-        if j[1] == '-' and j[2] not in used:
+        if j[1] == '-' and (j[2] not in used or args.force):
             jail_remove(j[2])

@@ -65,6 +65,7 @@ def create_parser():
     parser.add_argument('--tags', '-t', type=str, nargs='+', default=[])
     parser.add_argument('--env', '-e', type=str, nargs='+', default=[])
     parser.add_argument('--mounts', '-m', type=str, nargs='+', default=[])
+    parser.add_argument('--hostname', '-n', type=str)
 
     parser = subparsers.add_parser('run')
     parser.set_defaults(func=command_jail_run)
@@ -87,6 +88,7 @@ def create_parser():
 
     parser = subparsers.add_parser('prune')
     parser.set_defaults(func=command_jail_prune)
+    parser.add_argument('--force', '-f', action='store_true')
 
     # volume
     subparsers = subparsers_top.add_parser('volume').add_subparsers()
