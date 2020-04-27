@@ -188,7 +188,7 @@ def command_jail_create(args):
         [ [a.split(':')[0], ':'.join(a.split(':')[1:])] \
             for a in args.mounts ],
         args.hostname )
-    print(sha256)
+    # print(sha256)
     print(path)
 
 
