@@ -63,32 +63,51 @@ At this point, Focker is ready to use.
 
 ```
 focker
-|- image
-|  |- build
-|  |  |- focker_dir
-|  |  `- --tags|-t TAG [...]
-|  |- tag
-|  |  |- reference
-|  |  `- TAG [...]
-|  |- untag
-|  |  `- TAG [...]
-|  |- list
+|- image|img|im|i
+|  |- build|b
+|  |  |- FOCKER_DIR
+|  |  `- --tags|-t TAG [...TAG]
+|  |- tag|t
+|  |  |- REFERENCE
+|  |  `- TAG [...TAG]
+|  |- untag|u
+|  |  `- TAG [...TAG]
+|  |- list|ls|l
 |  |  `- --full-sha256|-f
-|  |- prune
-|  `- remove
-|  |  |- reference
+|  |- prune|p
+|  `- remove|r
+|  |  |- REFERENCE
 |  |  `- --remove-dependents|-R
-|- jail
-|  |- create
-|  |- start
-|  |- stop
-|  |- remove
-|  |- exec
-|  |- oneshot
-|  |- list
-|  |- tag
-|  |- untag
-|  `- prune
+|- jail|j
+|  |- create|c
+|  |  |- image
+|  |  |- --command|-c COMMAND (default: /bin/sh)
+|  |  |- --env|-e VAR1:VALUE1 [...VARN:VALUEN]
+|  |  |- --mounts|-m FROM1:ON1 [...FROMN:ONN]
+|  |  `- --hostname|-n HOSTNAME
+|  |- start|s
+|  |  `- REFERENCE
+|  |- stop|S
+|  |  `- REFERENCE
+|  |- remove|r
+|  |  `- REFERENCE
+|  |- exec|e
+|  |  |- REFERENCE
+|  |  `- [...COMMAND]
+|  |- oneshot|o
+|  |  `- IMAGE
+|  |  `- --env|-e VAR1:VALUE1 [...VARN:VALUEN]
+|  |  `- --mounts|-m FROM1:ON1 [...FROMN:ONN]
+|  |  `- [...COMMAND]
+|  |- list|ls|l
+|  |  `- --full-sha256|-f
+|  |- tag|t
+|  |  |- REFERENCE
+|  |  `- TAG [...TAG]
+|  |- untag|u
+|  |  `- TAG [...TAG]
+|  `- prune|p
+|  |  `- --force|-f
 |- volume
 |  |- create
 |  |- prune
