@@ -3,6 +3,7 @@ import json
 from .jail import jail_run
 import shutil
 import os
+import shlex
 
 
 def filehash(fname):
