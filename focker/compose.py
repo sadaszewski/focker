@@ -11,7 +11,8 @@ from .zfs import AmbiguousValueError, \
     zfs_find, \
     zfs_tag, \
     zfs_untag, \
-    zfs_mountpoint
+    zfs_mountpoint, \
+    zfs_poolname
 from .jail import jail_fs_create, \
     jail_create, \
     jail_remove
@@ -23,6 +24,7 @@ import os
 
 
 def build_volumes(spec):
+    poolname = zfs_poolname()
     for tag in spec.keys():
         try:
             name, _ = zfs_find(tag, focker_type='volume')
@@ -33,7 +35,7 @@ def build_volumes(spec):
             pass
         sha256 = random_sha256_hexdigest()
         name = find_prefix(poolname + '/focker/volumes/', sha256)
-        subprocess.check_output(['zfs', 'create', name])
+        subprocess.check_output(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
         zfs_untag([ tag ], focker_type='volume')
         zfs_tag(name, [ tag ])
 
