@@ -7,9 +7,17 @@ from tabulate import tabulate
 import os
 import jailconf
 import shlex
+from .mount import getmntinfo
 
 
-def jail_run_v2(path, command, env, mounts):
+def gen_env_command(command, env):
+    env = [ 'export ' + k + '=' + shlex.quote(v) \
+        for (k, v) in env.items() ]
+    command = ' && '.join(env + [ command ])
+    return command
+
+
+def jail_create(path, command, env, mounts):
     name = os.path.split(path)[-1]
     if os.path.exists('/etc/jail.conf'):
         conf = jailconf.load('/etc/jail.conf')
@@ -17,10 +25,9 @@ def jail_run_v2(path, command, env, mounts):
         conf = jailconf.JailConf()
     conf[name] = blk = jailconf.JailBlock()
     blk['path'] = path
-    env = [ 'export ' + k + '=' + shlex.quote(v) \
-        for (k, v) in env.items() ]
-    command = ' && '.join(env + [ command ])
-    # blk['exec.start'] = command
+    if command:
+        command = gen_env_command(command, env)
+        blk['exec.start'] = command
     prestart = [ 'cp /etc/resolv.conf ' +
         shlex.quote(os.path.join(path, 'etc/resolv.conf')) ]
     poststop = []
@@ -44,7 +51,12 @@ def jail_run_v2(path, command, env, mounts):
     blk['mount.devfs'] = True
     blk['exec.clean'] = True
     conf.write('/etc/jail.conf')
-    # command = '/bin/sh -c ' + shlex.quote(command)
+
+
+def jail_run_v2(path, command, env, mounts):
+    name = os.path.split(path)[-1]
+    command = gen_env_command(command, env)
+    jail_create(path, None, None, mounts)
     subprocess.check_output([ 'jail', '-c', name ])
     subprocess.run([ 'jexec', name, '/bin/sh', '-c', command ])
     subprocess.check_output([ 'jail', '-r', name ])
@@ -100,9 +112,55 @@ def jail_run(path, command, mounts=[]):
         raise RuntimeError('Command failed')
 
 
+def jail_stop(path):
+    try:
+        jid = get_jid(path)
+        subprocess.run(['jail', '-r', jid])
+    except ValueError:
+        print('JID could not be determined')
+    mi = getmntinfo()
+    for m in mi:
+        mntonname = m['f_mntonname'].decode('utf-8')
+        if mntonname.startswith(path + os.path.sep):
+            print('Unmounting:', mntonname)
+            subprocess.run(['umount', '-f', mntonname])
+
+
 def jail_remove(path):
     print('Removing jail:', path)
-    # subprocess.
+    jail_stop(path)
+    subprocess.run(['zfs', 'destroy', '-r', '-f', zfs_name(path)])
+    if os.path.exists('/etc/jail.conf'):
+        conf = jailconf.load('/etc/jail.conf')
+        name = os.path.split(path)[-1]
+        if name in conf:
+            del conf[name]
+            conf.write('/etc/jail.conf')
+
+
+def command_jail_create(args):
+    image, _ = zfs_find(args.image, focker_type='image', zfs_type='snapshot')
+    sha256 = bytes([ random.randint(0, 255) for _ in range(32) ]).hex()
+    lst = zfs_list(fields=['focker:sha256'], focker_type='image')
+    lst = list(filter(lambda a: a[0] == sha256, lst))
+    if lst:
+        raise ValueError('Whew, a collision...')
+    poolname = zfs_poolname()
+    for pre in range(7, 32):
+        name = poolname + '/focker/jails/' + sha256[:pre]
+        if not zfs_exists(name):
+            break
+    zfs_run(['zfs', 'clone', '-o', 'focker:sha256=' + sha256] + \
+        (['-o', 'focker:tags=' + ' '.join(args.tags)] if args.tags else []) + \
+        [image, name])
+    path = zfs_mountpoint(name)
+    jail_create(path, args.command,
+        { a.split(':')[0]: ':'.join(a.split(':')[1:]) \
+            for a in args.env },
+        [ [a.split(':')[0], ':'.join(a.split(':')[1:])] \
+            for a in args.mounts ] )
+    print(sha256)
+    print(path)
 
 
 def command_jail_run(args):
@@ -155,4 +213,4 @@ def command_jail_prune(args):
     lst = zfs_list(fields=['focker:sha256,focker:tags,mountpoint,name'], focker_type='jail')
     for j in lst:
         if j[1] == '-' and j[2] not in used:
-            jail_remove(j[3])
+            jail_remove(j[2])

@@ -15,7 +15,8 @@ from .volume import command_volume_create, \
     command_volume_untag
 import sys
 from .zfs import zfs_init
-from .jail import command_jail_run, \
+from .jail import command_jail_create, \
+    command_jail_run, \
     command_jail_list, \
     command_jail_tag, \
     command_jail_untag, \
@@ -57,6 +58,14 @@ def create_parser():
 
     # jail
     subparsers = subparsers_top.add_parser('jail').add_subparsers()
+    parser = subparsers.add_parser('create')
+    parser.set_defaults(func=command_jail_create)
+    parser.add_argument('image', type=str)
+    parser.add_argument('--command', '-c', type=str, default='/bin/sh')
+    parser.add_argument('--tags', '-t', type=str, nargs='+', default=[])
+    parser.add_argument('--env', '-e', type=str, nargs='+', default=[])
+    parser.add_argument('--mounts', '-m', type=str, nargs='+', default=[])
+
     parser = subparsers.add_parser('run')
     parser.set_defaults(func=command_jail_run)
     parser.add_argument('image', type=str)

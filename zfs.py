@@ -144,6 +144,15 @@ def zfs_untag(tags, focker_type='image'):
         zfs_tag(row[0], cur_tags, replace=True)
 
 
+def zfs_name(path):
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'name', '-H', path])
+    if len(lst) == 0:
+        raise ValueError('Not a ZFS path')
+    if len(lst) > 1:
+        raise ValueError('Ambiguous ZFS path')
+    return lst[0][0]
+
+
 def zfs_poolname():
     poolname = zfs_parse_output(['zfs', 'list', '-H', '/'])
     if len(poolname) == 0:
