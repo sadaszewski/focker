@@ -54,3 +54,48 @@ bsdinstall jail /focker/images/${NAME}
 zfs set readonly=on zroot/focker/images/${NAME}
 zfs snapshot zroot/focker/images/${NAME}@1
 ```
+
+## Usage
+
+At this point, Focker is ready to use.
+
+### `focker` command syntax
+
+```
+focker
+|- image
+|  |- build
+|  |  |- focker_dir
+|  |  `- --tags|-t TAG [...]
+|  |- tag
+|  |  |- reference
+|  |  `- TAG [...]
+|  |- untag
+|  |  `- TAG [...]
+|  |- list
+|  |  `- --full-sha256|-f
+|  |- prune
+|  `- remove
+|  |  |- reference
+|  |  `- --remove-dependents|-R
+|- jail
+|  |- create
+|  |- start
+|  |- stop
+|  |- remove
+|  |- exec
+|  |- oneshot
+|  |- list
+|  |- tag
+|  |- untag
+|  `- prune
+|- volume
+|  |- create
+|  |- prune
+|  |- list
+|  |- tag
+|  `- untag
+`- compose
+   |- build
+   `- run
+```
