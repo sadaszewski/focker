@@ -4,6 +4,50 @@ import random
 import shutil
 import json
 from tabulate import tabulate
+import os
+import jailconf
+import shlex
+
+
+def jail_run_v2(path, command, env, mounts):
+    name = os.path.split(path)[-1]
+    if os.path.exists('/etc/jail.conf'):
+        conf = jailconf.load('/etc/jail.conf')
+    else:
+        conf = jailconf.JailConf()
+    conf[name] = blk = jailconf.JailBlock()
+    blk['path'] = path
+    env = [ 'export ' + k + '=' + shlex.quote(v) \
+        for (k, v) in env.items() ]
+    command = ' && '.join(env + [ command ])
+    # blk['exec.start'] = command
+    prestart = [ 'cp /etc/resolv.conf ' +
+        shlex.quote(os.path.join(path, 'etc/resolv.conf')) ]
+    poststop = []
+    if mounts:
+        for (from_, on) in mounts:
+            if not from_.startswith('/'):
+                from_, _ = zfs_find(from_, focker_type='volume')
+                from_ = zfs_mountpoint(from_)
+            prestart.append('mount -t nullfs ' + shlex.quote(from_) +
+                ' ' + shlex.quote(os.path.join(path, on.strip('/'))))
+        poststop += [ 'umount -f ' +
+            os.path.join(path, on.strip('/')) \
+            for (_, on) in reversed(mounts) ]
+    if prestart:
+        blk['exec.prestart'] = shlex.quote(' && '.join(prestart))
+    if poststop:
+        blk['exec.poststop'] = shlex.quote(' && '.join(poststop))
+    blk['persist'] = True
+    blk['interface'] = 'lo1'
+    blk['ip4.addr'] = '127.0.1.0'
+    blk['mount.devfs'] = True
+    blk['exec.clean'] = True
+    conf.write('/etc/jail.conf')
+    # command = '/bin/sh -c ' + shlex.quote(command)
+    subprocess.check_output([ 'jail', '-c', name ])
+    subprocess.run([ 'jexec', name, '/bin/sh', '-c', command ])
+    subprocess.check_output([ 'jail', '-r', name ])
 
 
 def get_jid(path):
@@ -58,6 +102,7 @@ def jail_run(path, command, mounts=[]):
 
 def jail_remove(path):
     print('Removing jail:', path)
+    # subprocess.
 
 
 def command_jail_run(args):
