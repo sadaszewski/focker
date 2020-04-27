@@ -82,15 +82,6 @@ def jail_create(path, command, env, mounts, hostname=None):
     return name
 
 
-def jail_run_v2(path, command, env, mounts):
-    name = os.path.split(path)[-1]
-    command = gen_env_command(command, env)
-    jail_create(path, None, None, mounts)
-    subprocess.check_output([ 'jail', '-c', name ])
-    subprocess.run([ 'jexec', name, '/bin/sh', '-c', command ])
-    subprocess.check_output([ 'jail', '-r', name ])
-
-
 def get_jid(path):
     data = json.loads(subprocess.check_output(['jls', '--libxo=json']))
     lst = data['jail-information']['jail']
