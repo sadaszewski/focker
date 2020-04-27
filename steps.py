@@ -60,10 +60,8 @@ class CopyStep(object):
         lst = [ self.spec ] \
             if not isinstance(self.spec[0], list) \
             else self.spec
-        for a in lst:
-            source, target = a
-            if target.startswith('/'):
-                target = target[1:]
+        for (source, target) in lst:
+            target = target.strip('/')
             shutil.copyfile(os.path.join(kwargs['args'].focker_dir, source),
                 os.path.join(path, target))
 
