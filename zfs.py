@@ -22,8 +22,9 @@ def zfs_get_type(name):
     return lst[0][1]
 
 
-def zfs_snapshot_by_tag_or_sha256(s):
-    lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256,focker:tags,type,name', '-H', '-t', 'snapshot'])
+def zfs_snapshot_by_tag_or_sha256(s, focker_type='image'):
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256,focker:tags,type,name',
+        '-H', '-t', 'snapshot', '-r', poolname + '/focker/' + focker_type + 's'])
     lst = list(filter(lambda a: (a[0] == s or s in a[1].split(' ')) and a[2] == 'snapshot', lst))
     if len(lst) == 0:
         raise ValueError('Reference not found: ' + s)
