@@ -8,7 +8,15 @@ Focker is a FreeBSD image orchestration tool in the vein of Docker.
 
 In order to use Focker you need a ZFS pool available in your FreeBSD installation.
 
-### Installing the Python package
+### Installing the Python package from PyPi
+
+Run:
+
+```bash
+pip install focker
+```
+
+### Installing the Python package from GitHub
 
 Run:
 
@@ -133,17 +141,31 @@ Individual combinations are briefly described below:
 
 #### focker image
 
-##### build 
+The `focker image` mode groups commands related to Focker images.
 
-##### tag
+##### build FOCKER_DIR [--tags TAG [...TAG]]
 
-##### untag
+Build a Focker image according to the specification in a Fockerfile present in the specified FOCKER_DIR. Fockerfile syntax is very straightforward and explained below.
 
-##### list
+##### tag REFERENCE TAG [...TAG]
+
+Applies one or more tags to the given image. REFERENCE can be the SHA256 of an image or one of its existing tags. It can be just a few first characters as long as they are unambiguous.
+
+##### untag TAG [...TAG]
+
+Removes one or more image tags.
+
+##### list [--full-sha256|-f]
+
+Lists existing Focker images, optionally with full SHA256 checksums (instead of the default 7 first characters).
 
 ##### prune
 
-##### remove
+Greedily removes existing Focker images without tags and without dependents.
+
+##### remove REFERENCE
+
+Removes the specified image.
 
 #### focker jail
 
