@@ -27,6 +27,8 @@ def jail_fs_create(image):
 
 
 def gen_env_command(command, env):
+    if any(map(lambda a: ' ' in a, env.keys())):
+        raise ValueError('Environment variable names cannot contain spaces')
     env = [ 'export ' + k + '=' + shlex.quote(v) \
         for (k, v) in env.items() ]
     command = ' && '.join(env + [ command ])
