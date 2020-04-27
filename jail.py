@@ -17,7 +17,7 @@ def gen_env_command(command, env):
     return command
 
 
-def jail_create(path, command, env, mounts):
+def jail_create(path, command, env, mounts, hostname):
     name = os.path.split(path)[-1]
     if os.path.exists('/etc/jail.conf'):
         conf = jailconf.load('/etc/jail.conf')
@@ -50,6 +50,7 @@ def jail_create(path, command, env, mounts):
     blk['ip4.addr'] = '127.0.1.0'
     blk['mount.devfs'] = True
     blk['exec.clean'] = True
+    blk['host.hostname'] = hostname or name
     conf.write('/etc/jail.conf')
 
 
@@ -150,9 +151,9 @@ def command_jail_create(args):
         name = poolname + '/focker/jails/' + sha256[:pre]
         if not zfs_exists(name):
             break
-    zfs_run(['zfs', 'clone', '-o', 'focker:sha256=' + sha256] + \
-        (['-o', 'focker:tags=' + ' '.join(args.tags)] if args.tags else []) + \
-        [image, name])
+    zfs_run(['zfs', 'clone', '-o', 'focker:sha256=' + sha256, image, name])
+    if args.tags:
+        zfs_tag(name, args.tags)
     path = zfs_mountpoint(name)
     jail_create(path, args.command,
         { a.split(':')[0]: ':'.join(a.split(':')[1:]) \
