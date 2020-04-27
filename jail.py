@@ -7,6 +7,7 @@ from tabulate import tabulate
 import os
 import jailconf
 from .mount import getmntinfo
+import shlex
 
 
 def jail_fs_create(image):
@@ -26,7 +27,7 @@ def jail_fs_create(image):
 
 
 def gen_env_command(command, env):
-    env = [ 'export ' + k + '=' + quote(v) \
+    env = [ 'export ' + k + '=' + shlex.quote(v) \
         for (k, v) in env.items() ]
     command = ' && '.join(env + [ command ])
     return command
@@ -53,15 +54,15 @@ def jail_create(path, command, env, mounts, hostname=None):
         print('command:', command)
         blk['exec.start'] = command
     prestart = [ 'cp /etc/resolv.conf ' +
-        quote(os.path.join(path, 'etc/resolv.conf')) ]
+        shlex.quote(os.path.join(path, 'etc/resolv.conf')) ]
     poststop = []
     if mounts:
         for (from_, on) in mounts:
             if not from_.startswith('/'):
                 from_, _ = zfs_find(from_, focker_type='volume')
                 from_ = zfs_mountpoint(from_)
-            prestart.append('mount -t nullfs ' + quote(from_) +
-                ' ' + quote(os.path.join(path, on.strip('/'))))
+            prestart.append('mount -t nullfs ' + shlex.quote(from_) +
+                ' ' + shlex.quote(os.path.join(path, on.strip('/'))))
         poststop += [ 'umount -f ' +
             os.path.join(path, on.strip('/')) \
             for (_, on) in reversed(mounts) ]
@@ -215,7 +216,9 @@ def command_jail_oneshot(args):
         for a in args.env }
     mounts = [ [ a.split(':')[0], a.split(':')[1] ] \
         for a in args.mounts]
-    jailname = jail_create(path, ' '.join(map(quote, args.command)), env, mounts)
+    jailname = jail_create(path,
+        ' '.join(map(shlex.quote, args.command or ['/bin/sh'])),
+        env, mounts)
     subprocess.run(['jail', '-c', jailname])
     jail_remove(path)
 
