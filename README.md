@@ -19,14 +19,17 @@ Focker is a FreeBSD image orchestration tool in the vein of Docker.
 	- [`focker` command syntax](#focker-command-syntax)
 		- [focker image|img|im|i](#focker-imageimgimi)
 		- [focker jail|j](#focker-jailj)
-		- [focker volume](#focker-volume)
-		- [focker compose](#focker-compose)
+		- [focker volume|vol|v](#focker-volumevolv)
+		- [focker compose|comp|c](#focker-composecompc)
 	- [`Fockerfile` syntax](#fockerfile-syntax)
 	- [`focker-compose.yml` syntax](#focker-composeyml-syntax)
 		- [Images](#images)
 		- [Jails](#jails)
 		- [Volumes](#volumes)
 		- [Commands](#commands)
+- [Further Reading](#further-reading)
+- [Conclusion](#conclusion)
+- [Links](#links)
 
 <!-- /TOC -->
 
@@ -144,7 +147,7 @@ focker
 |  |  `- TAG [...TAG]
 |  `- prune|p
 |     `- --force|-f
-|- volume
+|- volume|vol|v
 |  |- create
 |  |  `- --tags|-t TAG [...TAG]
 |  |- prune
@@ -155,7 +158,7 @@ focker
 |  |  `- TAG [...TAG]
 |  `- untag
 |     `- TAG [...TAG]
-`- compose
+`- compose|comp|c
    |- build
    |  `- FILENAME
    `- run
@@ -239,7 +242,7 @@ Removes one or more jail tags.
 
 Removes existing Focker jails without tags.
 
-#### focker volume
+#### focker volume|vol|v
 
 The `focker volume` mode groups commands related to Focker volumes.
 
@@ -263,7 +266,7 @@ Applies one or more tags to the given volume. REFERENCE can be the SHA256 of a v
 
 Removes one or more volume tags.
 
-#### focker compose
+#### focker compose|comp|c
 
 The `focker compose` mode groups commands related to Focker composition files - `focker-compose.yml`.
 
@@ -352,4 +355,21 @@ The `jails` entry in the Focker composition file specifies a dictionary from jai
 
 #### Volumes
 
+The `volumes` entry in the Focker composition file specifies a dictionary from volume tags to volume specifications. Currently a volume specification must be an empty dictionary. Specified volumes will be created by `focker compose build` and tagged with corresponding tags unless volumes with given tags already exist. Volumes are meant to persist data beyond the jail lifecycle.
+
 #### Commands
+
+The `commands` entry in the Focker composition file specifies a dictionary from command names to command specifications. A command specification can contain the following fields: `jail`, `mounts` and `command`. The `jail` field specifies in which jail the given command should be executed (the jail must be already running). The `mounts` entry specifies additional mounts that will be used only during the execution of the command. Finally the `command` entry specifies the command itself using the same syntax as the `run` step in a `Fockerfile`.
+
+## Further Reading
+
+The best way to learn is by practice. Take a look at the [example](example/) and start writing your own Focker specifications.
+
+## Conclusion
+
+Focker provides powerful containerization primitives (images, volumes and containers) first introduced by the Docker platform without taking up the significantly more challenging task of achieving Docker compatibility. This has never been and never will be the goal of Focker which allows it to remain a lightweight tool with minimal dependencies and highly maintainable codebase. At the same time, the image building paradigm based on checksummed steps/layers and flexible composition builder offer significant time savings to pragmatic sysadmins.
+
+## Links
+
+- [PyPi entry for Focker](https://pypi.org/project/focker/)
+- [Focker Announcement on ADARED](https://adared.ch/focker)
