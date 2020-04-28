@@ -199,26 +199,118 @@ Example: `focker jail oneshot freebsd-latest -e FOO:bar -- ls -al`
 
 ##### list|ls|l
 
-##### tag
+Lists Focker-managed jails. For running jails their JIDs will be displayed.
 
-##### untag
+##### tag REFERENCE TAG [...TAG]
+
+Applies one or more tags to the given jail. REFERENCE can be the SHA256 of a jail or one of its existing tags. It can be just a few first characters as long as they are unambiguous.
+
+##### untag TAG [...TAG]
+
+Removes one or more jail tags.
 
 ##### prune
+
+Removes existing Focker jails without tags.
 
 #### focker volume
 
-##### create
+The `focker volume` mode groups commands related to Focker volumes.
+
+##### create [--tags|-t TAG [...TAG]]
+
+Create a new Focker volume optionally tagged with the given `TAG`s.
 
 ##### prune
 
-##### list
+Removes existing Focker volumes without tags.
 
-##### tag
+##### list [--full-sha256|-f]
 
-##### untag
+Lists existing Focker volumes. Full SHA256 is displayed if the `-f` switch is used, otherwise only the first 7 characters will be shown.
+
+##### tag REFERENCE TAG [...TAG]
+
+Applies one or more tags to the given volume. REFERENCE can be the SHA256 of a volume or one of its existing tags. It can be just a few first characters as long as they are unambiguous.
+
+##### untag TAG [...TAG]
+
+Removes one or more volume tags.
 
 #### focker compose
+
+The `focker compose` mode groups commands related to Focker composition files - `focker-compose.yml`.
 
 ##### build
 
 ##### run
+
+### `Fockerfile` syntax
+
+A sample `Fockerfile` is pasted below.
+
+```yaml
+base: freebsd-latest
+
+steps:
+  - copy:
+    - [ '/tmp/x', '/etc/x' ]
+    - [ 'files/y', '/etc/y' ]
+  - run: |
+      pkg install -y python3 && \
+      pkg install -y py37-pip && \
+      pkg install -y py37-yaml && \
+      pkg install -y py37-certbot && \
+      mkdir -p /persist/etc/ssh && \
+      sed -i '' -e 's/\/etc\/ssh\/ssh_host_/\/persist\/etc\/ssh\/ssh_host_/g' /etc/rc.d/sshd && \
+      sed -i '' -e 's/\/etc\/ssh\/ssh_host_/\/persist\/etc\/ssh\/ssh_host_/g' /etc/ssh/sshd_config && \
+      sed -i '' -e 's/#HostKey/HostKey/g' /etc/ssh/sshd_config
+```
+
+### `focker-compose.yml` syntax
+
+A sample composition file illustrating all of the principles is pasted below.
+
+```yaml
+images:
+  wordpress-5: /path/to/wordpress_5_focker_dir
+
+jails:
+  wordpress:
+    image: wordpress-5
+    env:
+      SITE_NAME: Test site
+    mounts:
+      wp-volume2: /mnt/volume2
+      wp-volume1: /mnt/volume1
+    ip4.addr: 127.0.1.1
+    interface: lo1
+
+volumes:
+  wp-volume1: {}
+  wp-volume2: {}
+  wp-backup: {}
+
+commands:
+  backup:
+    jail: wordpress
+    command: |
+      mysqldump >/mnt/volume2/backup.sql
+    mounts:
+      wp-backup: /mnt/backup
+
+  restore:
+    jail: wordpress
+    command: |
+      mysql </mnt/volume2/backup.sql
+    mounts:
+      wp-backup: /mnt/backup
+```
+
+#### Images
+
+#### Jails
+
+#### Volumes
+
+#### Commands
