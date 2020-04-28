@@ -37,7 +37,7 @@ pip install dist/focker-0.9.tgz
 
 ### Setting up ZFS
 
-Upon first execution of the `focker` command, Focker will automatically create the necessary directories and ZFS datasets. You just need to exclude the unlikely case that you are already using /focker in your filesystem hierarchy. The layout after initialization will look the following:
+Upon first execution of the `focker` command, Focker will automatically create the necessary directories and ZFS datasets. You just need to exclude the unlikely case that you are already using `/focker` in your filesystem hierarchy. The layout after initialization will look the following:
 
 ```
 /focker
@@ -50,7 +50,7 @@ Upon first execution of the `focker` command, Focker will automatically create t
 
 ### Preparing base image
 
-To bootstrap the images system you need to install FreeBSD in jail mode to a ZFS dataset placed in /focker/images and provide two user-defined properties - `focker:sha256` and `focker:tags`. One way to achieve this would be the following:
+To bootstrap the images system you need to install FreeBSD in jail mode to a ZFS dataset placed in `/focker/images` and provide two user-defined properties - `focker:sha256` and `focker:tags`. One way to achieve this would be the following (using Bash shell):
 
 ```bash
 TAGS="freebsd-latest freebsd-$(freebsd-version | cut -d'-' -f1)"
@@ -139,49 +139,65 @@ focker
 
 Individual combinations are briefly described below:
 
-#### focker image
+#### focker image|img|im|i
 
 The `focker image` mode groups commands related to Focker images.
 
-##### build FOCKER_DIR [--tags TAG [...TAG]]
+##### build|b FOCKER_DIR [--tags TAG [...TAG]]
 
 Build a Focker image according to the specification in a Fockerfile present in the specified FOCKER_DIR. Fockerfile syntax is very straightforward and explained below.
 
-##### tag REFERENCE TAG [...TAG]
+##### tag|t REFERENCE TAG [...TAG]
 
 Applies one or more tags to the given image. REFERENCE can be the SHA256 of an image or one of its existing tags. It can be just a few first characters as long as they are unambiguous.
 
-##### untag TAG [...TAG]
+##### untag|u TAG [...TAG]
 
 Removes one or more image tags.
 
-##### list [--full-sha256|-f]
+##### list|ls|l [--full-sha256|-f]
 
 Lists existing Focker images, optionally with full SHA256 checksums (instead of the default 7 first characters).
 
-##### prune
+##### prune|p
 
 Greedily removes existing Focker images without tags and without dependents.
 
-##### remove REFERENCE
+##### remove|r REFERENCE
 
 Removes the specified image.
 
-#### focker jail
+#### focker jail|j
 
-##### create
+The `focker jail` mode groups commands related to Focker-managed jails.
 
-##### start
+##### create|c IMAGE [--command|-c COMMAND] [--env|-e VAR1:VALUE1 [...VARN:VALUEN]] [--mounts|-m FROM1:ON1 [...FROMN:ONN]] [--hostname|-n HOSTNAME]
 
-##### stop
+Creates a new Focker-managed jail. A jail consists of a clone of the given `IMAGE` and an entry in `/etc/jail.conf`. The configuration entry uses `exec.prestart` and `exec.start` to specify how the runtime environment (mounts and environmental variables) should be set up. It also calls `COMMAND` as last in `exec.start`. If not specified `COMMAND` defaults to `/bin/sh`. The hostname can be specified using the `HOSTNAME` parameter. Mounts and environment variables are provided as tuples separated by a colon (:). The environmental variable specification consists of variable name followed by variable value. The mount specification consists of the "from path", followed by the "on path". "From path" can be a local system path or a volume name.
 
-##### remove
+##### start|s REFERENCE
 
-##### exec
+Starts the given jail specified by `REFERENCE`. `REFERENCE` can be the SHA256 of an existing jail or one of its existing tags. It can be just a few first characters as long as they are unambiguous. This command is equivalent of calling `jail -c`.
 
-##### oneshot
+##### stop|S REFERENCE
 
-##### list
+Stops the given jail specified by `REFERENCE`. This command is equivalent to calling `jail -r`.
+
+##### remove|r REFERENCE
+
+Removes the given jail specified by `REFERENCE`. The jail is stopped if running, any filesystems mounted under its root directory are unmounted, its ZFS dataset and entry in `/etc/jail.conf` are removed.
+
+##### exec|e REFERENCE [...COMMAND]
+
+Executes given `COMMAND` (or `/bin/sh` if not specified) in the given running jail specified by `REFERENCE`. This command is the equivalent of calling `jexec`.
+
+##### oneshot|o IMAGE [--env|-e VAR1:VALUE1 [...VARN:VALUEN]] [--mounts|-m FROM1:ON1 [...FROMN:ONN]] [...COMMAND]
+
+Create a new one-time Focker-managed jail. The syntax and logic is identical to `focker jail create`, the difference being that the hostname cannot be specified and that the jail will be automatically removed when the `COMMAND` exits.
+
+Example: `focker jail oneshot freebsd-latest -e FOO:bar -- ls -al`
+
+##### list|ls|l
 
 ##### tag
 
