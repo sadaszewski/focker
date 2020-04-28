@@ -241,9 +241,13 @@ Removes one or more volume tags.
 
 The `focker compose` mode groups commands related to Focker composition files - `focker-compose.yml`.
 
-##### build
+##### build FILENAME
 
-##### run
+Builds images, volumes and jails according to the specification provided in the file pointed to by `FILENAME`.
+
+##### run FILENAME COMMAND
+
+Runs one of the commands (specified by `COMMAND`) from the composition file pointed to by `FILENAME`.
 
 ### `Fockerfile` syntax
 
@@ -256,16 +260,21 @@ steps:
   - copy:
     - [ '/tmp/x', '/etc/x' ]
     - [ 'files/y', '/etc/y' ]
+  - copy: [ files/z, /etc/z ]
   - run: |
-      pkg install -y python3 && \
-      pkg install -y py37-pip && \
-      pkg install -y py37-yaml && \
-      pkg install -y py37-certbot && \
+      pkg install -y python3
+  - run:
+      - pkg install -y py37-pip
+      - pkg install -y py37-yaml
+      - pkg install -y py37-certbot
+  - run: |
       mkdir -p /persist/etc/ssh && \
       sed -i '' -e 's/\/etc\/ssh\/ssh_host_/\/persist\/etc\/ssh\/ssh_host_/g' /etc/rc.d/sshd && \
       sed -i '' -e 's/\/etc\/ssh\/ssh_host_/\/persist\/etc\/ssh\/ssh_host_/g' /etc/ssh/sshd_config && \
       sed -i '' -e 's/#HostKey/HostKey/g' /etc/ssh/sshd_config
 ```
+
+`Fockerfile` currently supports only two entries - `base` and `steps`. `base` specifies the parent image on top of which the operations described by `steps` are executed. Each entry in `steps` results in creation of a new image. Focker determines a checksum for each step and if the corresponding image already exists the step is skipped and work continues on top of the existing image. This is a powerful paradigm for image building experimentation where we can split the task into multiple steps and resume work from the last successful step in case of problems. It is a big time saver. `steps` is a list that can contain `copy` and `run` entries. The `copy` entry specifies a single one or a list of copy operations from local files to the image in form of the `[FROM, TO]` tuples. The `run` entry specifies a chain of commands to be executed within the image. It can be a list of string or a single string.
 
 ### `focker-compose.yml` syntax
 
