@@ -37,6 +37,7 @@ from .jail import command_jail_create, \
 from .compose import \
     command_compose_build, \
     command_compose_run
+from .bootstrap import command_bootstrap
 
 
 class ListForwarderFunctor(object):
@@ -70,6 +71,9 @@ def create_parser():
     parser_top = ArgumentParser()
     subparsers_top = parser_top.add_subparsers(dest='L1_command')
     subparsers_top.required = True
+
+    parser = ListForwarder([subparsers_top.add_parser(cmd) for cmd in ['bootstrap', 'boot', 'bs']])
+    parser.set_defaults(func=command_bootstrap)
 
     # image
     subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \
