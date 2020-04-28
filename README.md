@@ -4,6 +4,32 @@
 
 Focker is a FreeBSD image orchestration tool in the vein of Docker.
 
+## Table of Contents
+
+<!-- TOC depthFrom:2 depthTo:4 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Introduction](#introduction)
+- [Table of Contents](#table-of-contents)
+- [Installation](#installation)
+	- [Installing the Python package from PyPi](#installing-the-python-package-from-pypi)
+	- [Installing the Python package from GitHub](#installing-the-python-package-from-github)
+	- [Setting up ZFS](#setting-up-zfs)
+	- [Preparing base image](#preparing-base-image)
+- [Usage](#usage)
+	- [`focker` command syntax](#focker-command-syntax)
+		- [focker image|img|im|i](#focker-imageimgimi)
+		- [focker jail|j](#focker-jailj)
+		- [focker volume](#focker-volume)
+		- [focker compose](#focker-compose)
+	- [`Fockerfile` syntax](#fockerfile-syntax)
+	- [`focker-compose.yml` syntax](#focker-composeyml-syntax)
+		- [Images](#images)
+		- [Jails](#jails)
+		- [Volumes](#volumes)
+		- [Commands](#commands)
+
+<!-- /TOC -->
+
 ## Installation
 
 In order to use Focker you need a ZFS pool available in your FreeBSD installation.
@@ -318,7 +344,11 @@ commands:
 
 #### Images
 
+The `images` entry in Focker composition file specifies a dictionary from image tags to Focker directories (directories containing the `Fockerfile` and any supplementary files needed to build an image). Upon running `focker compose build` Focker will run `focker image build` for all of the specified directories and tag the results with the corresponding tags. This process can be repeated without significant performance penalty since the images will not need to be rebuilt unless their `Fockerfile`s or contexts change.
+
 #### Jails
+
+The `jails` entry in the Focker composition file specifies a dictionary from jail tags to jail specifications. A jail specification is a dictionary that can contain the following fields: `image`, `env`, `mounts`, `exec.start`, `exec.stop`, `hostname`, `ip4.addr`, `interface`. `image`, `env` and `mounts` have the same semantics as in the `focker jail create` command. The syntax for `env` and `mounts` is in the form of dictionaries. `exec.start`, `exec.stop`, `hostname`, `ip4.addr` and `interface` have the same semantics as the corresponding entries in `/etc/jail.conf`. The jails will be recreated each time `focker compose build` is executed. Hence, any persistent data should be stored in volumes.
 
 #### Volumes
 
