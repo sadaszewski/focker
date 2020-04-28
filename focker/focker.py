@@ -73,9 +73,9 @@ def create_parser():
 
     # image
     subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \
-        for cmd in ['image', 'img', 'im', 'i'] ])
+        for cmd in ['image', 'ima', 'img', 'im', 'i'] ])
     subparsers.required = True
-    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['build', 'b']])
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['build', 'bld', 'b']])
     parser.set_defaults(func=command_image_build)
     parser.add_argument('focker_dir', type=str)
     parser.add_argument('--tags', '-t', type=str, nargs='+', default=[])
@@ -93,10 +93,10 @@ def create_parser():
     parser.set_defaults(func=command_image_list)
     parser.add_argument('--full-sha256', '-f', action='store_true')
 
-    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['prune', 'p']])
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['prune', 'pru', 'p']])
     parser.set_defaults(func=command_image_prune)
 
-    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['remove', 'r']])
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['remove', 'rem', 'rm', 'r']])
     parser.set_defaults(func=command_image_remove)
     parser.add_argument('reference', type=str)
     # parser.add_argument('--remove-children', '-r', action='store_true')
@@ -106,7 +106,7 @@ def create_parser():
     subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \
         for cmd in ['jail', 'j'] ])
     subparsers.required = True
-    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['create', 'c']])
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['create', 'creat', 'cre', 'c']])
     parser.set_defaults(func=command_jail_create)
     parser.add_argument('image', type=str)
     parser.add_argument('--command', '-c', type=str, default='/bin/sh')
@@ -115,24 +115,24 @@ def create_parser():
     parser.add_argument('--mounts', '-m', type=str, nargs='+', default=[])
     parser.add_argument('--hostname', '-n', type=str)
 
-    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['start', 's']])
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['start', 'sta', 's']])
     parser.set_defaults(func=command_jail_start)
     parser.add_argument('reference', type=str)
 
-    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['stop', 'S']])
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['stop', 'sto', 'S']])
     parser.set_defaults(func=command_jail_stop)
     parser.add_argument('reference', type=str)
 
-    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['remove', 'r']])
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['remove', 'rem', 'rm', 'r']])
     parser.set_defaults(func=command_jail_remove)
     parser.add_argument('reference', type=str)
 
-    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['exec', 'e']])
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['exec', 'exe', 'e']])
     parser.set_defaults(func=command_jail_exec)
     parser.add_argument('reference', type=str)
     parser.add_argument('command', type=str, nargs=argparse.REMAINDER, default=['/bin/sh'])
 
-    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['oneshot', 'o']])
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['oneshot', 'one', 'o']])
     parser.set_defaults(func=command_jail_oneshot)
     parser.add_argument('image', type=str)
     parser.add_argument('--env', '-e', type=str, nargs='+', default=[])
@@ -152,7 +152,7 @@ def create_parser():
     parser.set_defaults(func=command_jail_untag)
     parser.add_argument('tags', type=str, nargs='+')
 
-    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['prune', 'p']])
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['prune', 'pru', 'p']])
     parser.set_defaults(func=command_jail_prune)
     parser.add_argument('--force', '-f', action='store_true')
 
@@ -160,11 +160,11 @@ def create_parser():
     subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \
         for cmd in ['volume', 'vol', 'v'] ])
     subparsers.required = True
-    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['create', 'c']])
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['create', 'creat', 'cre', 'c']])
     parser.set_defaults(func=command_volume_create)
     parser.add_argument('--tags', '-t', type=str, nargs='+', default=[])
 
-    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['prune', 'p']])
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['prune', 'pru', 'p']])
     parser.set_defaults(func=command_volume_prune)
 
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['list', 'ls', 'l']])
@@ -184,7 +184,7 @@ def create_parser():
     subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \
         for cmd in ['compose', 'comp', 'c'] ])
     subparsers.required = True
-    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['build', 'b']])
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['build', 'bld', 'b']])
     parser.set_defaults(func=command_compose_build)
     parser.add_argument('filename', type=str)
 
