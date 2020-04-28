@@ -1,0 +1,15 @@
+base: freebsd-latest
+
+steps:
+  - run:
+      - pkg install -y gmake go node npm
+  - run:
+      - fetch https://github.com/go-gitea/gitea/releases/download/v1.11.4/gitea-src-1.11.4.tar.gz
+      - mkdir gitea-build
+      - cd gitea-build
+      - tar -zvxf ../gitea-src-1.11.4.tar.gz
+  - run:
+      - cd gitea-build
+      - TAGS="sqlite sqlite_unlock_notify pam" gmake build
+  - run:
+      - pkg install git
