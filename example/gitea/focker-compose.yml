@@ -26,6 +26,12 @@ jails:
       sed -i -e "s/localhost/${DOMAIN_NAME}/g" $GITEA_CONF && \
       crudini --set --inplace $GITEA_CONF server ROOT_URL https://${DOMAIN_NAME} && \
       crudini --set --inplace $GITEA_CONF server DISABLE_SSH true && \
+      crudini --set --inplace $GITEA_CONF service DEFAULT_ALLOW_CREATE_ORGANIZATION false && \
+      crudini --set --inplace $GITEA_CONF service DEFAULT_KEEP_EMAIL_PRIVATE true && \
+      crudini --set --inplace $GITEA_CONF repository MAX_CREATION_LIMIT 0 && \
+      crudini --set --inplace $GITEA_CONF server LANDING_PAGE explore && \
+      crudini --set --inplace $GITEA_CONF service DISABLE_REGISTRATION false && \
+      crudini --set --inplace $GITEA_CONF repository DEFAULT_REPO_UNITS repo.code && \
       export SECRET_CONF=/var/db/gitea/focker-secrets.ini && \
       if [ ! -f $SECRET_CONF ]; then
         touch $SECRET_CONF && \
