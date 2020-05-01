@@ -16,10 +16,23 @@ from ctypes import Structure, \
     ARRAY, \
     byref
 from ctypes.util import find_library
+import re
 
+with open('/usr/include/sys/mount.h', 'r') as f:
+    rx = re.compile('[ \t]')
+    lines = f.read().split('\n')
+    lines = [ a.strip() for a in lines \
+        if list(filter(lambda b: b, rx.split(a))) [:2] == \
+            [ '#define', 'MNAMELEN'] ]
+    MNAMELEN = int(rx.split(lines[0])[2])
+    # print('MNAMELEN:', MNAMELEN)
+    #line = list(filter(lambda a: \
+    #    list(filter(lambda b: b, rx.split(a), a)[:2]) == \
+    #        ['#define', 'MNAMELEN'], f.read().split('\n')))
+    #line[0]
 
 MFSNAMELEN = 16
-MNAMELEN = 1024
+# MNAMELEN = 1024
 
 
 class statfs(Structure):
