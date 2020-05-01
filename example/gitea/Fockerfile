@@ -51,3 +51,5 @@ steps:
       - sysrc gitea_enable=YES
       - sysrc sendmail_enable=NONE
       - sysrc syslogd_flags="-ss"
+  - run:
+      - sysrc clear_tmp_enable=YES
