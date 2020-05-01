@@ -9,6 +9,10 @@ volumes:
 
 jails:
   gitea:
+    meta:
+      domains:
+        - 1101.ch
+        - www.1101.ch
     image: gitea-latest
     mounts:
       gitea-data: /var/db/gitea

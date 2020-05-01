@@ -1,29 +1,44 @@
-base: freebsd-latest
+base: freebsd-11.2
 
 steps:
   - run:
-      - portsnap fetch extract
-  - run:
       - ASSUME_ALWAYS_YES=yes pkg bootstrap
       - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install gmake go git git-lfs ca_root_nss
-  - run: # downgrade to Go 1.13
+  - run:
       - ASSUME_ALWAYS_YES=yes pkg remove go
-      - cd /usr/ports/lang/go
-      - sed -i -e 's/PORTVERSION?=.*1.14.2/PORTVERSION?= 1.13.10/g' Makefile
-      - sed -i -e 's/BOOTSTRAP_TAG=.*go1.14/BOOTSTRAP_TAG= go1.14/g' Makefile
-      - rm files/patch-src_cmd_go_internal_modload_init.go
-      - sed -i -e 's/ONLY_FOR_ARCHS=.*aarch64 amd64 armv6 armv7 i386/ONLY_FOR_ARCHS= amd64/g' Makefile
-      - ALLOW_UNSUPPORTED_SYSTEM=yes BATCH=yes make distclean makesum install clean
-  - run:
-      - cd /usr/ports/www/gitea
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install subversion
+      - svn checkout --depth immediates https://svn.FreeBSD.org/ports/tags/RELEASE_12_1_0 ports-12.1.0
+      - cd ports-12.1.0
+      - svn update --set-depth immediates lang
+      - svn update --set-depth infinity lang/go
+      - svn update --set-depth infinity lang/go14
+      - svn update --set-depth infinity Mk
+      - svn update --set-depth infinity Templates
+      - svn update --set-depth infinity Tools
+      - svn update --set-depth infinity Keywords
+      - cd lang/go
       - ALLOW_UNSUPPORTED_SYSTEM=yes BATCH=yes make install clean
+      - cd /
+      - rm -rvf /ports-12.1.0
   - run:
-      - pkg remove -y gmake go
+      - ASSUME_ALWAYS_YES=yes pkg remove go14
+      - svn checkout --depth immediates https://svn.FreeBSD.org/ports/head ports-head
+      - cd ports-head
+      - svn update --set-depth immediates www
+      - svn update --set-depth infinity www/gitea
+      - svn update --set-depth infinity Mk
+      - svn update --set-depth infinity Templates
+      - svn update --set-depth infinity Tools
+      - svn update --set-depth infinity Keywords
+      - cd www/gitea
+      - ALLOW_UNSUPPORTED_SYSTEM=yes BATCH=yes make install clean
+      - cd /
+      - rm -rvf /ports-head
   - run:
-      - rm -rvf /usr/ports/*
-      - rm -rvf /var/db/portsnap/*
+      - ASSUME_ALWAYS_YES=yes pkg remove gmake go
       - ASSUME_ALWAYS_YES=yes pkg autoremove
   - run:
+      - mkdir -p /var/db/gitea
       - sysrc sshd_enable=NO
       - sysrc gitea_enable=YES
       - sysrc syslogd_flags="-ss"

@@ -5,3 +5,4 @@ __pycache__
 /change_author.sh
 /mymailmap
 /*.shar
+/example/gitea/x
