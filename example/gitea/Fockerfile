@@ -42,3 +42,4 @@ steps:
       - sysrc sshd_enable=NO
       - sysrc gitea_enable=YES
       - sysrc syslogd_flags="-ss"
+      - sed -i -e 's/DISABLE_REGISTRATION[ \t]*=[ \t]*false/DISABLE_REGISTRATION = true/g' /usr/local/etc/gitea/conf/app.ini

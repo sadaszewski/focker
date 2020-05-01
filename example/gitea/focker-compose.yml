@@ -19,7 +19,12 @@ jails:
     ip4.addr: 127.0.8.1
     exec.start: |
       chown git:git /var/db/gitea && \
-      sed -i -e 's/HTTP_ADDR    = 127.0.0.1/HTTP_ADDR    = 127.0.8.1/g' /usr/local/etc/gitea/conf/app.ini && \
+      sed -i -e 's/127.0.0.1/127.0.8.1/g' /usr/local/etc/gitea/conf/app.ini && \
+      sed -i -e 's/ChangeMeBeforeRunning/J#NNOWn377ijsmfjmw54594702239ydhofh494j/g' /usr/local/etc/gitea/conf/app.ini && \
+      if [ ! -f /var/db/gitea/gitea.db ]; then \
+        su git -c 'gitea migrate -c /usr/local/etc/gitea/conf/app.ini' && \
+        su git -c 'gitea admin -c /usr/local/etc/gitea/conf/app.ini create-user --username admin1 --password "AdminAdmin1+" --email "invaliduser@nonexistentdomain.com"'; \
+      fi && \
       /bin/sh /etc/rc
 
   certbot-gitea:
