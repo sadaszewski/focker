@@ -1,0 +1,14 @@
+base: freebsd-latest
+
+steps:
+  - run:
+      - ASSUME_ALWAYS_YES=yes pkg bootstrap
+      - ASSUME_ALWAYS_YES=yes pkg install py37-certbot
+  - run:
+      - ASSUME_ALWAYS_YES=yes pkg install ca_root_nss
+  - run:
+      - echo 'weekly_certbot_enable="YES"' >>/etc/periodic.conf
+  - run:
+      - mkdir -p /certbot/webroot
+      - mkdir -p /usr/local/etc/letsencrypt
+      - sysrc sshd_enable=NO

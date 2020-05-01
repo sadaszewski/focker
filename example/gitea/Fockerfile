@@ -2,15 +2,28 @@ base: freebsd-latest
 
 steps:
   - run:
-      - pkg install -y gmake go node npm
+      - portsnap fetch extract
   - run:
-      - pkg install -y ca_root_nss
-      - fetch https://github.com/go-gitea/gitea/releases/download/v1.11.4/gitea-src-1.11.4.tar.gz
-      - mkdir gitea-build
-      - cd gitea-build
-      - tar -zvxf ../gitea-src-1.11.4.tar.gz
+      - ASSUME_ALWAYS_YES=yes pkg bootstrap
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install gmake go git git-lfs ca_root_nss
+  - run: # downgrade to Go 1.13
+      - ASSUME_ALWAYS_YES=yes pkg remove go
+      - cd /usr/ports/lang/go
+      - sed -i -e 's/PORTVERSION?=.*1.14.2/PORTVERSION?= 1.13.10/g' Makefile
+      - sed -i -e 's/BOOTSTRAP_TAG=.*go1.14/BOOTSTRAP_TAG= go1.14/g' Makefile
+      - rm files/patch-src_cmd_go_internal_modload_init.go
+      - sed -i -e 's/ONLY_FOR_ARCHS=.*aarch64 amd64 armv6 armv7 i386/ONLY_FOR_ARCHS= amd64/g' Makefile
+      - ALLOW_UNSUPPORTED_SYSTEM=yes BATCH=yes make distclean makesum install clean
   - run:
-      - cd gitea-build
-      - TAGS="sqlite sqlite_unlock_notify pam" gmake build
+      - cd /usr/ports/www/gitea
+      - ALLOW_UNSUPPORTED_SYSTEM=yes BATCH=yes make install clean
   - run:
-      - pkg install -y git
+      - pkg remove -y gmake go
+  - run:
+      - rm -rvf /usr/ports/*
+      - rm -rvf /var/db/portsnap/*
+      - ASSUME_ALWAYS_YES=yes pkg autoremove
+  - run:
+      - sysrc sshd_enable=NO
+      - sysrc gitea_enable=YES
+      - sysrc syslogd_flags="-ss"

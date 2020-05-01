@@ -1,0 +1,32 @@
+images:
+  gitea-latest: .
+  certbot-latest: ../certbot
+
+volumes:
+  gitea-data: {}
+  certbot-webroot: {}
+  certbot-config-gitea: {}
+
+jails:
+  gitea:
+    image: gitea-latest
+    mounts:
+      gitea-data: /var/db/gitea
+    ip4.addr: 127.0.8.1
+    exec.start: |
+      chown git:git /var/db/gitea && \
+      sed -i -e 's/HTTP_ADDR    = 127.0.0.1/HTTP_ADDR    = 127.0.8.1/g' /usr/local/etc/gitea/conf/app.ini && \
+      /bin/sh /etc/rc
+
+  certbot-gitea:
+    image: certbot-latest
+    mounts:
+      certbot-webroot: /certbot/webroot
+      certbot-config-gitea: /usr/local/etc/letsencrypt
+    ip4.addr: 127.0.9.1
+    exec.start: |
+      if [ ! -f /usr/local/etc/letsencrypt/cli.ini ]; then
+        echo 'webroot-path=/certbot/webroot' >>/usr/local/etc/letsencrypt/cli.ini && \
+        echo 'authenticator=webroot' >>/usr/local/etc/letsencrypt/cli.ini;
+      fi && \
+      /bin/sh /etc/rc
