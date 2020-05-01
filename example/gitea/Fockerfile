@@ -4,6 +4,7 @@ steps:
   - run:
       - pkg install -y gmake go node npm
   - run:
+      - pkg install -y ca_root_nss
       - fetch https://github.com/go-gitea/gitea/releases/download/v1.11.4/gitea-src-1.11.4.tar.gz
       - mkdir gitea-build
       - cd gitea-build
@@ -12,4 +13,4 @@ steps:
       - cd gitea-build
       - TAGS="sqlite sqlite_unlock_notify pam" gmake build
   - run:
-      - pkg install git
+      - pkg install -y git
