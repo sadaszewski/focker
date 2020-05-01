@@ -18,6 +18,7 @@ def command_volume_create(args):
         if not zfs_exists(name):
             break
     zfs_run(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
+    zfs_untag(args.tags, focker_type='volume')
     zfs_tag(name, args.tags)
 
 
