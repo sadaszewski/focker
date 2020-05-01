@@ -4,7 +4,7 @@ steps:
   - run:
       - ASSUME_ALWAYS_YES=yes pkg bootstrap
       - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install gmake go git git-lfs ca_root_nss
-  - run:
+      # downgrade to Go 1.13
       - ASSUME_ALWAYS_YES=yes pkg remove go
       - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install subversion
       - svn checkout --depth immediates https://svn.FreeBSD.org/ports/tags/RELEASE_12_1_0 ports-12.1.0
@@ -20,7 +20,7 @@ steps:
       - ALLOW_UNSUPPORTED_SYSTEM=yes BATCH=yes make install clean
       - cd /
       - rm -rvf /ports-12.1.0
-  - run:
+      # install Gitea
       - ASSUME_ALWAYS_YES=yes pkg remove go14
       - svn checkout --depth immediates https://svn.FreeBSD.org/ports/head ports-head
       - cd ports-head
@@ -34,12 +34,12 @@ steps:
       - ALLOW_UNSUPPORTED_SYSTEM=yes BATCH=yes make install clean
       - cd /
       - rm -rvf /ports-head
-  - run:
+      # remove unnecessary packages
       - ASSUME_ALWAYS_YES=yes pkg remove gmake go
       - ASSUME_ALWAYS_YES=yes pkg autoremove
-  - run:
+      # install crudini
       - ASSUME_ALWAYS_YES=yes pkg install py27-crudini
-  - run:
+      # final touches
       - export GITEA_CONF=/usr/local/etc/gitea/conf/app.ini
       - crudini --set --inplace $GITEA_CONF oauth2 JWT_SECRET `gitea generate secret JWT_SECRET`
       - crudini --set --inplace $GITEA_CONF security INTERNAL_TOKEN `gitea generate secret INTERNAL_TOKEN`
