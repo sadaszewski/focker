@@ -38,11 +38,16 @@ steps:
       - ASSUME_ALWAYS_YES=yes pkg remove gmake go
       - ASSUME_ALWAYS_YES=yes pkg autoremove
   - run:
-      - mkdir -p /var/db/gitea
+      - ASSUME_ALWAYS_YES=yes pkg install py27-crudini
+  - run:
+      - export GITEA_CONF=/usr/local/etc/gitea/conf/app.ini
+      - crudini --set --inplace $GITEA_CONF oauth2 JWT_SECRET `gitea generate secret JWT_SECRET`
+      - crudini --set --inplace $GITEA_CONF security INTERNAL_TOKEN `gitea generate secret INTERNAL_TOKEN`
+      - crudini --set --inplace $GITEA_CONF security SECRET_KEY `gitea generate secret SECRET_KEY`
+      - crudini --set --inplace $GITEA_CONF service DISABLE_REGISTRATION true
+      - chown root:git $GITEA_CONF
+      - chmod 640 $GITEA_CONF
       - sysrc sshd_enable=NO
       - sysrc gitea_enable=YES
       - sysrc sendmail_enable=NONE
       - sysrc syslogd_flags="-ss"
-      - sed -i -e 's/DISABLE_REGISTRATION[ \t]*=[ \t]*false/DISABLE_REGISTRATION = true/g' /usr/local/etc/gitea/conf/app.ini
-      - chown root:git /usr/local/etc/gitea/conf/app.ini
-      - chmod 640 /usr/local/etc/gitea/conf/app.ini
