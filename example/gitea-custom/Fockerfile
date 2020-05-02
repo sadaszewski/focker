@@ -4,10 +4,15 @@ steps:
   - copy:
       - [ files/body_inner_pre.tmpl,
           /usr/local/share/gitea/templates/custom/body_inner_pre.tmpl ]
+      - [ files/header.tmpl,
+          /usr/local/share/gitea/templates/custom/header.tmpl ]
+      - [ files/custom.css,
+          /usr/local/share/gitea/public/css/custom.css ]
       - [ files/secrets.ini,
           /tmp/secrets.ini ]
   - run: |
       export GITEA_CONF=/usr/local/etc/gitea/conf/app.ini && \
+      export GITEA_TMPL_BASE=/usr/local/share/gitea/templates/base && \
       export SECRET_CONF=/tmp/secrets.ini && \
       crudini --set --inplace $GITEA_CONF server DISABLE_SSH true && \
       crudini --set --inplace $GITEA_CONF service DEFAULT_ALLOW_CREATE_ORGANIZATION false && \
@@ -20,4 +25,5 @@ steps:
       crudini --set --inplace $GITEA_CONF security INTERNAL_TOKEN `crudini --get $SECRET_CONF security INTERNAL_TOKEN` && \
       crudini --set --inplace $GITEA_CONF security SECRET_KEY `crudini --get $SECRET_CONF security SECRET_KEY` && \
       rm -v $SECRET_CONF && \
-      sed -i -e '/<link rel="mask-icon"/ d' /usr/local/share/gitea/templates/base/head.tmpl
+      sed -i -e '/<link rel="mask-icon"/ d' $GITEA_TMPL_BASE/head.tmpl && \
+      sed -i -e 's/<a href="{{AppSubUrl}}\/">$/<a href="https:\/\/adared.ch\/">/' $GITEA_TMPL_BASE/head_navbar.tmpl
