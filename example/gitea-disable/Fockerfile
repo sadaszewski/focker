@@ -1,0 +1,11 @@
+base: gitea-custom
+
+steps:
+  - run:
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install nginx
+      - sysrc nginx_enable=YES
+  - copy:
+      - [ files/nginx.conf,
+          /usr/local/etc/nginx/nginx.conf ]
+      - [ files/403.html,
+          /usr/local/share/gitea/public/403.html ]

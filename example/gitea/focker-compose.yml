@@ -2,6 +2,7 @@ images:
   gitea: .
   gitea-logo: ../gitea-logo
   gitea-custom: ../gitea-custom
+  gitea-disable: ../gitea-disable
   certbot-latest: ../certbot
 
 volumes:
@@ -15,7 +16,7 @@ jails:
       domains:
         - xyz.com
         - www.xyz.com
-    image: gitea-custom
+    image: gitea-disable
     mounts:
       gitea-data: /var/db/gitea
     ip4.addr: 127.0.8.1
