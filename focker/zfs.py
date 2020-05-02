@@ -195,6 +195,7 @@ def zfs_init():
     for path in ['/focker', '/focker/images', '/focker/volumes', '/focker/jails']:
         if not os.path.exists(path):
             os.mkdir(path)
+    os.chmod('/focker', 0o600)
     if not zfs_exists(poolname + '/focker'):
         zfs_run(['zfs', 'create', '-o', 'canmount=off', '-o', 'mountpoint=/focker', poolname + '/focker'])
     if not zfs_exists(poolname + '/focker/images'):
