@@ -14,6 +14,7 @@ steps:
       export GITEA_CONF=/usr/local/etc/gitea/conf/app.ini && \
       export GITEA_TMPL_BASE=/usr/local/share/gitea/templates/base && \
       export SECRET_CONF=/tmp/secrets.ini && \
+      crudini --set --inplace $GITEA_CONF api ENABLE_SWAGGER false && \
       crudini --set --inplace $GITEA_CONF server DISABLE_SSH true && \
       crudini --set --inplace $GITEA_CONF service DEFAULT_ALLOW_CREATE_ORGANIZATION false && \
       crudini --set --inplace $GITEA_CONF service DEFAULT_KEEP_EMAIL_PRIVATE true && \
