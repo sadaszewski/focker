@@ -1,0 +1,23 @@
+base: gitea-logo
+
+steps:
+  - copy:
+      - [ files/body_inner_pre.tmpl,
+          /usr/local/share/gitea/templates/custom/body_inner_pre.tmpl ]
+      - [ files/secrets.ini,
+          /tmp/secrets.ini ]
+  - run: |
+      export GITEA_CONF=/usr/local/etc/gitea/conf/app.ini && \
+      export SECRET_CONF=/tmp/secrets.ini && \
+      crudini --set --inplace $GITEA_CONF server DISABLE_SSH true && \
+      crudini --set --inplace $GITEA_CONF service DEFAULT_ALLOW_CREATE_ORGANIZATION false && \
+      crudini --set --inplace $GITEA_CONF service DEFAULT_KEEP_EMAIL_PRIVATE true && \
+      crudini --set --inplace $GITEA_CONF repository MAX_CREATION_LIMIT 0 && \
+      crudini --set --inplace $GITEA_CONF server LANDING_PAGE explore && \
+      crudini --set --inplace $GITEA_CONF service DISABLE_REGISTRATION true && \
+      crudini --set --inplace $GITEA_CONF repository DEFAULT_REPO_UNITS repo.code && \
+      crudini --set --inplace $GITEA_CONF oauth2 JWT_SECRET `crudini --get $SECRET_CONF oauth2 JWT_SECRET` && \
+      crudini --set --inplace $GITEA_CONF security INTERNAL_TOKEN `crudini --get $SECRET_CONF security INTERNAL_TOKEN` && \
+      crudini --set --inplace $GITEA_CONF security SECRET_KEY `crudini --get $SECRET_CONF security SECRET_KEY` && \
+      rm -v $SECRET_CONF && \
+      sed -i -e '/<link rel="mask-icon"/ d' /usr/local/share/gitea/templates/base/head.tmpl

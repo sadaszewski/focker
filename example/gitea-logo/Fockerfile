@@ -1,0 +1,16 @@
+base: gitea-latest
+
+steps:
+  - copy:
+      - [ files/resize.py,
+          /tmp/resize.py ]
+  - run: |
+      ASSUME_ALWAYS_YES=yes pkg install py37-pillow && \
+      export LOGO_URL=https://adared.ch/wp-content/uploads/2017/04/adared_logo_20170403-2.png && \
+      fetch $LOGO_URL -o logo.png && \
+      python3.7 /tmp/resize.py logo.png && \
+      mv -v gitea-*.png /usr/local/share/gitea/public/img/ && \
+      rm -v logo.png && \
+      rm -v /tmp/resize.py && \
+      ASSUME_ALWAYS_YES=yes pkg remove py37-pillow && \
+      ASSUME_ALWAYS_YES=yes pkg autoremove

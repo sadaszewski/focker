@@ -1,5 +1,7 @@
 images:
-  gitea-latest: .
+  gitea: .
+  gitea-logo: ../gitea-logo
+  gitea-custom: ../gitea-custom
   certbot-latest: ../certbot
 
 volumes:
@@ -13,7 +15,7 @@ jails:
       domains:
         - xyz.com
         - www.xyz.com
-    image: gitea-latest
+    image: gitea-custom
     mounts:
       gitea-data: /var/db/gitea
     ip4.addr: 127.0.8.1
@@ -25,29 +27,10 @@ jails:
       sed -i -e "s/127.0.0.1/${IP4_ADDR}/g" $GITEA_CONF && \
       sed -i -e "s/localhost/${DOMAIN_NAME}/g" $GITEA_CONF && \
       crudini --set --inplace $GITEA_CONF server ROOT_URL https://${DOMAIN_NAME} && \
-      crudini --set --inplace $GITEA_CONF server DISABLE_SSH true && \
-      crudini --set --inplace $GITEA_CONF service DEFAULT_ALLOW_CREATE_ORGANIZATION false && \
-      crudini --set --inplace $GITEA_CONF service DEFAULT_KEEP_EMAIL_PRIVATE true && \
-      crudini --set --inplace $GITEA_CONF repository MAX_CREATION_LIMIT 0 && \
-      crudini --set --inplace $GITEA_CONF server LANDING_PAGE explore && \
-      crudini --set --inplace $GITEA_CONF service DISABLE_REGISTRATION false && \
-      crudini --set --inplace $GITEA_CONF repository DEFAULT_REPO_UNITS repo.code && \
-      export SECRET_CONF=/var/db/gitea/focker-secrets.ini && \
-      if [ ! -f $SECRET_CONF ]; then
-        touch $SECRET_CONF && \
-        chown root:git $SECRET_CONF && \
-        chmod 640 $SECRET_CONF && \
-        crudini --set --inplace $SECRET_CONF oauth2 JWT_SECRET `gitea generate secret JWT_SECRET` && \
-        crudini --set --inplace $SECRET_CONF security INTERNAL_TOKEN `gitea generate secret INTERNAL_TOKEN` && \
-        crudini --set --inplace $SECRET_CONF security SECRET_KEY `gitea generate secret SECRET_KEY`; \
-      fi && \
       if [ ! -f /var/db/gitea/gitea.db ]; then \
         su git -c 'gitea migrate -c $GITEA_CONF' && \
         su git -c 'gitea admin -c $GITEA_CONF create-user --username admin1 --password "AdminAdmin1+" --email "invaliduser@nonexistentdomain.com" --admin'; \
       fi && \
-      crudini --set --inplace $GITEA_CONF oauth2 JWT_SECRET `crudini --get $SECRET_CONF oauth2 JWT_SECRET` && \
-      crudini --set --inplace $GITEA_CONF security INTERNAL_TOKEN `crudini --get $SECRET_CONF security INTERNAL_TOKEN` && \
-      crudini --set --inplace $GITEA_CONF security SECRET_KEY `crudini --get $SECRET_CONF security SECRET_KEY` && \
       /bin/sh /etc/rc
 
   certbot-gitea:
