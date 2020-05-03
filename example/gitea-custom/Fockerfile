@@ -9,11 +9,11 @@ steps:
       - [ files/custom.css,
           /usr/local/share/gitea/public/css/custom.css ]
       - [ files/secrets.ini,
-          /tmp/secrets.ini ]
+          /root/secrets.ini ]
   - run: |
       export GITEA_CONF=/usr/local/etc/gitea/conf/app.ini && \
       export GITEA_TMPL_BASE=/usr/local/share/gitea/templates/base && \
-      export SECRET_CONF=/tmp/secrets.ini && \
+      export SECRET_CONF=/root/secrets.ini && \
       crudini --set --inplace $GITEA_CONF "" APP_NAME "ADARED:Code" && \
       crudini --set --inplace $GITEA_CONF ui THEMES gitea && \
       crudini --set --inplace $GITEA_CONF api ENABLE_SWAGGER false && \
