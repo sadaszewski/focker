@@ -22,12 +22,13 @@ jails:
     ip4.addr: 127.0.8.1
     exec.start: |
       export IP4_ADDR=127.0.8.1 && \
-      export DOMAIN_NAME=xyz.com && \
+      export SCHEME=http && \
+      export DOMAIN_NAME=localhost:3001 && \
       export GITEA_CONF=/usr/local/etc/gitea/conf/app.ini && \
       chown git:git /var/db/gitea && \
       sed -i -e "s/127.0.0.1/${IP4_ADDR}/g" $GITEA_CONF && \
       sed -i -e "s/localhost/${DOMAIN_NAME}/g" $GITEA_CONF && \
-      crudini --set --inplace $GITEA_CONF server ROOT_URL https://${DOMAIN_NAME} && \
+      crudini --set --inplace $GITEA_CONF server ROOT_URL ${SCHEME}://${DOMAIN_NAME} && \
       if [ ! -f /var/db/gitea/gitea.db ]; then \
         su git -c 'gitea migrate -c $GITEA_CONF' && \
         su git -c 'gitea admin -c $GITEA_CONF create-user --username admin1 --password "AdminAdmin1+" --email "invaliduser@nonexistentdomain.com" --admin'; \
