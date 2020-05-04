@@ -12,7 +12,8 @@ from .zfs import AmbiguousValueError, \
     zfs_tag, \
     zfs_untag, \
     zfs_mountpoint, \
-    zfs_poolname
+    zfs_poolname, \
+    zfs_set_props
 from .jail import jail_fs_create, \
     jail_create, \
     jail_remove
@@ -25,19 +26,26 @@ import os
 
 def build_volumes(spec):
     poolname = zfs_poolname()
-    for tag in spec.keys():
+    for tag, params in spec.items():
+        name = None
         try:
             name, _ = zfs_find(tag, focker_type='volume')
-            continue
-        except AmbiguousValueError:
-            raise
         except ValueError:
             pass
-        sha256 = random_sha256_hexdigest()
-        name = find_prefix(poolname + '/focker/volumes/', sha256)
-        subprocess.check_output(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
-        zfs_untag([ tag ], focker_type='volume')
-        zfs_tag(name, [ tag ])
+        if name is None:
+            sha256 = random_sha256_hexdigest()
+            name = find_prefix(poolname + '/focker/volumes/', sha256)
+            subprocess.check_output(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
+            zfs_untag([ tag ], focker_type='volume')
+            zfs_tag(name, [ tag ])
+        mountpoint = zfs_mountpoint(name)
+        print('params:', params)
+        if 'chown' in params:
+            os.chown(mountpoint, *map(int, params['chown'].split(':')))
+        if 'chmod' in params:
+            os.chmod(mountpoint, params['chmod'])
+        if 'zfs' in params:
+            zfs_set_props(name, params['zfs'])
 
 
 def build_images(spec, path):

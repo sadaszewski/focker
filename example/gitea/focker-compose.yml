@@ -6,7 +6,11 @@ images:
   certbot-latest: ../certbot
 
 volumes:
-  gitea-data: {}
+  gitea-data:
+    chmod: 0750
+    chown: 211:211
+    zfs:
+      quota: 5G
   certbot-webroot: {}
   certbot-config-gitea: {}
 
