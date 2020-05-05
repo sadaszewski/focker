@@ -83,6 +83,7 @@ def create_parser():
     parser.set_defaults(func=command_image_build)
     parser.add_argument('focker_dir', type=str)
     parser.add_argument('--tags', '-t', type=str, nargs='+', default=[])
+    parser.add_argument('--squeeze', '-s', action='store_true')
 
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['tag', 't']])
     parser.set_defaults(func=command_image_tag)

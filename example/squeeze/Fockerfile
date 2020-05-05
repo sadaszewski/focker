@@ -1,0 +1,14 @@
+base: freebsd-latest
+
+steps:
+  - run:
+      - touch /a
+      - touch /b
+      - touch /c
+  - run:
+      - touch /d
+      - touch /e
+      - touch /f
+  - copy:
+      - [ files/g, /g ]
+

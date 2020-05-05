@@ -12,14 +12,54 @@ from .steps import create_step
 from .snapshot import new_snapshot
 from tabulate import tabulate
 import subprocess
+from .misc import find_prefix
 
 
-def build(spec, args):
+def validate_spec(spec):
     if 'base' not in spec:
         raise ValueError('Missing base in specification')
 
     if 'steps' not in spec:
         raise ValueError('Missing steps in specification')
+
+
+def build_squeeze(spec, args):
+    validate_spec(spec)
+
+    base = spec['base']
+    base, sha256 = zfs_find(base, focker_type='image', zfs_type='snapshot')
+
+    root = '/'.join(base.split('/')[:-1])
+    print('base:', base, 'root:', root)
+
+    steps = spec['steps']
+    if not isinstance(steps, list):
+        steps = [ steps ]
+
+    for st in steps:
+        st = create_step(st)
+        sha256 = st.hash(sha256, args=args)
+
+    if zfs_exists_snapshot_sha256(sha256):
+        name = zfs_snapshot_by_sha256(sha256)
+        print('Reusing:', name)
+        return (name, sha256)
+
+    name = find_prefix(root + '/', sha256)
+
+    def atomic():
+        for st in steps:
+            st = create_step(st)
+            st.execute(zfs_mountpoint(name), args=args)
+        zfs_set_props(name,
+            { 'focker:sha256': sha256 })
+
+    name = new_snapshot(base, atomic, name)
+    return (name, sha256)
+
+
+def build(spec, args):
+    validate_spec(spec)
 
     base = spec['base']
     base, base_sha256 = zfs_find(base, focker_type='image', zfs_type='snapshot')
@@ -67,7 +107,8 @@ def command_image_build(args):
     with open(fname, 'r') as f:
         spec = yaml.safe_load(f)
     print('spec:', spec)
-    image, image_sha256 = build(spec, args)
+    image, image_sha256 = build_squeeze(spec, args) \
+        if args.squeeze else build(spec, args)
     zfs_untag(args.tags)
     zfs_tag(image.split('@')[0], args.tags)
 
