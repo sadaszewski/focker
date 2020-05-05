@@ -192,6 +192,7 @@ def create_parser():
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['build', 'bld', 'b']])
     parser.set_defaults(func=command_compose_build)
     parser.add_argument('filename', type=str)
+    parser.add_argument('--squeeze', '-s', action='store_true')
 
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['run', 'r']])
     parser.set_defaults(func=command_compose_run)

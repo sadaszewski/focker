@@ -48,11 +48,14 @@ def build_volumes(spec):
             zfs_set_props(name, params['zfs'])
 
 
-def build_images(spec, path):
+def build_images(spec, path, args):
     # print('build_images(): NotImplementedError')
     for (tag, focker_dir) in spec.items():
-        res = subprocess.run(['focker', 'image', 'build',
-            os.path.join(path, focker_dir), '-t', tag])
+        cmd = ['focker', 'image', 'build',
+            os.path.join(path, focker_dir), '-t', tag]
+        if args.squeeze:
+            cmd.append('--squeeze')
+        res = subprocess.run(cmd)
         if res.returncode != 0:
             raise RuntimeError('Image build failed: ' + str(res.returncode))
 
@@ -97,7 +100,7 @@ def command_compose_build(args):
     if 'volumes' in spec:
         build_volumes(spec['volumes'])
     if 'images' in spec:
-        build_images(spec['images'], path)
+        build_images(spec['images'], path, args)
     if 'jails' in spec:
         build_jails(spec['jails'])
 
