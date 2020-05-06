@@ -15,7 +15,41 @@ import os
 import jailconf
 from .mount import getmntinfo
 import shlex
+import fcntl
 # import pdb
+import stat
+
+
+def backup_file(fname, nbackups=10):
+    existing_backups = []
+    for i in range(nbackups):
+        bakname = '%s.%d' % (fname, i)
+        if os.path.exists(bakname):
+            st = os.stat(bakname)
+            existing_backups.append((bakname, st.st_mtime))
+        else:
+            shutil.copyfile(fname, bakname)
+            return bakname
+    existing_backups.sort(key=lambda a: a[1])
+    # overwrite the oldest
+    bakname = existing_backups[0][0]
+    shutil.copyfile(fname, bakname)
+    return bakname
+
+
+def jail_conf_write(conf):
+    os.makedirs('/var/lock', exist_ok=True)
+    with open('/var/lock/focker.lock', 'a+') as f:
+        print('Waiting for /var/lock/focker.lock ...')
+        fcntl.flock(f, fcntl.LOCK_EX)
+        print('Lock acquired')
+        try:
+            bakname = backup_file('/etc/jail.conf')
+            os.chmod(bakname, 0o600)
+            conf.write('/etc/jail.conf')
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+            print('Lock released')
 
 
 def jail_fs_create(image=None):
@@ -92,7 +126,7 @@ def jail_create(path, command, env, mounts, hostname=None, overrides={}):
     blk['host.hostname'] = hostname or name
     for (k, v) in overrides.items():
         blk[k] = quote(v)
-    conf.write('/etc/jail.conf')
+    jail_conf_write(conf)
     return name
 
 
@@ -174,7 +208,7 @@ def jail_remove(path):
         name = os.path.split(path)[-1]
         if name in conf:
             del conf[name]
-            conf.write('/etc/jail.conf')
+            jail_conf_write(conf)
 
 
 def command_jail_create(args):
