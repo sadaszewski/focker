@@ -16,9 +16,11 @@ import jailconf
 from .mount import getmntinfo
 import shlex
 import stat
+from .misc import focker_lock, \
+    focker_unlock
 
 
-def backup_file(fname, nbackups=10):
+def backup_file(fname, nbackups=10, chmod=0o600):
     existing_backups = []
     for i in range(nbackups):
         bakname = '%s.%d' % (fname, i)
@@ -27,17 +29,17 @@ def backup_file(fname, nbackups=10):
             existing_backups.append((bakname, st.st_mtime))
         else:
             shutil.copyfile(fname, bakname)
+            os.chmod(bakname, chmod)
             return bakname
     existing_backups.sort(key=lambda a: a[1])
     # overwrite the oldest
     bakname = existing_backups[0][0]
     shutil.copyfile(fname, bakname)
+    os.chmod(bakname, chmod)
     return bakname
 
 
 def jail_conf_write(conf):
-    bakname = backup_file('/etc/jail.conf')
-    os.chmod(bakname, 0o600)
     conf.write('/etc/jail.conf')
 
 
@@ -201,6 +203,7 @@ def jail_remove(path):
 
 
 def command_jail_create(args):
+    backup_file('/etc/jail.conf')
     name = jail_fs_create(args.image)
     if args.tags:
         zfs_tag(name, args.tags)
@@ -238,17 +241,22 @@ def command_jail_exec(args):
     name, _ = zfs_find(args.reference, focker_type='jail')
     path = zfs_mountpoint(name)
     jid = get_jid(path)
+    focker_unlock()
     subprocess.run(['jexec', str(jid)] + args.command)
+    focker_lock()
 
 
 def jail_oneshot(image, command, env, mounts):
     # pdb.set_trace()
+    backup_file('/etc/jail.conf')
     name = jail_fs_create(image)
     path = zfs_mountpoint(name)
     jailname = jail_create(path,
         ' '.join(map(shlex.quote, command or ['/bin/sh'])),
         env, mounts)
+    focker_unlock()
     subprocess.run(['jail', '-c', jailname])
+    focker_lock()
     jail_remove(path)
 
 

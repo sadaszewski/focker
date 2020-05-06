@@ -16,12 +16,15 @@ from .zfs import AmbiguousValueError, \
     zfs_set_props
 from .jail import jail_fs_create, \
     jail_create, \
-    jail_remove
+    jail_remove, \
+    backup_file
 from .misc import random_sha256_hexdigest, \
     find_prefix
 import subprocess
 import jailconf
 import os
+from .misc import focker_lock, \
+    focker_unlock
 
 
 def build_volumes(spec):
@@ -55,7 +58,9 @@ def build_images(spec, path, args):
             os.path.join(path, focker_dir), '-t', tag]
         if args.squeeze:
             cmd.append('--squeeze')
+        focker_unlock()
         res = subprocess.run(cmd)
+        focker_lock()
         if res.returncode != 0:
             raise RuntimeError('Image build failed: ' + str(res.returncode))
 
@@ -65,6 +70,7 @@ def build_jails(spec):
     #    conf = jailconf.load('/etc/jail.conf')
     #else:
     #    conf = jailconf.JailConf()
+    backup_file('/etc/jail.conf')
     for (jailname, jailspec) in spec.items():
         try:
             name, _ = zfs_find(jailname, focker_type='jail')
@@ -103,7 +109,6 @@ def command_compose_build(args):
         build_images(spec['images'], path, args)
     if 'jails' in spec:
         build_jails(spec['jails'])
-
 
 
 def command_compose_run(args):

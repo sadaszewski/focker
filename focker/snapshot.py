@@ -6,6 +6,8 @@
 #
 
 from .zfs import *
+from .misc import focker_lock, \
+    focker_unlock
 
 
 def new_snapshot(base, fun, name):
@@ -17,7 +19,11 @@ def new_snapshot(base, fun, name):
         name = root + '/' + name
     zfs_run(['zfs', 'clone', base, name])
     try:
-        fun()
+        try:
+            focker_unlock()
+            fun()
+        finally:
+            focker_lock()
         zfs_run(['zfs', 'set', 'readonly=on', name])
         snap_name = name + '@1'
         zfs_run(['zfs', 'snapshot', snap_name])
