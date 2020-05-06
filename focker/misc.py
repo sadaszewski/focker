@@ -7,6 +7,8 @@
 
 import random
 from .zfs import zfs_exists
+import os
+import fcntl
 
 
 def random_sha256_hexdigest():
@@ -19,3 +21,20 @@ def find_prefix(head, tail):
         if not zfs_exists(name):
             break
     return name
+
+
+def focker_lock():
+    os.makedirs('/var/lock', exist_ok=True)
+    if focker_lock.fd is None:
+        focker_lock.fd = open('/var/lock/focker.lock', 'a+')
+    print('Waiting for /var/lock/focker.lock ...')
+    fcntl.flock(focker_lock.fd, fcntl.LOCK_EX)
+    print('Lock acquired.')
+focker_lock.fd = None
+
+
+def focker_unlock():
+    if focker_lock.fd is None:
+        return
+    fcntl.flock(focker_lock.fd, fcntl.LOCK_UN)
+    print('Lock released')

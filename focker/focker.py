@@ -38,6 +38,7 @@ from .compose import \
     command_compose_build, \
     command_compose_run
 from .bootstrap import command_bootstrap
+from .misc import focker_lock
 
 
 class ListForwarderFunctor(object):
@@ -203,6 +204,7 @@ def create_parser():
 
 
 def main():
+    focker_lock()
     zfs_init()
     parser = create_parser()
     args = parser.parse_args()

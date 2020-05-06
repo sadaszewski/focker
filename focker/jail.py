@@ -15,8 +15,6 @@ import os
 import jailconf
 from .mount import getmntinfo
 import shlex
-import fcntl
-# import pdb
 import stat
 
 
@@ -38,18 +36,9 @@ def backup_file(fname, nbackups=10):
 
 
 def jail_conf_write(conf):
-    os.makedirs('/var/lock', exist_ok=True)
-    with open('/var/lock/focker.lock', 'a+') as f:
-        print('Waiting for /var/lock/focker.lock ...')
-        fcntl.flock(f, fcntl.LOCK_EX)
-        print('Lock acquired')
-        try:
-            bakname = backup_file('/etc/jail.conf')
-            os.chmod(bakname, 0o600)
-            conf.write('/etc/jail.conf')
-        finally:
-            fcntl.flock(f, fcntl.LOCK_UN)
-            print('Lock released')
+    bakname = backup_file('/etc/jail.conf')
+    os.chmod(bakname, 0o600)
+    conf.write('/etc/jail.conf')
 
 
 def jail_fs_create(image=None):
