@@ -1,0 +1,30 @@
+prebuild:
+  - python3 getmetadata.py
+
+
+volumes:
+  certbot-data: {}
+  certbot-webroot: {}
+
+
+images:
+  nginx-http: ./nginx-http
+  nginx-https: ./nginx-https
+  certbot: ./certbot
+
+
+jails:
+  nginx-http:
+    image: nginx-http
+    mounts:
+      certbot-webroot: /srv/certbot-webroot
+
+  certbot:
+    image: certbot
+    depend: nginx-http
+    mounts:
+      certbot-data: /
+
+  nginx-https:
+    image: nginx-https
+    depend: certbot

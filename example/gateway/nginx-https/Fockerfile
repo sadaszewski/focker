@@ -1,0 +1,22 @@
+base: freebsd-latest
+
+steps:
+  - run:
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install python3 nginx py37-cookiecutter
+  - copy:
+      - [ ../files/cookiecutter.json,
+          /root/cookiecutter.json ]
+      - [ files/nginx.conf,
+          /root/nginx.conf ]
+  - run:
+      - mkdir -p /root/nginx_template/\{\{cookiecutter.directory_name\}\}
+      - mv -v /root/nginx.conf /root/nginx_template/\{\{cookiecutter.directory_name\}\}/nginx.conf
+      - mv -v /root/cookiecutter.json /root/nginx_template/cookiecutter.json
+  - run:
+      - cookiecutter --no-input /root/nginx_template
+      - mv -v ./nginx_conf/nginx.conf /usr/local/etc/nginx/nginx.conf
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg remove python3 py37-cookiecutter
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg autoremove
+      - rm -rvf /root/nginx_template
+      - rm -rvf ./nginx_conf
+      - mkdir /certbot-data
