@@ -35,9 +35,12 @@ jails:
       certbot-data: /usr/local/etc/letsencrypt
       certbot-webroot: /certbot/webroot
     exec.start: |
-      rm -vf /usr/local/etc/letsencrypt/.ready && \
-      ( ( /usr/local/bin/python3 /certbot/scripts/certbot.py && \
-      touch /usr/local/etc/letsencrypt/.ready ) & ) && \
+      if [ ! -f /certbot/data/.ready ]; then
+        rm -vf /usr/local/etc/letsencrypt/.ready && \
+        /usr/local/bin/python3 /certbot/scripts/certbot.py && \
+        touch /usr/local/etc/letsencrypt/.ready && \
+        touch /certbot/data/.ready;
+      fi && \
       /bin/sh /etc/rc
     ip4.addr: 127.0.13.1
 
