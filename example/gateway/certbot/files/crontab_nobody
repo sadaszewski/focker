@@ -1,0 +1,1 @@
+@weekly /usr/local/bin/certbot renew --webroot -w /certbot/webroot --server https://127.0.11.1:14000 --no-verify-ssl -n --agree-tos >/dev/null 2>&1

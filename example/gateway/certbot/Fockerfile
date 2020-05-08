@@ -1,0 +1,30 @@
+base: freebsd-latest
+
+steps:
+  - run:
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install py37-certbot python3
+      - mkdir -p /certbot/data
+      - mkdir -p /certbot/webroot
+      - mkdir -p /certbot/scripts
+      - chown -R nobody:nobody /certbot
+      - chmod 0750 /certbot
+  - copy:
+      - [ files/certbot.py,
+          /certbot/scripts/certbot.py ]
+      - [ files/crontab_nobody,
+          /root/crontab_nobody ]
+      - [ ../files/cookiecutter.json,
+          /certbot/data/metadata.json ]
+  - run:
+      - crontab -u nobody /root/crontab_nobody
+      - rm -v /root/crontab_nobody
+      - mkdir -p /usr/local/etc/letsencrypt
+      - mkdir -p /var/log/letsencrypt
+      - mkdir -p /var/db/letsencrypt
+      - chown nobody:nobody /var/log/letsencrypt
+      - chown nobody:nobody /var/db/letsencrypt
+  - run:
+      - sysrc sshd_enable=NO
+      - sysrc sendmail_enable=NONE
+      - sysrc clear_tmp_enable=YES
+      - sysrc syslogd_flags="-ss"

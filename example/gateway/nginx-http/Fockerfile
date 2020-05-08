@@ -19,4 +19,4 @@ steps:
       - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg autoremove
       - rm -rvf /root/nginx_template
       - rm -rvf ./nginx_conf
-      - mkdir -p /srv/certbot-webroot
+      - mkdir -p /certbot/webroot

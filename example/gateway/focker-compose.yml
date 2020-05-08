@@ -3,8 +3,16 @@ prebuild:
 
 
 volumes:
-  certbot-data: {}
-  certbot-webroot: {}
+  certbot-data:
+    chown: 65534:65534
+    chmod: 0750
+    zfs:
+      quota: 1G
+  certbot-webroot:
+    chown: 65534:65534
+    chmod: 0750
+    zfs:
+      quota: 1G
 
 
 images:
@@ -17,14 +25,20 @@ jails:
   nginx-http:
     image: nginx-http
     mounts:
-      certbot-webroot: /srv/certbot-webroot
+      certbot-webroot: /certbot/webroot
 
   certbot:
     image: certbot
     depend: nginx-http
     mounts:
-      certbot-data: /
+      certbot-data: /usr/local/etc/letsencrypt
+      certbot-webroot: /certbot/webroot
+    exec.start: |
+      ( /usr/bin/su -m nobody -c "python3 /certbot/scripts/certbot.py" && \
+      /bin/sh /etc/rc ) &
 
   nginx-https:
     image: nginx-https
     depend: certbot
+    mounts:
+      certbot-data: /usr/local/etc/letsencrypt

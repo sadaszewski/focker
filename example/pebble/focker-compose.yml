@@ -1,0 +1,12 @@
+image:
+  pebble: .
+
+jails:
+  pebble:
+    image: pebble
+    ip4.addr: 127.0.11.1
+    exec.start: |
+      cd /go/src/github.com/letsencrypt/pebble && \
+      export PEBBLE_VA_ALWAYS_VALID=1 && \
+      nohup /go/bin/pebble -config test/config/pebble-config.json &
+

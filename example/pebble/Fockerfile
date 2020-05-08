@@ -1,0 +1,15 @@
+base: freebsd-latest
+
+steps:
+  - run:
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install go git
+  - run:
+      - mkdir /go
+      - export GOPATH=/go
+      - go get -u github.com/letsencrypt/pebble/...
+      - cd $GOPATH/src/github.com/letsencrypt/pebble
+      - go install ./...
+  - run:
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg remove go git
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg autoremove
+

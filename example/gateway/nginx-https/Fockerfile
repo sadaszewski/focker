@@ -19,4 +19,10 @@ steps:
       - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg autoremove
       - rm -rvf /root/nginx_template
       - rm -rvf ./nginx_conf
-      - mkdir /certbot-data
+      - mkdir -p /usr/local/etc/letsencrypt
+      - mkdir -p /certbot/webroot
+  - run:
+      - sysrc sshd_enable=NO
+      - sysrc sendmail_enable=NONE
+      - sysrc clear_tmp_enable=YES
+      - sysrc syslogd_flags="-ss"
