@@ -33,9 +33,6 @@ jails:
     mounts:
       certbot-data: /usr/local/etc/letsencrypt
       certbot-webroot: /certbot/webroot
-    exec.start: |
-      ( /usr/bin/su -m nobody -c "python3 /certbot/scripts/certbot.py" && \
-      /bin/sh /etc/rc ) &
 
   nginx-https:
     image: nginx-https
