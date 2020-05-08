@@ -8,6 +8,8 @@ steps:
           /root/cookiecutter.json ]
       - [ files/nginx.conf,
           /root/nginx.conf ]
+      - [ ../files/crontab_root,
+          /root/crontab_root ]
   - run:
       - mkdir -p /root/nginx_template/\{\{cookiecutter.directory_name\}\}
       - mv -v /root/nginx.conf /root/nginx_template/\{\{cookiecutter.directory_name\}\}/nginx.conf
@@ -20,3 +22,12 @@ steps:
       - rm -rvf /root/nginx_template
       - rm -rvf ./nginx_conf
       - mkdir -p /certbot/webroot
+  - run:
+      - sysrc nginx_enable=YES
+      - crontab -u root /root/crontab_root
+      - rm -v /root/crontab_root
+  - run:
+      - sysrc sshd_enable=NO
+      - sysrc sendmail_enable=NONE
+      - sysrc clear_tmp_enable=YES
+      - sysrc syslogd_flags="-ss"

@@ -1,0 +1,1 @@
+@weekly service nginx reload >/dev/null 2>&1
