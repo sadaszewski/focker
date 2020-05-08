@@ -1,2 +1,1 @@
-@reboot /usr/local/bin/python3 /certbot/scripts/certbot.py >/dev/null 2>&1
 @weekly /usr/local/bin/certbot renew --webroot -w /certbot/webroot --server https://127.0.11.1:14000 --no-verify-ssl -n --agree-tos >/dev/null 2>&1

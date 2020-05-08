@@ -26,6 +26,7 @@ jails:
     image: nginx-http
     mounts:
       certbot-webroot: /certbot/webroot
+    ip4.addr: 127.0.12.1
 
   certbot:
     image: certbot
@@ -33,9 +34,19 @@ jails:
     mounts:
       certbot-data: /usr/local/etc/letsencrypt
       certbot-webroot: /certbot/webroot
+    exec.start: |
+      rm -vf /usr/local/etc/letsencrypt/.ready && \
+      ( ( /usr/local/bin/python3 /certbot/scripts/certbot.py && \
+      touch /usr/local/etc/letsencrypt/.ready ) & ) && \
+      /bin/sh /etc/rc
+    ip4.addr: 127.0.13.1
 
   nginx-https:
     image: nginx-https
     depend: certbot
     mounts:
       certbot-data: /usr/local/etc/letsencrypt
+    exec.start: |
+      ( until [ -f /usr/local/etc/letsencrypt/.ready ]; do sleep 1; done && \
+      /bin/sh /etc/rc) &
+    ip4.addr: 127.0.14.1
