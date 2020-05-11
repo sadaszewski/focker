@@ -17,7 +17,8 @@ from .zfs import AmbiguousValueError, \
 from .jail import jail_fs_create, \
     jail_create, \
     jail_remove, \
-    backup_file
+    backup_file, \
+    quote
 from .misc import random_sha256_hexdigest, \
     find_prefix
 import subprocess
@@ -25,6 +26,7 @@ import jailconf
 import os
 from .misc import focker_lock, \
     focker_unlock
+import pdb
 
 
 def exec_prebuild(spec, path):
@@ -81,12 +83,31 @@ def build_images(spec, path, args):
             raise RuntimeError('Image build failed: ' + str(res.returncode))
 
 
+def setup_dependencies(spec, generated_names):
+    if os.path.exists('/etc/jail.conf'):
+        conf = jailconf.load('/etc/jail.conf')
+    else:
+        conf = jailconf.JailConf()
+    for (jailname, jailspec) in spec.items():
+        if 'depend' not in jailspec:
+            continue
+        depend = jailspec.get('depend', [])
+        if isinstance(depend, str):
+            depend = [ depend ]
+        if not isinstance(depend, list):
+            raise ValueError('depend must be a string or a list of strings')
+        # pdb.set_trace()
+        depend = list(map(lambda a: generated_names[a], depend))
+        if len(depend) == 1:
+            depend = depend[0]
+        conf[generated_names[jailname]]['depend'] = \
+            depend
+    conf.write('/etc/jail.conf')
+
+
 def build_jails(spec):
-    #if os.path.exists('/etc/jail.conf'):
-    #    conf = jailconf.load('/etc/jail.conf')
-    #else:
-    #    conf = jailconf.JailConf()
     backup_file('/etc/jail.conf')
+    generated_names = {}
     for (jailname, jailspec) in spec.items():
         try:
             name, _ = zfs_find(jailname, focker_type='jail')
@@ -99,7 +120,8 @@ def build_jails(spec):
         zfs_untag([ jailname ], focker_type='jail')
         zfs_tag(name, [ jailname ])
         path = zfs_mountpoint(name)
-        jail_create(path,
+        generated_names[jailname] = \
+            jail_create(path,
             jailspec.get('exec.start', '/bin/sh /etc/rc'),
             jailspec.get('env', {}),
             [ [from_, on] \
@@ -110,6 +132,8 @@ def build_jails(spec):
                 'ip4.addr': jailspec.get('ip4.addr', '127.0.1.0'),
                 'interface': jailspec.get('interface', 'lo1')
             })
+
+    setup_dependencies(spec, generated_names)
 
 
 def command_compose_build(args):

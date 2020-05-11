@@ -46,7 +46,9 @@ jails:
 
   nginx-https:
     image: nginx-https
-    depend: certbot
+    depend:
+      - certbot
+      - nginx-http
     mounts:
       certbot-data: /usr/local/etc/letsencrypt
     exec.start: |
