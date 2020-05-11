@@ -27,6 +27,22 @@ from .misc import focker_lock, \
     focker_unlock
 
 
+def exec_prebuild(spec, path):
+    if isinstance(spec, str):
+        spec = [ spec ]
+    if not isinstance(spec, list):
+        raise ValueError('exec.prebuild should be a string or a list of strings')
+    spec = ' && '.join(spec)
+    print('Running exec.build command:', spec)
+    spec = [ '/bin/sh', '-c', spec ]
+    oldwd = os.getcwd()
+    os.chdir(path)
+    res = subprocess.run(spec)
+    if res.returncode != 0:
+        raise RuntimeError('exec.prebuild failed')
+    os.chdir(oldwd)
+
+
 def build_volumes(spec):
     poolname = zfs_poolname()
     for tag, params in spec.items():
@@ -103,6 +119,8 @@ def command_compose_build(args):
     print('path:', path)
     with open(args.filename, 'r') as f:
         spec = yaml.safe_load(f)
+    if 'exec.prebuild' in spec:
+        exec_prebuild(spec['exec.prebuild'], path)
     if 'volumes' in spec:
         build_volumes(spec['volumes'])
     if 'images' in spec:

@@ -1,4 +1,4 @@
-prebuild:
+exec.prebuild:
   - python3 getmetadata.py
 
 
