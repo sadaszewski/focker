@@ -130,7 +130,8 @@ def build_jails(spec):
             overrides={
                 'exec.stop': jailspec.get('exec.stop', '/bin/sh /etc/rc.shutdown'),
                 'ip4.addr': jailspec.get('ip4.addr', '127.0.1.0'),
-                'interface': jailspec.get('interface', 'lo1')
+                'interface': jailspec.get('interface', 'lo1'),
+                'host.hostname': jailspec.get('host.hostname', jailname)
             })
 
     setup_dependencies(spec, generated_names)
