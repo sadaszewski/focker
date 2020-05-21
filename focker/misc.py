@@ -12,7 +12,11 @@ import fcntl
 
 
 def random_sha256_hexdigest():
-    return bytes([ random.randint(0, 255) for _ in range(32) ]).hex()
+    for _ in range(10**6):
+        res = bytes([ random.randint(0, 255) for _ in range(32) ]).hex()
+        if not res[:7].isnumeric():
+            return res
+    raise ValueError('Couldn\'t find random SHA256 hash with non-numeric 7-character prefix in 10^6 trials o_O')
 
 
 def find_prefix(head, tail):

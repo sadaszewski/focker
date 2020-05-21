@@ -17,7 +17,8 @@ from .mount import getmntinfo
 import shlex
 import stat
 from .misc import focker_lock, \
-    focker_unlock
+    focker_unlock, \
+    random_sha256_hexdigest
 
 
 def backup_file(fname, nbackups=10, chmod=0o600):
@@ -44,7 +45,7 @@ def jail_conf_write(conf):
 
 
 def jail_fs_create(image=None):
-    sha256 = bytes([ random.randint(0, 255) for _ in range(32) ]).hex()
+    sha256 = random_sha256_hexdigest()
     lst = zfs_list(fields=['focker:sha256'], focker_type='image')
     lst = list(filter(lambda a: a[0] == sha256, lst))
     if lst:
@@ -273,7 +274,7 @@ def command_jail_oneshot_old():
     base, _ = zfs_snapshot_by_tag_or_sha256(args.image)
     # root = '/'.join(base.split('/')[:-1])
     for _ in range(10**6):
-        sha256 = bytes([ random.randint(0, 255) for _ in range(32) ]).hex()
+        sha256 = random_sha256_hexdigest()
         name = sha256[:7]
         name = base.split('/')[0] + '/focker/jails/' + name
         if not zfs_exists(name):
