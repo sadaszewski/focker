@@ -29,20 +29,30 @@ from .misc import focker_lock, \
 import pdb
 
 
-def exec_prebuild(spec, path):
+def exec_hook(spec, path, hook_name='exec.prebuild'):
     if isinstance(spec, str):
         spec = [ spec ]
     if not isinstance(spec, list):
-        raise ValueError('exec.prebuild should be a string or a list of strings')
+        raise ValueError('%s should be a string or a list of strings' % hook_name)
     spec = ' && '.join(spec)
-    print('Running exec.build command:', spec)
+    print('Running %s command:' % hook_name, spec)
     spec = [ '/bin/sh', '-c', spec ]
     oldwd = os.getcwd()
     os.chdir(path)
+    focker_unlock()
     res = subprocess.run(spec)
+    focker_lock()
     if res.returncode != 0:
-        raise RuntimeError('exec.prebuild failed')
+        raise RuntimeError('%s failed' % hook_name)
     os.chdir(oldwd)
+
+
+def exec_prebuild(spec, path):
+    return exec_hook(spec, path, 'exec.prebuild')
+
+
+def exec_postbuild(spec, path):
+    return exec_hook(spec, path, 'exec.postbuild')
 
 
 def build_volumes(spec):
@@ -120,8 +130,7 @@ def build_jails(spec):
         zfs_untag([ jailname ], focker_type='jail')
         zfs_tag(name, [ jailname ])
         path = zfs_mountpoint(name)
-        generated_names[jailname] = \
-            jail_create(path,
+        generated_names[jailname] = jail_create(path,
             jailspec.get('exec.start', '/bin/sh /etc/rc'),
             jailspec.get('env', {}),
             [ [from_, on] \
@@ -152,6 +161,8 @@ def command_compose_build(args):
         build_images(spec['images'], path, args)
     if 'jails' in spec:
         build_jails(spec['jails'])
+    if 'exec.postbuild' in spec:
+        exec_postbuild(spec['exec.postbuild'], path)
 
 
 def command_compose_run(args):

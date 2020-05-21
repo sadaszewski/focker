@@ -21,7 +21,8 @@ from .volume import command_volume_create, \
     command_volume_prune, \
     command_volume_list, \
     command_volume_tag, \
-    command_volume_untag
+    command_volume_untag, \
+    command_volume_remove
 import sys
 from .zfs import zfs_init
 from .jail import command_jail_create, \
@@ -185,6 +186,11 @@ def create_parser():
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['untag', 'u']])
     parser.set_defaults(func=command_volume_untag)
     parser.add_argument('tags', type=str, nargs='+')
+
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['remove', 'rm', 'r']])
+    parser.set_defaults(func=command_volume_remove)
+    parser.add_argument('references', type=str, nargs='+')
+    parser.add_argument('--force', '-f', action='store_true')
 
     # compose
     subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \

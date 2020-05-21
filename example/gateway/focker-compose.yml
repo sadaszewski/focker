@@ -1,5 +1,17 @@
 exec.prebuild:
+  - focker volume remove --force gateway-cookiecutter
+
+
+exec.postbuild:
   - python3 getmetadata.py
+  - |
+    focker jail oneshot -m `pwd`/files:/cookiecutter/input/meta \
+      `pwd`/nginx-http/files:/cookiecutter/input/nginx-http \
+      `pwd`/nginx-https/files:/cookiecutter/input/nginx-https \
+      gateway-cookiecutter:/cookiecutter/output \
+      -- \
+      gateway-cookiecutter \
+      /cookiecutter/scripts/run.sh
 
 
 volumes:
@@ -9,13 +21,17 @@ volumes:
     zfs:
       quota: 1G
   certbot-webroot:
-    chown: 65534:65534
+    chown: 65534:80
     chmod: 0750
+    zfs:
+      quota: 1G
+  gateway-cookiecutter:
     zfs:
       quota: 1G
 
 
 images:
+  gateway-cookiecutter: ./gateway-cookiecutter
   nginx-http: ./nginx-http
   nginx-https: ./nginx-https
   certbot: ./certbot
@@ -26,7 +42,12 @@ jails:
     image: nginx-http
     mounts:
       certbot-webroot: /certbot/webroot
+      gateway-cookiecutter: /cookiecutter
     ip4.addr: 127.0.12.1
+    exec.start: |
+      cp -v /cookiecutter/nginx-http/nginx.conf \
+      /usr/local/etc/nginx/nginx.conf && \
+      /bin/sh /etc/rc
 
   certbot:
     image: certbot
@@ -34,7 +55,10 @@ jails:
     mounts:
       certbot-data: /usr/local/etc/letsencrypt
       certbot-webroot: /certbot/webroot
+      gateway-cookiecutter: /cookiecutter
     exec.start: |
+      cp -v /cookiecutter/meta/cookiecutter.json \
+        /certbot/data/metadata.json && \
       if [ ! -f /certbot/data/.ready ]; then
         rm -vf /usr/local/etc/letsencrypt/.ready && \
         /usr/local/bin/python3 /certbot/scripts/certbot.py && \
@@ -51,7 +75,10 @@ jails:
       - nginx-http
     mounts:
       certbot-data: /usr/local/etc/letsencrypt
+      gateway-cookiecutter: /cookiecutter
     exec.start: |
-      ( until [ -f /usr/local/etc/letsencrypt/.ready ]; do sleep 1; done && \
-      /bin/sh /etc/rc) &
+      cp -v /cookiecutter/nginx-https/nginx.conf \
+        /usr/local/etc/nginx/nginx.conf && \
+      (( until [ -f /usr/local/etc/letsencrypt/.ready ]; do sleep 1; done && \
+      /bin/sh /etc/rc) &)
     ip4.addr: 127.0.14.1

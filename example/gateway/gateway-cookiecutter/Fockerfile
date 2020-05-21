@@ -1,0 +1,18 @@
+base: freebsd-latest
+
+steps:
+  - run:
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install py37-cookiecutter
+      - mkdir -p /cookiecutter/input/meta
+      - mkdir -p /cookiecutter/input/nginx-http
+      - mkdir -p /cookiecutter/input/nginx-https
+      - mkdir -p /cookiecutter/templates/nginx-http/\{\{cookiecutter.directory_name\}\}
+      - mkdir -p /cookiecutter/templates/nginx-https/\{\{cookiecutter.directory_name\}\}
+      - mkdir -p /cookiecutter/output/nginx-http
+      - mkdir -p /cookiecutter/output/nginx-https
+      - mkdir -p /cookiecutter/scripts
+  - copy:
+    - [ files/run.sh,
+        /cookiecutter/scripts/run.sh ]
+  - run:
+      - chmod a+x /cookiecutter/scripts/run.sh

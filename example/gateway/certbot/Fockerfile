@@ -13,8 +13,6 @@ steps:
           /certbot/scripts/certbot.py ]
       - [ files/crontab_nobody,
           /root/crontab_nobody ]
-      - [ ../files/cookiecutter.json,
-          /certbot/data/metadata.json ]
   - run:
       - crontab -u nobody /root/crontab_nobody
       - rm -v /root/crontab_nobody

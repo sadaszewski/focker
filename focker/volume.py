@@ -44,3 +44,14 @@ def command_volume_tag(args):
 
 def command_volume_untag(args):
     zfs_untag(args.tags, focker_type='volume')
+
+
+def command_volume_remove(args):
+    for ref in args.references:
+        try:
+            name, _ = zfs_find(ref, focker_type='volume')
+            print('Removing:', name)
+            zfs_run(['zfs', 'destroy', '-r', '-f', name])
+        except:
+            if not args.force:
+                raise
