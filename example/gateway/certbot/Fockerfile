@@ -3,6 +3,7 @@ base: freebsd-latest
 steps:
   - run:
       - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install py37-certbot python3
+      - mkdir -p /cookiecutter
       - mkdir -p /certbot/data
       - mkdir -p /certbot/webroot
       - mkdir -p /certbot/scripts

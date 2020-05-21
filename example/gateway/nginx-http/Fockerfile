@@ -4,6 +4,7 @@ steps:
   - run:
       - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install nginx
       - mkdir -p /certbot/webroot
+      - mkdir -p /cookiecutter
       - sysrc nginx_enable=YES
       - sysrc sshd_enable=NO
       - sysrc sendmail_enable=NONE

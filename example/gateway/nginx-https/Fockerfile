@@ -6,9 +6,10 @@ steps:
           /root/crontab_root ]
   - run:
       - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install nginx
-      
+
       - mkdir -p /usr/local/etc/letsencrypt
       - mkdir -p /certbot/webroot
+      - mkdir -p /cookiecutter
 
       - crontab -u root /root/crontab_root
       - rm -vf /root/crontab_root
