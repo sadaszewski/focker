@@ -1,9 +1,8 @@
 images:
-  gitea: .
-  gitea-logo: ../gitea-logo
-  gitea-custom: ../gitea-custom
-  gitea-disable: ../gitea-disable
-  certbot-latest: ../certbot
+  gitea-latest: ./gitea-latest
+  gitea-logo: ./gitea-logo
+  gitea-custom: ./gitea-custom
+  gitea-disable: ./gitea-disable
 
 volumes:
   gitea-data:
@@ -11,8 +10,6 @@ volumes:
     chown: 211:211
     zfs:
       quota: 5G
-  certbot-webroot: {}
-  certbot-config-gitea: {}
 
 jails:
   gitea:
@@ -37,18 +34,5 @@ jails:
       if [ ! -f /var/db/gitea/gitea.db ]; then \
         su git -c 'gitea migrate -c $GITEA_CONF' && \
         su git -c 'gitea admin -c $GITEA_CONF create-user --username admin1 --password "AdminAdmin1+" --email "invaliduser@nonexistentdomain.com" --admin'; \
-      fi && \
-      /bin/sh /etc/rc
-
-  certbot-gitea:
-    image: certbot-latest
-    mounts:
-      certbot-webroot: /certbot/webroot
-      certbot-config-gitea: /usr/local/etc/letsencrypt
-    ip4.addr: 127.0.9.1
-    exec.start: |
-      if [ ! -f /usr/local/etc/letsencrypt/cli.ini ]; then
-        echo 'webroot-path=/certbot/webroot' >>/usr/local/etc/letsencrypt/cli.ini && \
-        echo 'authenticator=webroot' >>/usr/local/etc/letsencrypt/cli.ini;
       fi && \
       /bin/sh /etc/rc
