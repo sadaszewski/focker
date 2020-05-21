@@ -99,6 +99,7 @@ def create_parser():
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['list', 'ls', 'l']])
     parser.set_defaults(func=command_image_list)
     parser.add_argument('--full-sha256', '-f', action='store_true')
+    parser.add_argument('--tagged-only', '-t', action='store_true')
 
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['prune', 'pru', 'p']])
     parser.set_defaults(func=command_image_prune)

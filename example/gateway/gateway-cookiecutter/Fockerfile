@@ -8,8 +8,7 @@ steps:
       - mkdir -p /cookiecutter/input/nginx-https
       - mkdir -p /cookiecutter/templates/nginx-http/\{\{cookiecutter.directory_name\}\}
       - mkdir -p /cookiecutter/templates/nginx-https/\{\{cookiecutter.directory_name\}\}
-      - mkdir -p /cookiecutter/output/nginx-http
-      - mkdir -p /cookiecutter/output/nginx-https
+      - mkdir -p /cookiecutter/output
       - mkdir -p /cookiecutter/scripts
   - copy:
     - [ files/run.sh,

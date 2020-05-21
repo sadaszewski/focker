@@ -127,7 +127,10 @@ def command_image_list(args):
     lst = zfs_list(fields=['name', 'refer', 'focker:sha256', 'focker:tags', 'origin'],
         focker_type='image')
     # zfs_parse_output(['zfs', 'list', '-o', 'name,refer,focker:sha256,focker:tags,origin', '-H'])
-    lst = list(filter(lambda a: a[2] != '-', lst))
+    lst = filter(lambda a: a[2] != '-', lst)
+    if args.tagged_only:
+        lst = filter(lambda a: a[3] != '-', lst)
+    lst = list(lst)
     lst = list(map(lambda a: [ a[3], a[1],
         a[2] if args.full_sha256 else a[2][:7],
         a[4].split('/')[-1].split('@')[0] ], lst))
