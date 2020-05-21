@@ -26,6 +26,7 @@ volumes:
     zfs:
       quota: 1G
   gateway-cookiecutter:
+    chmod: 0750
     zfs:
       quota: 1G
 
