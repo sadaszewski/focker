@@ -1,0 +1,36 @@
+base: freebsd-latest
+
+steps:
+  - run:
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install prosody nginx gettext
+  - run:
+      - sysrc sshd_enable=NO
+      - sysrc sendmail_enable=NONE
+      - sysrc syslogd_flags="-ss"
+      - sysrc clear_tmp_enable=YES
+      - sysrc prosody_enable=YES
+      - sysrc nginx_enable=YES
+  - run:
+      - fetch https://github.com/jsxc/jsxc/releases/download/v4.1.0/jsxc-4.1.0.tar.gz
+      - tar -zvxf jsxc-4.1.0.tar.gz
+  - copy:
+      - [ files/config.sh,
+          /root/config.sh ]
+      - [ files/nginx.conf,
+          /root/nginx.conf ]
+      - [ files/prosody.cfg.lua,
+          /root/prosody.cfg.lua ]
+      - [ files/index.html,
+          /root/index.html ]
+  - run:
+      - source /root/config.sh
+      - if [ "x${PROSODY_DOMAIN}" == "x" ]; then echo PROSODY_DOMAIN must be set; exit 1; fi
+      - if [ "x${PROSODY_JAIL_IP}" == "x" ]; then echo PROSODY_JAIL_IP must be set; exit 1; fi
+      - if [ "x${PROSODY_WEBAPP_VHOST}" == "x" ]; then echo PROSODY_WEBAPP_VHOST must be set; exit 1; fi
+      - cat /root/nginx.conf | envsubst >/usr/local/etc/nginx/nginx.conf
+      - cat /root/prosody.cfg.lua | envsubst >/usr/local/etc/prosody/prosody.cfg.lua
+      - cat /root/index.html | envsubst >/jsxc/index.html
+      - rm -v /root/nginx.conf /root/prosody.cfg.lua /root/index.html
+  - run:
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg remove gettext
+      - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg autoremove
