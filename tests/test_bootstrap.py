@@ -5,8 +5,8 @@ import os
 
 
 def test_bootstrap():
-    subprocess.run(['focker', 'image', 'remove', '--force', 'test-focker-bootstrap'])
-    subprocess.run(['focker', 'bootstrap', '--dry-run', '--tags', 'test-focker-bootstrap'])
+    subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-focker-bootstrap'])
+    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '--tags', 'test-focker-bootstrap'])
     name, sha256 = zfs_find('test-focker-bootstrap', focker_type='image')
     basename = os.path.basename(name)
     assert len(basename) >= 7
