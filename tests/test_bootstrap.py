@@ -9,9 +9,10 @@ def test_bootstrap():
     subprocess.check_output(['focker', 'bootstrap', '--dry-run', '--tags', 'test-focker-bootstrap'])
     name, sha256 = zfs_find('test-focker-bootstrap', focker_type='image')
     basename = os.path.basename(name)
-    assert len(basename) >= 7
+    assert 7 <= len(basename) <= 64
     assert re.search('[a-f]', basename[:7])
     assert len(sha256) == 64
     assert basename == sha256[:len(basename)]
     assert zfs_exists_snapshot_sha256(sha256)
+    assert zfs_parse_output(['zfs', 'get', '-H', 'rdonly', name])[0][2] == 'on'
     subprocess.check_output(['zfs', 'destroy', '-r', '-f', name])
