@@ -55,3 +55,19 @@ def command_volume_remove(args):
         except:
             if not args.force:
                 raise
+
+
+def command_volume_set(args):
+    name, _ = zfs_find(args.reference, focker_type='volume')
+    if not args.properties:
+        raise ValueError('You must specify some properties')
+    zfs_run(['zfs', 'set'] + args.properties + [name])
+
+
+def command_volume_get(args):
+    name, _ = zfs_find(args.reference, focker_type='volume')
+    if not args.properties:
+        raise ValueError('You must specify some properties')
+    res = zfs_parse_output(['zfs', 'get', '-H', ','.join(args.properties), name])
+    res = map(lambda a: a[2], res)
+    print('\n'.join(res))
