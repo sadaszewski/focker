@@ -162,8 +162,15 @@ def command_image_prune(args):
 
 
 def command_image_remove(args):
-    snap, snap_sha256 = zfs_find(args.reference, focker_type='image',
-        zfs_type='snapshot')
+    try:
+        snap, snap_sha256 = zfs_find(args.reference, focker_type='image',
+            zfs_type='snapshot')
+    except AmbiguousValueError:
+        raise
+    except ValueError:
+        if args.force:
+            return
+        raise
     ds = snap.split('@')[0]
     command = ['zfs', 'destroy', '-r', '-f']
     #if args.remove_children:
@@ -171,5 +178,7 @@ def command_image_remove(args):
     if args.remove_dependents:
         command.append('-R')
     command.append(ds)
-    subprocess.run(command)
+    res = subprocess.run(command)
+    if res.returncode != 0:
+        raise RuntimeError('zfs destroy failed')
     # zfs_run(['zfs', 'destroy', ds])

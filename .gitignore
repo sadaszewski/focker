@@ -6,3 +6,4 @@ __pycache__
 /mymailmap
 /*.shar
 /example/gitea/x
+.pytest_cache/

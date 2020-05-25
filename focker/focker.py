@@ -78,6 +78,7 @@ def create_parser():
 
     parser = ListForwarder([subparsers_top.add_parser(cmd) for cmd in ['bootstrap', 'boot', 'bs']])
     parser.set_defaults(func=command_bootstrap)
+    parser.add_argument('--tags', '-t', type=str, nargs='+', default=None)
 
     # image
     subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \
@@ -111,6 +112,7 @@ def create_parser():
     parser.add_argument('reference', type=str)
     # parser.add_argument('--remove-children', '-r', action='store_true')
     parser.add_argument('--remove-dependents', '-R', action='store_true')
+    parser.add_argument('--force', '-f', action='store_true')
 
     # jail
     subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \
