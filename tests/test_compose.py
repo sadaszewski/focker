@@ -4,7 +4,9 @@ from focker.compose import exec_hook, \
     build_volumes, \
     build_images, \
     setup_dependencies, \
-    build_jails
+    build_jails, \
+    command_compose_build
+import focker.compose
 from tempfile import TemporaryDirectory
 import os
 import pytest
@@ -21,6 +23,7 @@ import subprocess
 import yaml
 import jailconf
 from focker.jail import backup_file
+from collections import defaultdict
 
 
 def test_exec_hook_01():
@@ -245,4 +248,46 @@ def test_build_jails():
     subprocess.check_output(['focker', 'jail', 'remove', '--force', 'test-build-jails-A'])
     subprocess.check_output(['focker', 'jail', 'remove', '--force', 'test-build-jails-B'])
     subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-focker-bootstrap'])
+    for k in list(conf.keys()):
+        if conf[k]['host.hostname'].strip('\'"') in ['test-build-jails-A', 'test-build-jails-B']:
+            del conf[k]
     conf.write('/etc/jail.conf')
+
+
+def test_command_compose_build(monkeypatch):
+    with TemporaryDirectory() as d:
+        with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
+            yaml.dump({
+                'exec.prebuild': 'echo exec-prebuild',
+                'volumes': {},
+                'images': {},
+                'jails': {},
+                'exec.postbuild': 'echo exec-postbuild'
+            }, f)
+        args = lambda: 0
+        args.filename = os.path.join(d, 'focker-compose.yml')
+        log = defaultdict(list)
+        def log_calls(fun):
+            old = fun.__call__
+            def inner(*args, **kwargs):
+                log[fun.__name__].append((args, kwargs))
+                return old(*args, **kwargs)
+            return inner
+
+        monkeypatch.setattr(focker.compose, 'exec_prebuild', log_calls(exec_prebuild))
+        monkeypatch.setattr(focker.compose, 'build_volumes', log_calls(build_volumes))
+        monkeypatch.setattr(focker.compose, 'build_images', log_calls(build_images))
+        monkeypatch.setattr(focker.compose, 'build_jails', log_calls(build_jails))
+        monkeypatch.setattr(focker.compose, 'exec_postbuild', log_calls(exec_postbuild))
+        command_compose_build(args)
+        assert len(log) == 5
+        assert 'exec_prebuild' in log
+        assert 'build_volumes' in log
+        assert 'build_images' in log
+        assert 'build_jails' in log
+        assert 'exec_postbuild' in log
+        assert log['exec_prebuild'][0][0][0] == 'echo exec-prebuild'
+        assert log['build_volumes'][0][0][0] == {}
+        assert log['build_images'][0][0][0] == {}
+        assert log['build_jails'][0][0][0] == {}
+        assert log['exec_postbuild'][0][0][0] == 'echo exec-postbuild'
