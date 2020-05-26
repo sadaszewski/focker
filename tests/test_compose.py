@@ -19,6 +19,7 @@ from focker.zfs import zfs_find, \
 import subprocess
 import yaml
 import jailconf
+from focker.jail import backup_file
 
 
 def test_exec_hook_01():
@@ -42,24 +43,24 @@ def test_exec_hook_02():
     assert not os.path.exists(d)
 
 
-@pytest.mark.xfail(raises=ValueError, strict=True)
 def test_exec_hook_03a():
     spec = 1
     with TemporaryDirectory() as d:
-        exec_hook(spec, d, 'test-exec-hook')
+        with pytest.raises(ValueError):
+            exec_hook(spec, d, 'test-exec-hook')
 
 
-@pytest.mark.xfail(raises=TypeError, strict=True)
 def test_exec_hook_03b():
     spec = [1]
     with TemporaryDirectory() as d:
-        exec_hook(spec, d, 'test-exec-hook')
+        with pytest.raises(TypeError):
+            exec_hook(spec, d, 'test-exec-hook')
 
 
-@pytest.mark.xfail(raises=FileNotFoundError, strict=True)
 def test_exec_hook_04():
     spec = 'ls'
-    exec_hook(spec, '/non-existent-directory/wcj20fy103', 'test-exec-hook')
+    with pytest.raises(FileNotFoundError):
+        exec_hook(spec, '/non-existent-directory/wcj20fy103', 'test-exec-hook')
 
 
 def test_exec_hook_05():
@@ -70,11 +71,11 @@ def test_exec_hook_05():
     assert os.getcwd() == oldwd
 
 
-@pytest.mark.xfail(raises=RuntimeError, strict=True)
 def test_exec_hook_06():
     spec = '/non-existent-command/hf249h'
     with TemporaryDirectory() as d:
-        exec_hook(spec, d, 'test-exec-hook')
+        with pytest.raises(RuntimeError):
+            exec_hook(spec, d, 'test-exec-hook')
 
 
 def test_exec_hook_07():
@@ -169,6 +170,7 @@ def test_build_images():
 
 
 def test_setup_dependencies():
+    backup_file('/etc/jail.conf')
     conf = jailconf.load('/etc/jail.conf')
     jail = jailconf.JailBlock()
     conf['test-setup-dependencies-A'] = jail
