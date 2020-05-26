@@ -1,6 +1,7 @@
 from focker.compose import exec_hook, \
     exec_prebuild, \
-    exec_postbuild
+    exec_postbuild, \
+    build_volumes
 from tempfile import TemporaryDirectory
 import os
 import pytest
@@ -9,6 +10,11 @@ from focker.misc import focker_lock, \
     focker_unlock
 import inspect
 import ast
+import stat
+from focker.zfs import zfs_find, \
+    zfs_mountpoint, \
+    zfs_parse_output
+import subprocess
 
 
 def test_exec_hook_01():
@@ -93,3 +99,33 @@ def test_exec_prebuild():
 
 def test_exec_postbuild():
     _test_simple_forward(exec_postbuild)
+
+
+def test_build_volumes():
+    subprocess.check_output(['focker', 'volume', 'remove', '--force', 'test-build-volumes'])
+    err = False
+    try:
+        name, _ = zfs_find('test-build-volumes', focker_type='volume')
+    except:
+        err = True
+    assert err
+    spec = {
+        'test-build-volumes': {
+            'chown': '65534:65534',
+            'chmod': 0o123,
+            'zfs': {
+                'quota': '1G',
+                'readonly': 'on'
+            }
+        }
+    }
+    build_volumes(spec)
+    name, _ = zfs_find('test-build-volumes', focker_type='volume')
+    st = os.stat(zfs_mountpoint(name))
+    assert st.st_uid == 65534
+    assert st.st_gid == 65534
+    assert ('%o' % st.st_mode)[-3:] == '123'
+    zst = zfs_parse_output(['zfs', 'get', '-H', 'quota,readonly', name])
+    assert zst[0][2] == '1G'
+    assert zst[1][2] == 'on'
+    subprocess.check_output(['zfs', 'destroy', '-r', '-f', name])
