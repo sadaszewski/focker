@@ -1,7 +1,8 @@
 from focker.compose import exec_hook, \
     exec_prebuild, \
     exec_postbuild, \
-    build_volumes
+    build_volumes, \
+    build_images
 from tempfile import TemporaryDirectory
 import os
 import pytest
@@ -15,6 +16,7 @@ from focker.zfs import zfs_find, \
     zfs_mountpoint, \
     zfs_parse_output
 import subprocess
+import yaml
 
 
 def test_exec_hook_01():
@@ -129,3 +131,25 @@ def test_build_volumes():
     assert zst[0][2] == '1G'
     assert zst[1][2] == 'on'
     subprocess.check_output(['zfs', 'destroy', '-r', '-f', name])
+
+
+def test_build_images():
+    # focker_unlock()
+    subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-build-images'])
+    with TemporaryDirectory() as d:
+        with open(os.path.join(d, 'Fockerfile'), 'w') as f:
+            yaml.dump({
+                'base': 'freebsd-latest',
+                'steps': [
+                    { 'run': 'touch /test-build-images' }
+                ]
+            }, f)
+        args = lambda: 0
+        args.squeeze = False
+        build_images({
+            'test-build-images': '.'
+        }, d, args)
+    focker_unlock()
+    name, _ = zfs_find('test-build-images', focker_type='image')
+    assert os.path.exists(os.path.join(zfs_mountpoint(name), 'test-build-images'))
+    subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-build-images'])
