@@ -16,10 +16,10 @@ def normalized_recursive_directory_iterator(path):
             def create_map(name, L):
                 return map(lambda x: os.path.join(name, x), L)
             L = create_map(name, L)
-            yield (os.path.relpath(name, path), name, st.st_mode, st.st_uid, st.st_gid, st.st_size)
+            yield (os.path.relpath(name, path), name, st.st_mode, st.st_uid, st.st_gid, st.st_size, st.st_mtime)
             Q = chain(L, Q)
         else: # file
-            yield (os.path.relpath(name, path), name, st.st_mode, st.st_uid, st.st_gid, st.st_size)
+            yield (os.path.relpath(name, path), name, st.st_mode, st.st_uid, st.st_gid, st.st_size, st.st_mtime)
         name = next(Q, None)
 
 
@@ -37,9 +37,9 @@ def _export_diff(mountpoint, origin_mountpoint, output_directory):
     def emit_compare(m, o):
         if m[2] != o[2] or m[3] != o[3] or m[4] != o[4]:
             print('Metadata change:', o[0])
-        elif m[5] != o[5] :
+        elif stat.S_ISREG(m[2]) and m[5] != o[5]:
             print('Size change:', o[0])
-        elif stat.S_ISREG(m[2]) and filehash(m[1]) != filehash(o[1]):
+        elif stat.S_ISREG(m[2]) and m[6] != o[6] and filehash(m[1]) != filehash(o[1]):
             print('Content change:', o[0])
         else: # no change
             pass # print('Compare:', m[0])
@@ -58,6 +58,10 @@ def _export_diff(mountpoint, origin_mountpoint, output_directory):
             m = next(mit, None)
         elif m[0] > o[0]:
             emit_removal(o)
+            o = next(oit, None)
+        elif stat.S_ISDIR(m[2]) != stat.S_ISDIR(o[2]):
+            emit_creation(m)
+            m = next(mit, None)
             o = next(oit, None)
         else:
             emit_compare(m, o)
