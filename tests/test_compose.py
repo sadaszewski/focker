@@ -134,13 +134,22 @@ def test_build_volumes():
 
 
 def test_build_images():
-    # focker_unlock()
+    subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-focker-bootstrap'])
+    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '--tags', 'test-focker-bootstrap'])
     subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-build-images'])
     with TemporaryDirectory() as d:
         with open(os.path.join(d, 'Fockerfile'), 'w') as f:
             yaml.dump({
-                'base': 'freebsd-latest',
+                'base': 'test-focker-bootstrap',
                 'steps': [
+                    { 'copy': [
+                        [ '/bin/sh', '/bin/sh', { 'chmod': 0o777 } ],
+                        [ '/lib/libedit.so.7', '/lib/libedit.so.7' ],
+                        [ '/lib/libncursesw.so.8', '/lib/libncursesw.so.8' ],
+                        [ '/lib/libc.so.7', '/lib/libc.so.7' ],
+                        [ '/usr/bin/touch', '/usr/bin/touch', { 'chmod': 0o777 } ],
+                        [ '/libexec/ld-elf.so.1', '/libexec/ld-elf.so.1', { 'chmod': 0o555 } ]
+                    ] },
                     { 'run': 'touch /test-build-images' }
                 ]
             }, f)
@@ -153,3 +162,5 @@ def test_build_images():
     name, _ = zfs_find('test-build-images', focker_type='image')
     assert os.path.exists(os.path.join(zfs_mountpoint(name), 'test-build-images'))
     subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-build-images'])
+    subprocess.check_output(['focker', 'image', 'prune'])
+    subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-focker-bootstrap'])

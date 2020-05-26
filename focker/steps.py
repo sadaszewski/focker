@@ -67,10 +67,15 @@ class CopyStep(object):
         lst = [ self.spec ] \
             if not isinstance(self.spec[0], list) \
             else self.spec
-        for (source, target) in lst:
+        for entry in lst:
+            (source, target) = entry[:2]
+            options = entry[2] if len(entry) > 2 else {}
             target = target.strip('/')
+            os.makedirs(os.path.split(os.path.join(path, target))[0], exist_ok=True)
             shutil.copyfile(os.path.join(kwargs['args'].focker_dir, source),
                 os.path.join(path, target))
+            if 'chmod' in options:
+                os.chmod(os.path.join(path, target), options['chmod'])
 
 
 def create_step(spec):

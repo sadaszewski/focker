@@ -160,6 +160,8 @@ def jail_run(path, command, mounts=[]):
     print('Running:', ' '.join(command))
     try:
         do_mounts(path, mounts)
+        os.makedirs(os.path.join(path, 'etc'), exist_ok=True)
+        os.makedirs(os.path.join(path, 'dev'), exist_ok=True)
         shutil.copyfile('/etc/resolv.conf', os.path.join(path, 'etc/resolv.conf'))
         res = subprocess.run(command)
     finally:
