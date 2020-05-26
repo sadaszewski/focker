@@ -1,4 +1,8 @@
 from focker.focker import *
+import focker.focker
+from collections import defaultdict
+import sys
+import pytest
 
 
 def test_parser_bootstrap():
@@ -105,3 +109,101 @@ def test_parser_jail(monkeypatch):
     assert args.force
 
     assert counter[0] == 10
+
+
+def test_parser_volume(monkeypatch):
+    parser = create_parser()
+
+    counter = [0]
+    def count_calls(fun, counter):
+        def inner(*args, **kwargs):
+            counter[0] += 1
+            return fun(*args, **kwargs)
+        return inner
+    monkeypatch.setattr(parser, 'parse_args', count_calls(parser.parse_args, counter))
+
+    args = parser.parse_args(['volume', 'create', '--tags', 'a', 'b', 'c'])
+    assert args.func == command_volume_create
+    assert args.tags == ['a', 'b', 'c']
+
+    args = parser.parse_args(['volume', 'prune'])
+    assert args.func == command_volume_prune
+
+    args = parser.parse_args(['volume', 'list', '--full-sha256'])
+    assert args.func == command_volume_list
+    assert args.full_sha256
+
+    args = parser.parse_args(['volume', 'tag', 'deadbee', 'a', 'b', 'c'])
+    assert args.func == command_volume_tag
+    assert args.reference == 'deadbee'
+    assert args.tags == ['a', 'b', 'c']
+
+    args = parser.parse_args(['volume', 'untag', 'a', 'b', 'c'])
+    assert args.func == command_volume_untag
+    assert args.tags == ['a', 'b', 'c']
+
+    args = parser.parse_args(['volume', 'remove', 'volume-A', 'volume-B', '--force'])
+    assert args.func == command_volume_remove
+    assert args.references == ['volume-A', 'volume-B']
+    assert args.force
+
+    args = parser.parse_args(['volume', 'set', 'volume-A', 'rdonly=on', 'quota=1G'])
+    assert args.func == command_volume_set
+    assert args.reference == 'volume-A'
+    assert args.properties == ['rdonly=on', 'quota=1G']
+
+    args = parser.parse_args(['volume', 'get', 'volume-A', 'rdonly', 'quota'])
+    assert args.func == command_volume_get
+    assert args.reference == 'volume-A'
+    assert args.properties == ['rdonly', 'quota']
+
+    assert counter[0] == 8
+
+
+def test_parser_compose():
+    parser = create_parser()
+
+    args = parser.parse_args(['compose', 'build', '--squeeze', '/a/b/c/focker-compose.yml'])
+    assert args.func == command_compose_build
+    assert args.filename == '/a/b/c/focker-compose.yml'
+    assert args.squeeze
+
+    args = parser.parse_args(['compose', 'run', '/a/b/c/focker-compose.yml', 'noop'])
+    assert args.func == command_compose_run
+    assert args.filename == '/a/b/c/focker-compose.yml'
+    assert args.command == 'noop'
+
+
+def test_focker_main_01(monkeypatch):
+    log = defaultdict(list)
+    def log_call(fun):
+        def inner(*args, **kwargs):
+            log[fun.__name__].append((args, kwargs))
+            return fun(*args, **kwargs)
+        return inner
+    monkeypatch.setattr(focker.focker, 'focker_lock', log_call(focker_lock))
+    monkeypatch.setattr(focker.focker, 'zfs_init', log_call(zfs_init))
+    monkeypatch.setattr(focker.focker, 'create_parser', log_call(create_parser))
+    monkeypatch.setattr(focker.focker, 'command_image_list', log_call(command_image_list))
+    monkeypatch.setattr(sys, 'argv', ['focker', 'image', 'list'])
+    main()
+    assert len(log) == 4
+    assert 'focker_lock' in log
+    assert 'zfs_init' in log
+    assert 'create_parser' in log
+    assert 'command_image_list' in log
+
+
+def test_focker_main_02(monkeypatch):
+    log = defaultdict(list)
+    def log_call(fun):
+        def inner(*args, **kwargs):
+            log[fun.__name__].append((args, kwargs))
+            return fun(*args, **kwargs)
+        return inner
+    monkeypatch.setattr(sys, 'argv', ['focker'])
+    monkeypatch.setattr(sys, 'exit', log_call(sys.exit))
+    with pytest.raises(SystemExit):
+        main()
+    assert len(log) == 1
+    assert 'exit' in log
