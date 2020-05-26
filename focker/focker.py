@@ -139,6 +139,7 @@ def create_parser():
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['remove', 'rem', 'rm', 'r']])
     parser.set_defaults(func=command_jail_remove)
     parser.add_argument('reference', type=str)
+    parser.add_argument('--force', '-f', action='store_true')
 
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['exec', 'exe', 'e']])
     parser.set_defaults(func=command_jail_exec)

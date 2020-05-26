@@ -3,7 +3,8 @@ from focker.compose import exec_hook, \
     exec_postbuild, \
     build_volumes, \
     build_images, \
-    setup_dependencies
+    setup_dependencies, \
+    build_jails
 from tempfile import TemporaryDirectory
 import os
 import pytest
@@ -199,4 +200,49 @@ def test_setup_dependencies():
     del conf['test-setup-dependencies-A']
     del conf['test-setup-dependencies-B']
     del conf['test-setup-dependencies-C']
+    conf.write('/etc/jail.conf')
+
+
+def test_build_jails():
+    backup_file('/etc/jail.conf')
+    conf = jailconf.load('/etc/jail.conf')
+    for k in list(conf.keys()):
+        if conf[k]['host.hostname'].strip('\'"') in ['test-build-jails-A', 'test-build-jails-B']:
+            del conf[k]
+    conf.write('/etc/jail.conf')
+    subprocess.check_output(['focker', 'jail', 'remove', '--force', 'test-build-jails-A'])
+    subprocess.check_output(['focker', 'jail', 'remove', '--force', 'test-build-jails-B'])
+    subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-focker-bootstrap'])
+    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-focker-bootstrap'])
+    spec = {
+        'test-build-jails-A': {
+            'image': 'test-focker-bootstrap',
+            'exec.start': 'test-exec-start',
+            'exec.stop': 'test-exec-stop',
+            'ip4.addr': 'test-ip4-addr',
+            'interface': 'test-interface',
+            'host.hostname': 'test-build-jails-A'
+        }
+    }
+    spec['test-build-jails-B'] = spec['test-build-jails-A'].copy()
+    spec['test-build-jails-B']['host.hostname'] = 'test-build-jails-B'
+    build_jails(spec)
+    conf = jailconf.load('/etc/jail.conf')
+    print(conf.values())
+    blocks = list(filter(lambda a: a['host.hostname'].strip('"\'') in [ 'test-build-jails-A',
+        'test-build-jails-B' ], conf.values()))
+    print(blocks)
+    assert len(blocks) == 2
+    assert blocks[0]['host.hostname'] != blocks[1]['host.hostname']
+    for b in blocks:
+        name, _ = zfs_find(b['host.hostname'].strip('\'"'), focker_type='jail')
+        mountpoint = zfs_mountpoint(name)
+        assert b['path'] == mountpoint
+        assert b['exec.start'].strip('\'"') == 'test-exec-start'
+        assert b['exec.stop'].strip('\'"') == 'test-exec-stop'
+        assert b['ip4.addr'].strip('\'"') == 'test-ip4-addr'
+        assert b['interface'].strip('\'"') == 'test-interface'
+    subprocess.check_output(['focker', 'jail', 'remove', '--force', 'test-build-jails-A'])
+    subprocess.check_output(['focker', 'jail', 'remove', '--force', 'test-build-jails-B'])
+    subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-focker-bootstrap'])
     conf.write('/etc/jail.conf')

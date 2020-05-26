@@ -235,7 +235,14 @@ def command_jail_stop(args):
 
 
 def command_jail_remove(args):
-    name, _ = zfs_find(args.reference, focker_type='jail')
+    try:
+        name, _ = zfs_find(args.reference, focker_type='jail')
+    except AmbiguousValueError:
+        raise
+    except ValueError:
+        if args.force:
+            return
+        raise
     path = zfs_mountpoint(name)
     jail_remove(path)
 
