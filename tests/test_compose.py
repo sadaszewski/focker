@@ -2,7 +2,8 @@ from focker.compose import exec_hook, \
     exec_prebuild, \
     exec_postbuild, \
     build_volumes, \
-    build_images
+    build_images, \
+    setup_dependencies
 from tempfile import TemporaryDirectory
 import os
 import pytest
@@ -17,6 +18,7 @@ from focker.zfs import zfs_find, \
     zfs_parse_output
 import subprocess
 import yaml
+import jailconf
 
 
 def test_exec_hook_01():
@@ -164,3 +166,35 @@ def test_build_images():
     subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-build-images'])
     subprocess.check_output(['focker', 'image', 'prune'])
     subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-focker-bootstrap'])
+
+
+def test_setup_dependencies():
+    conf = jailconf.load('/etc/jail.conf')
+    jail = jailconf.JailBlock()
+    conf['test-setup-dependencies-A'] = jail
+    conf['test-setup-dependencies-B'] = jail
+    conf['test-setup-dependencies-C'] = jail
+    conf.write('/etc/jail.conf')
+    setup_dependencies({
+        'test-setup-dependencies-A': {},
+        'test-setup-dependencies-B': { 'depend': 'test-setup-dependencies-A' },
+        'test-setup-dependencies-C': { 'depend': [
+            'test-setup-dependencies-A',
+            'test-setup-dependencies-B'
+        ] }
+    }, {
+        'test-setup-dependencies-A': 'test-setup-dependencies-A',
+        'test-setup-dependencies-B': 'test-setup-dependencies-B',
+        'test-setup-dependencies-C': 'test-setup-dependencies-C'
+    })
+    conf = jailconf.load('/etc/jail.conf')
+    assert 'depend' not in conf['test-setup-dependencies-A']
+    assert conf['test-setup-dependencies-B']['depend'] == 'test-setup-dependencies-A'
+    assert conf['test-setup-dependencies-C']['depend'] == [
+        'test-setup-dependencies-A',
+        'test-setup-dependencies-B'
+    ]
+    del conf['test-setup-dependencies-A']
+    del conf['test-setup-dependencies-B']
+    del conf['test-setup-dependencies-C']
+    conf.write('/etc/jail.conf')
