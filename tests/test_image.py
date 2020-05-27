@@ -34,6 +34,7 @@ def test_validate_spec_04():
 
 
 def test_build_squeeze(monkeypatch):
+    focker_unlock()
     subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-build-squeeze-base'])
     subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-build-squeeze-base'])
     spec = dict(base='test-build-squeeze-base', steps=[
