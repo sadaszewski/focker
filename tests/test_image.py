@@ -1,7 +1,8 @@
 import pytest
 from focker.image import validate_spec, \
     build_squeeze, \
-    build
+    build, \
+    command_image_build
 import subprocess
 from tempfile import TemporaryDirectory
 import focker.image
@@ -10,6 +11,7 @@ from focker.zfs import zfs_find, \
     zfs_mountpoint, \
     zfs_exists_snapshot_sha256
 from focker.misc import focker_unlock
+import yaml
 
 
 def test_validate_spec_01():
@@ -90,4 +92,31 @@ def test_build(monkeypatch):
     assert os.path.exists(os.path.join(mountpoint, 'etc/localtime'))
     assert os.path.exists(os.path.join(mountpoint, 'etc/hosts'))
     subprocess.check_output(['focker', 'image', 'remove', '-R', 'test-build-squeeze-base'])
+    assert not os.path.exists(mountpoint)
+
+
+def test_command_image_build():
+    focker_unlock()
+    subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-command-image-build-base'])
+    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-command-image-build-base'])
+
+    with TemporaryDirectory() as d:
+        args = lambda: 0
+        with open(os.path.join(d, 'Fockerfile'), 'w') as f:
+            yaml.dump(dict(base='test-command-image-build-base', steps=[
+                dict(copy=['/etc/localtime', '/etc/localtime']),
+                dict(copy=['/etc/hosts', '/etc/hosts'])
+            ]), f)
+        args.focker_dir = d
+        args.squeeze = False
+        args.tags = [ 'test-command-image-build' ]
+        command_image_build(args)
+        focker_unlock()
+
+    name, _ = zfs_find('test-command-image-build', focker_type='image')
+    mountpoint = zfs_mountpoint(name)
+    assert os.path.exists(os.path.join(mountpoint, 'etc/localtime'))
+    assert os.path.exists(os.path.join(mountpoint, 'etc/hosts'))
+
+    subprocess.check_output(['focker', 'image', 'remove', '-R', 'test-command-image-build-base'])
     assert not os.path.exists(mountpoint)
