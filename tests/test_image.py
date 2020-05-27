@@ -2,7 +2,8 @@ import pytest
 from focker.image import validate_spec, \
     build_squeeze, \
     build, \
-    command_image_build
+    command_image_build, \
+    command_image_tag
 import subprocess
 from tempfile import TemporaryDirectory
 import focker.image
@@ -120,3 +121,24 @@ def test_command_image_build():
 
     subprocess.check_output(['focker', 'image', 'remove', '-R', 'test-command-image-build-base'])
     assert not os.path.exists(mountpoint)
+
+
+def test_command_image_tag():
+    focker_unlock()
+    subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-command-image-tag'])
+    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-command-image-tag'])
+    name_1, sha256_1 = zfs_find('test-command-image-tag', focker_type='image')
+    args = lambda: 0
+    args.reference = sha256_1
+    args.tags = ['test-a', 'test-b', 'test-c']
+    command_image_tag(args)
+    for t in args.tags:
+        name_2, sha256_2 = zfs_find(t, focker_type='image')
+        assert name_2 == name_1
+        assert sha256_2 == sha256_1
+    subprocess.check_output(['focker', 'image', 'remove', '-R', 'test-command-image-tag'])
+    for t in args.tags:
+        with pytest.raises(ValueError):
+            zfs_find(t, focker_type='image')
+    with pytest.raises(ValueError):
+        zfs_find('test-command-image-tag', focker_type='image')
