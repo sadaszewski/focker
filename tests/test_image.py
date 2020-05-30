@@ -6,7 +6,8 @@ from focker.image import validate_spec, \
     command_image_tag, \
     command_image_untag, \
     command_image_list, \
-    command_image_prune
+    command_image_prune, \
+    command_image_remove
 import subprocess
 from tempfile import TemporaryDirectory
 import focker.image
@@ -14,7 +15,8 @@ import os
 from focker.zfs import zfs_find, \
     zfs_mountpoint, \
     zfs_exists_snapshot_sha256, \
-    zfs_parse_output
+    zfs_parse_output, \
+    zfs_exists
 from focker.misc import focker_unlock
 import yaml
 
@@ -208,3 +210,22 @@ def test_command_image_prune():
     with pytest.raises(ValueError):
         zfs_find(sha256, focker_type='image')
     assert not os.path.exists(mountpoint)
+
+
+def test_command_image_remove():
+    focker_unlock()
+    subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-command-image-remove'])
+    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-command-image-remove'])
+    name, sha256 = zfs_find('test-command-image-remove', focker_type='image')
+    mountpoint = zfs_mountpoint(name)
+    args = lambda: 0
+    args.reference = 'test-command-image-remove'
+    args.force = False
+    args.remove_dependents = False
+    command_image_remove(args)
+    with pytest.raises(ValueError):
+        zfs_find('test-command-image-remove', focker_type='image')
+    with pytest.raises(ValueError):
+        zfs_find(sha256, focker_type='image')
+    assert not os.path.exists(mountpoint)
+    assert not zfs_exists(name)
