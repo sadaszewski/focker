@@ -69,5 +69,5 @@ def command_volume_get(args):
     if not args.properties:
         raise ValueError('You must specify some properties')
     res = zfs_parse_output(['zfs', 'get', '-H', ','.join(args.properties), name])
-    res = map(lambda a: a[2], res)
-    print('\n'.join(res))
+    res = [ [ args.properties[i], a[2] ] for i, a in enumerate(res) ]
+    print(tabulate(res, headers=['Property', 'Value']))
