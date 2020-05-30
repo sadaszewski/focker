@@ -65,6 +65,9 @@ class CopyStep(object):
                 os.path.join(path, target))
             if 'chmod' in options:
                 os.chmod(os.path.join(path, target), options['chmod'])
+            if 'chown' in options:
+                uid, gid = options['chown'].split(':').map(int)
+                os.chown(os.path.join(path, target), uid, gid)
 
 
 def create_step(spec):
