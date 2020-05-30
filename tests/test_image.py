@@ -4,7 +4,8 @@ from focker.image import validate_spec, \
     build, \
     command_image_build, \
     command_image_tag, \
-    command_image_untag
+    command_image_untag, \
+    command_image_list
 import subprocess
 from tempfile import TemporaryDirectory
 import focker.image
@@ -162,3 +163,31 @@ def test_command_image_untag():
     with pytest.raises(ValueError):
         zfs_find('test-command-image-untag-2', focker_type='image')
     subprocess.check_output(['focker', 'image', 'remove', 'test-command-image-untag'])
+
+
+def test_command_image_list(monkeypatch):
+    focker_unlock()
+    subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-command-image-list'])
+    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-command-image-list', 'test-command-image-list-1', 'test-command-image-list-2'])
+    name, sha256 = zfs_find('test-command-image-list', focker_type='image')
+    args = lambda: 0
+    args.tagged_only = True
+    args.full_sha256 = True
+    lst = None
+    headers = None
+    def fake_tabulate(*args, **kwargs):
+        nonlocal lst
+        nonlocal headers
+        lst = args[0]
+        headers = kwargs['headers']
+    monkeypatch.setattr(focker.image, 'tabulate', fake_tabulate)
+    command_image_list(args)
+    assert lst is not None
+    assert headers == ['Tags', 'Size', 'SHA256', 'Base']
+    assert len(lst) >= 3
+    match = list(filter(lambda a: sorted(a[0].split(' ')) == ['test-command-image-list',  'test-command-image-list-1',  'test-command-image-list-2'], lst))
+    assert len(match) == 1
+    match = match[0]
+    assert match[2] == sha256
+    assert match[3] == '-'
+    subprocess.check_output(['focker', 'image', 'remove', 'test-command-image-list'])
