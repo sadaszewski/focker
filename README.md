@@ -2,7 +2,10 @@
 
 ## Introduction
 
-Focker is a FreeBSD image orchestration tool in the vein of Docker.
+Focker is a FreeBSD image orchestration tool in the vein of Docker. This
+page contains a detailed reference of Focker's functionality. If it is your
+first time using Focker, please refer to the
+[Basic Usage Guide](docs/Basic_Usage_Guide.md) first.
 
 ## Table of Contents
 

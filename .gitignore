@@ -7,3 +7,4 @@ __pycache__
 /*.shar
 /example/gitea/x
 .pytest_cache/
+.coverage
