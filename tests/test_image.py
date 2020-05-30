@@ -5,7 +5,8 @@ from focker.image import validate_spec, \
     command_image_build, \
     command_image_tag, \
     command_image_untag, \
-    command_image_list
+    command_image_list, \
+    command_image_prune
 import subprocess
 from tempfile import TemporaryDirectory
 import focker.image
@@ -191,3 +192,19 @@ def test_command_image_list(monkeypatch):
     assert match[2] == sha256
     assert match[3] == '-'
     subprocess.check_output(['focker', 'image', 'remove', 'test-command-image-list'])
+
+
+def test_command_image_prune():
+    focker_unlock()
+    subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-command-image-prune'])
+    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-command-image-prune'])
+    name, sha256 = zfs_find('test-command-image-prune', focker_type='image')
+    mountpoint = zfs_mountpoint(name)
+    subprocess.check_output(['focker', 'image', 'untag', 'test-command-image-prune'])
+    args = lambda: 0
+    command_image_prune(args)
+    with pytest.raises(ValueError):
+        zfs_find('test-command-image-prune', focker_type='image')
+    with pytest.raises(ValueError):
+        zfs_find(sha256, focker_type='image')
+    assert not os.path.exists(mountpoint)
