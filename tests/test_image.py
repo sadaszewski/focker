@@ -47,7 +47,7 @@ def test_validate_spec_04():
 def test_build_squeeze(monkeypatch):
     focker_unlock()
     subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-build-squeeze-base'])
-    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-build-squeeze-base'])
+    subprocess.check_output(['focker', 'bootstrap', '--empty', '-t', 'test-build-squeeze-base'])
     spec = dict(base='test-build-squeeze-base', steps=[
         dict(copy=['/etc/localtime', '/etc/localtime']),
         dict(copy=['/etc/hosts', '/etc/hosts'])
@@ -73,7 +73,7 @@ def test_build_squeeze(monkeypatch):
 def test_build(monkeypatch):
     focker_unlock()
     subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-build-squeeze-base'])
-    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-build-squeeze-base'])
+    subprocess.check_output(['focker', 'bootstrap', '--empty', '-t', 'test-build-squeeze-base'])
     spec = dict(base='test-build-squeeze-base', steps=[
         dict(copy=['/etc/localtime', '/etc/localtime']),
         dict(copy=['/etc/hosts', '/etc/hosts'])
@@ -105,7 +105,7 @@ def test_build(monkeypatch):
 def test_command_image_build():
     focker_unlock()
     subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-command-image-build-base'])
-    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-command-image-build-base'])
+    subprocess.check_output(['focker', 'bootstrap', '--empty', '-t', 'test-command-image-build-base'])
 
     with TemporaryDirectory() as d:
         args = lambda: 0
@@ -132,7 +132,7 @@ def test_command_image_build():
 def test_command_image_tag():
     focker_unlock()
     subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-command-image-tag'])
-    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-command-image-tag'])
+    subprocess.check_output(['focker', 'bootstrap', '--empty', '-t', 'test-command-image-tag'])
     name_1, sha256_1 = zfs_find('test-command-image-tag', focker_type='image')
     args = lambda: 0
     args.reference = sha256_1
@@ -153,7 +153,7 @@ def test_command_image_tag():
 def test_command_image_untag():
     focker_unlock()
     subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-command-image-untag'])
-    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-command-image-untag', 'test-command-image-untag-1', 'test-command-image-untag-2'])
+    subprocess.check_output(['focker', 'bootstrap', '--empty', '-t', 'test-command-image-untag', 'test-command-image-untag-1', 'test-command-image-untag-2'])
     name, sha256 = zfs_find('test-command-image-untag', focker_type='image')
     args = lambda: 0
     args.tags = ['test-command-image-untag-1', 'test-command-image-untag-2']
@@ -171,7 +171,7 @@ def test_command_image_untag():
 def test_command_image_list(monkeypatch):
     focker_unlock()
     subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-command-image-list'])
-    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-command-image-list', 'test-command-image-list-1', 'test-command-image-list-2'])
+    subprocess.check_output(['focker', 'bootstrap', '--empty', '-t', 'test-command-image-list', 'test-command-image-list-1', 'test-command-image-list-2'])
     name, sha256 = zfs_find('test-command-image-list', focker_type='image')
     args = lambda: 0
     args.tagged_only = True
@@ -199,7 +199,7 @@ def test_command_image_list(monkeypatch):
 def test_command_image_prune():
     focker_unlock()
     subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-command-image-prune'])
-    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-command-image-prune'])
+    subprocess.check_output(['focker', 'bootstrap', '--empty', '-t', 'test-command-image-prune'])
     name, sha256 = zfs_find('test-command-image-prune', focker_type='image')
     mountpoint = zfs_mountpoint(name)
     subprocess.check_output(['focker', 'image', 'untag', 'test-command-image-prune'])
@@ -215,7 +215,7 @@ def test_command_image_prune():
 def test_command_image_remove():
     focker_unlock()
     subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-command-image-remove'])
-    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-command-image-remove'])
+    subprocess.check_output(['focker', 'bootstrap', '--empty', '-t', 'test-command-image-remove'])
     name, sha256 = zfs_find('test-command-image-remove', focker_type='image')
     mountpoint = zfs_mountpoint(name)
     args = lambda: 0

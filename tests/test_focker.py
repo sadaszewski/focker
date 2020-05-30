@@ -8,10 +8,10 @@ import pytest
 def test_parser_bootstrap():
     parser = create_parser()
 
-    args = parser.parse_args(['bootstrap', '--dry-run', '--tags', 'a', 'b', 'c'])
+    args = parser.parse_args(['bootstrap', '--empty', '--tags', 'a', 'b', 'c'])
     assert args.func == command_bootstrap
     assert args.tags == ['a', 'b', 'c']
-    assert args.dry_run
+    assert args.empty
 
 
 def test_parser_image():

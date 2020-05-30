@@ -142,7 +142,7 @@ def test_build_volumes():
 
 def test_build_images():
     subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-focker-bootstrap'])
-    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '--tags', 'test-focker-bootstrap'])
+    subprocess.check_output(['focker', 'bootstrap', '--empty', '--tags', 'test-focker-bootstrap'])
     subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-build-images'])
     with TemporaryDirectory() as d:
         with open(os.path.join(d, 'Fockerfile'), 'w') as f:
@@ -216,7 +216,7 @@ def test_build_jails():
     subprocess.check_output(['focker', 'jail', 'remove', '--force', 'test-build-jails-A'])
     subprocess.check_output(['focker', 'jail', 'remove', '--force', 'test-build-jails-B'])
     subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-focker-bootstrap'])
-    subprocess.check_output(['focker', 'bootstrap', '--dry-run', '-t', 'test-focker-bootstrap'])
+    subprocess.check_output(['focker', 'bootstrap', '--empty', '-t', 'test-focker-bootstrap'])
     spec = {
         'test-build-jails-A': {
             'image': 'test-focker-bootstrap',

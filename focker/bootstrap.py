@@ -15,7 +15,7 @@ def command_bootstrap(args):
     name = find_prefix(poolname + '/focker/images/', sha256)
     subprocess.check_output(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
     zfs_tag(name, tags)
-    if not args.dry_run:
+    if not args.empty:
         res = subprocess.run(['bsdinstall', 'jail', zfs_mountpoint(name)])
         if res.returncode != 0:
             zfs_run(['zfs', 'destroy', '-r', '-f', name])
