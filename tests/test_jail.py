@@ -1,5 +1,6 @@
 from focker.jail import backup_file, \
-    jail_fs_create
+    jail_fs_create, \
+    gen_env_command
 import tempfile
 import os
 import subprocess
@@ -65,3 +66,9 @@ def test_jail_fs_create_02():
     subprocess.check_output(['focker', 'jail', 'remove', 'test-jail-fs-create-02'])
     assert not zfs_exists(name)
     assert not os.path.exists(mountpoint)
+
+
+def test_gen_env_command():
+    command = gen_env_command('echo $TEST_VARIABLE_1 && echo $TEST_VARIABLE_2',
+        {'TEST_VARIABLE_1': 'foo', 'TEST_VARIABLE_2': 'foo bar'})
+    assert command == 'export TEST_VARIABLE_1=foo && export TEST_VARIABLE_2=\'foo bar\' && echo $TEST_VARIABLE_1 && echo $TEST_VARIABLE_2'
