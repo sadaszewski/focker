@@ -1,13 +1,16 @@
 from focker.jail import backup_file, \
     jail_fs_create, \
     gen_env_command, \
-    quote
+    quote, \
+    jail_create
 import tempfile
 import os
 import subprocess
 from focker.zfs import zfs_mountpoint, \
     zfs_exists, \
-    zfs_tag
+    zfs_tag, \
+    zfs_find
+import jailconf
 
 
 def test_backup_file():
@@ -78,3 +81,35 @@ def test_gen_env_command():
 def test_quote():
     res = quote('foo \\ bar \'baz\'')
     assert res == '\'foo \\\\ bar \\\'baz\\\'\''
+
+
+def test_jail_create():
+    subprocess.check_output(['focker', 'jail', 'remove', '--force', 'test-jail-create'])
+    subprocess.check_output(['focker', 'volume', 'remove', '--force', 'test-jail-create'])
+    name = jail_fs_create()
+    zfs_tag(name, ['test-jail-create'])
+    subprocess.check_output(['focker', 'volume', 'create', '-t', 'test-jail-create'])
+    mountpoint = zfs_mountpoint(name)
+    jail_name = jail_create(mountpoint, '/bin/sh /etc/rc', {
+        'DUMMY_1': 'foo',
+        'DUMMY_2': 'bar'
+    }, [
+        ('test-jail-create', '/test-jail-create'),
+        ('/tmp', '/test-tmp')
+    ], hostname='test-jail-create', overrides={
+        'ip4.addr': '127.1.2.3'
+    })
+    assert jail_name == os.path.split(mountpoint)[-1]
+    assert os.path.exists(mountpoint)
+    vol_name, _ = zfs_find('test-jail-create', focker_type='volume')
+    vol_mountpoint = zfs_mountpoint(vol_name)
+    assert os.path.exists(vol_mountpoint)
+    conf = jailconf.load('/etc/jail.conf')
+    assert jail_name in conf
+    conf = conf[jail_name]
+    assert conf['path'] == mountpoint
+    assert conf['exec.start'] == '\'export DUMMY_1=foo && export DUMMY_2=bar && /bin/sh /etc/rc\''
+    assert conf['exec.prestart'] == f'\'cp /etc/resolv.conf {mountpoint}/etc/resolv.conf && mount -t nullfs {vol_mountpoint} {mountpoint}/test-jail-create && mount -t nullfs /tmp {mountpoint}/test-tmp\''
+    assert conf['ip4.addr'] == '\'127.1.2.3\''
+    subprocess.check_output(['focker', 'jail', 'remove', 'test-jail-create'])
+    subprocess.check_output(['focker', 'volume', 'remove', 'test-jail-create'])
