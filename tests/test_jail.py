@@ -1,6 +1,7 @@
 from focker.jail import backup_file, \
     jail_fs_create, \
-    gen_env_command
+    gen_env_command, \
+    quote
 import tempfile
 import os
 import subprocess
@@ -72,3 +73,8 @@ def test_gen_env_command():
     command = gen_env_command('echo $TEST_VARIABLE_1 && echo $TEST_VARIABLE_2',
         {'TEST_VARIABLE_1': 'foo', 'TEST_VARIABLE_2': 'foo bar'})
     assert command == 'export TEST_VARIABLE_1=foo && export TEST_VARIABLE_2=\'foo bar\' && echo $TEST_VARIABLE_1 && echo $TEST_VARIABLE_2'
+
+
+def test_quote():
+    res = quote('foo \\ bar \'baz\'')
+    assert res == '\'foo \\\\ bar \\\'baz\\\'\''
