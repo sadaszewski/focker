@@ -122,6 +122,7 @@ def test_build_volumes():
         'test-build-volumes': {
             'chown': '65534:65534',
             'chmod': 0o123,
+            'protect': True,
             'zfs': {
                 'quota': '1G',
                 'readonly': 'on'
@@ -134,9 +135,10 @@ def test_build_volumes():
     assert st.st_uid == 65534
     assert st.st_gid == 65534
     assert ('%o' % st.st_mode)[-3:] == '123'
-    zst = zfs_parse_output(['zfs', 'get', '-H', 'quota,readonly', name])
+    zst = zfs_parse_output(['zfs', 'get', '-H', 'quota,readonly,focker:protect', name])
     assert zst[0][2] == '1G'
     assert zst[1][2] == 'on'
+    assert zst[2][2] == 'on'
     subprocess.check_output(['zfs', 'destroy', '-r', '-f', name])
 
 

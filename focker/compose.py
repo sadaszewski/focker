@@ -77,6 +77,11 @@ def build_volumes(spec):
             os.chmod(mountpoint, params['chmod'])
         if 'zfs' in params:
             zfs_set_props(name, params['zfs'])
+        if 'protect' in params:
+            if params['protect']:
+                zfs_set_props(name, { 'focker:protect': 'on' })
+            else:
+                zfs_run(['zfs', 'inherit', '-r', 'focker:protect', name])
 
 
 def build_images(spec, path, args):
