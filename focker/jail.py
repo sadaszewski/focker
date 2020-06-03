@@ -117,7 +117,9 @@ def jail_create(path, command, env, mounts, hostname=None, overrides={}):
     blk['exec.clean'] = True
     blk['host.hostname'] = hostname or name
     for (k, v) in overrides.items():
-        blk[k] = quote(v)
+        blk[k] = quote(v) \
+            if isinstance(v, str) \
+            else v
     jail_conf_write(conf)
     return name
 

@@ -226,7 +226,11 @@ def test_build_jails():
             'exec.stop': 'test-exec-stop',
             'ip4.addr': 'test-ip4-addr',
             'interface': 'test-interface',
-            'host.hostname': 'test-build-jails-A'
+            'host.hostname': 'test-build-jails-A',
+            'jail.conf': {
+                'allow.mount': True,
+                'ip6.addr': 'abcd:abcd::0'
+            }
         }
     }
     spec['test-build-jails-B'] = spec['test-build-jails-A'].copy()
@@ -247,6 +251,8 @@ def test_build_jails():
         assert b['exec.stop'].strip('\'"') == 'test-exec-stop'
         assert b['ip4.addr'].strip('\'"') == 'test-ip4-addr'
         assert b['interface'].strip('\'"') == 'test-interface'
+        assert b['allow.mount']
+        assert b['ip6.addr'] == '\'abcd:abcd::0\''
     subprocess.check_output(['focker', 'jail', 'remove', '--force', 'test-build-jails-A'])
     subprocess.check_output(['focker', 'jail', 'remove', '--force', 'test-build-jails-B'])
     subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-focker-bootstrap'])
