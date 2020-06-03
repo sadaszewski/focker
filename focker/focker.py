@@ -158,6 +158,7 @@ def create_parser():
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['list', 'ls', 'l']])
     parser.set_defaults(func=command_jail_list)
     parser.add_argument('--full-sha256', '-f', action='store_true')
+    parser.add_argument('--images', '-i', action='store_true')
 
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['tag', 't']])
     parser.set_defaults(func=command_jail_tag)

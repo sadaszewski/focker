@@ -301,15 +301,38 @@ def command_jail_oneshot_old():
         # raise
 
 def command_jail_list(args):
-    lst = zfs_list(fields=['focker:sha256,focker:tags,mountpoint'], focker_type='jail')
+    headers = ['Tags', 'SHA256', 'mountpoint', 'JID']
+    res = []
+
     jails = subprocess.check_output(['jls', '--libxo=json'])
     jails = json.loads(jails)['jail-information']['jail']
     jails = { j['path']: j for j in jails }
-    lst = list(map(lambda a: [ a[1],
-        a[0] if args.full_sha256 else a[0][:7],
-        a[2],
-        jails[a[2]]['jid'] if a[2] in jails else '-' ], lst))
-    print(tabulate(lst, headers=['Tags', 'SHA256', 'mountpoint', 'JID']))
+
+    if args.images:
+        headers.append('Image')
+        lst = zfs_list(fields=['name,focker:tags,focker:sha256'],
+            focker_type='image', zfs_type='snapshot')
+        images = {}
+        for (name, tags, sha256, *_) in lst:
+            images[name] = tags if tags != '-' \
+                else sha256 \
+                    if args.full_sha256 \
+                        else sha256[:7]
+
+    lst = zfs_list(fields=['focker:sha256,focker:tags,mountpoint,origin'],
+        focker_type='jail')
+    for (sha256, tags, mountpoint, origin, *_) in lst:
+        row = [
+            tags,
+            sha256 if args.full_sha256 else sha256[:7],
+            mountpoint,
+            jails[mountpoint]['jid'] if mountpoint in jails else '-',
+        ]
+        if args.images:
+            row.append(images[origin])
+        res.append(row)
+
+    print(tabulate(res, headers=headers))
 
 
 def command_jail_tag(args):
