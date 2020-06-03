@@ -83,7 +83,7 @@ def zfs_prune(focker_type='image'):
     again = True
     while again:
         again = False
-        lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256,focker:tags,origin,name', '-H', '-r', poolname + '/focker/' + focker_type + 's'])
+        lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256,focker:tags,origin,name,focker:protect', '-H', '-r', poolname + '/focker/' + focker_type + 's'])
         used = set()
         for r in lst:
             if r[2] == '-':
@@ -92,10 +92,29 @@ def zfs_prune(focker_type='image'):
         for r in lst:
             if r[0] == '-' or r[1] != '-':
                 continue
-            if r[3] not in used:
-                print('Removing:', r[3])
-                zfs_run(['zfs', 'destroy', '-r', '-f', r[3]])
-                again = True
+            if r[3] in used:
+                continue
+            if r[4] != '-':
+                print('%s is protected against removal' % r[3])
+                continue
+            print('Removing:', r[3])
+            zfs_run(['zfs', 'destroy', '-r', '-f', r[3]])
+            again = True
+
+
+def zfs_destroy(name):
+    lst = zfs_parse_output(['zfs', 'get', '-H', 'focker:protect', name])
+    if lst[0][2] != '-':
+        raise RuntimeError('%s is protected against removal' % name)
+    zfs_run(['zfs', 'destroy', '-r', '-f', name])
+
+
+def zfs_protect(name):
+    zfs_run(['zfs', 'set', 'focker:protect=on', name])
+
+
+def zfs_unprotect(name):
+    zfs_run(['zfs', 'inherit', '-r', 'focker:protect', name])
 
 
 def zfs_clone(name, target_name):

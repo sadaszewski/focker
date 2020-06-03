@@ -51,7 +51,7 @@ def command_volume_remove(args):
         try:
             name, _ = zfs_find(ref, focker_type='volume')
             print('Removing:', name)
-            zfs_run(['zfs', 'destroy', '-r', '-f', name])
+            zfs_destroy(name)
         except:
             if not args.force:
                 raise
@@ -71,3 +71,17 @@ def command_volume_get(args):
     res = zfs_parse_output(['zfs', 'get', '-H', ','.join(args.properties), name])
     res = [ [ args.properties[i], a[2] ] for i, a in enumerate(res) ]
     print(tabulate(res, headers=['Property', 'Value']))
+
+
+def command_volume_protect(args):
+    for ref in args.references:
+        name, _ = zfs_find(ref, focker_type='volume')
+        print('Protecting:', name)
+        zfs_protect(name)
+
+
+def command_volume_unprotect(args):
+    for ref in args.references:
+        name, _ = zfs_find(ref, focker_type='volume')
+        print('Unprotecting:', name)
+        zfs_unprotect(name)

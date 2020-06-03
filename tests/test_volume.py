@@ -7,13 +7,19 @@ from focker.volume import command_volume_create, \
     command_volume_untag, \
     command_volume_remove, \
     command_volume_set, \
-    command_volume_get
+    command_volume_get, \
+    command_volume_protect, \
+    command_volume_unprotect
 from focker.zfs import zfs_find, \
     zfs_mountpoint, \
     zfs_exists, \
-    zfs_parse_output
+    zfs_parse_output, \
+    zfs_destroy, \
+    zfs_prune, \
+    zfs_run
 import os
 import focker.volume
+import focker.zfs
 
 
 def test_command_volume_create():
@@ -162,3 +168,52 @@ def test_command_volume_get(monkeypatch):
     assert headers == [ 'Property', 'Value' ]
     # assert lst == ['on', '1G']
     subprocess.check_output(['focker', 'volume', 'remove', 'test-command-volume-get'])
+
+
+def test_command_volume_protect(monkeypatch):
+    subprocess.check_output(['focker', 'volume', 'remove', '--force', 'test-command-volume-protect'])
+    subprocess.check_output(['focker', 'volume', 'create', '-t', 'test-command-volume-protect'])
+    args = lambda: 0
+    args.references = ['test-command-volume-protect']
+    command_volume_protect(args)
+    name, sha256 = zfs_find('test-command-volume-protect', focker_type='volume')
+    mountpoint = zfs_mountpoint(name)
+    lst = zfs_parse_output(['zfs', 'get', '-H', 'focker:protect', name])
+    assert len(lst) == 1
+    assert lst[0][2] == 'on'
+    with pytest.raises(RuntimeError):
+        zfs_destroy(name)
+    subprocess.check_output(['focker', 'volume', 'untag', 'test-command-volume-protect'])
+    lst = zfs_parse_output(['zfs', 'get', '-H', 'focker:tags', name])
+    assert len(lst) == 1
+    assert lst[0][2] == '-'
+    n_called = 0
+    def fake_run(*args, **kwargs):
+        nonlocal n_called
+        n_called += 1
+        return zfs_run(*args, **kwargs)
+    monkeypatch.setattr(focker.zfs, 'zfs_run', fake_run)
+    zfs_prune(focker_type='volume')
+    assert not n_called == 1
+    with pytest.raises(subprocess.CalledProcessError):
+        subprocess.check_output(['focker', 'volume', 'remove', sha256])
+    subprocess.check_output(['zfs', 'destroy', '-r', '-f', name])
+    assert not zfs_exists(name)
+    assert not os.path.exists(mountpoint)
+
+
+def test_command_volume_unprotect():
+    subprocess.check_output(['focker', 'volume', 'remove', '--force', 'test-command-volume-unprotect'])
+    subprocess.check_output(['focker', 'volume', 'create', '-t', 'test-command-volume-unprotect'])
+    subprocess.check_output(['focker', 'volume', 'protect', 'test-command-volume-unprotect'])
+    name, _ = zfs_find('test-command-volume-unprotect', focker_type='volume')
+    lst = zfs_parse_output(['zfs', 'get', '-H', 'focker:protect', name])
+    assert len(lst) == 1
+    assert lst[0][2] == 'on'
+    args = lambda: 0
+    args.references = ['test-command-volume-unprotect']
+    command_volume_unprotect(args)
+    lst = zfs_parse_output(['zfs', 'get', '-H', 'focker:protect', name])
+    assert len(lst) == 1
+    assert lst[0][2] == '-'
+    subprocess.check_output(['focker', 'volume', 'remove', 'test-command-volume-unprotect'])
