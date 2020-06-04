@@ -168,7 +168,7 @@ def stop_jails(spec):
 def command_compose_build(args):
     if not os.path.exists(args.filename):
         raise ValueError('File not found: ' + args.filename)
-    path, _ = os.path.split(args.filename)
+    path, _ = os.path.split(os.path.abspath(args.filename))
     print('path:', path)
     with open(args.filename, 'r') as f:
         spec = yaml.safe_load(f)
