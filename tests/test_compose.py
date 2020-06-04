@@ -5,6 +5,7 @@ from focker.compose import exec_hook, \
     build_images, \
     setup_dependencies, \
     build_jails, \
+    stop_jails, \
     command_compose_build
 import focker.compose
 from tempfile import TemporaryDirectory
@@ -260,6 +261,47 @@ def test_build_jails():
         if conf[k]['host.hostname'].strip('\'"') in ['test-build-jails-A', 'test-build-jails-B']:
             del conf[k]
     conf.write('/etc/jail.conf')
+
+
+def test_stop_jails_01(monkeypatch):
+    spec = {
+        'foobar': {}
+    }
+    def mock_zfs_find(name, focker_type):
+        assert name == 'foobar'
+        assert focker_type == 'jail'
+        return 'baf', None
+    def mock_zfs_mountpoint(name):
+        assert name == 'baf'
+        return '/beef'
+    def mock_jail_stop(path):
+        assert path == '/beef'
+    monkeypatch.setattr(focker.compose, 'zfs_find', mock_zfs_find)
+    monkeypatch.setattr(focker.compose, 'zfs_mountpoint', mock_zfs_mountpoint)
+    monkeypatch.setattr(focker.compose, 'jail_stop', mock_jail_stop)
+    stop_jails(spec)
+
+
+def test_stop_jails_02(monkeypatch):
+    spec = {
+        'foobar': {}
+    }
+    def mock_zfs_find(name, focker_type):
+        assert name == 'foobar'
+        assert focker_type == 'jail'
+        raise ValueError('Not found')
+    def mock_zfs_mountpoint(name):
+        mock_zfs_mountpoint.called = True
+    mock_zfs_mountpoint.called = False
+    def mock_jail_stop(path):
+        mock_jail_stop.called = True
+    mock_jail_stop.called = False
+    monkeypatch.setattr(focker.compose, 'zfs_find', mock_zfs_find)
+    monkeypatch.setattr(focker.compose, 'zfs_mountpoint', mock_zfs_mountpoint)
+    monkeypatch.setattr(focker.compose, 'jail_stop', mock_jail_stop)
+    stop_jails(spec)
+    assert not mock_zfs_mountpoint.called
+    assert not mock_jail_stop.called
 
 
 def test_command_compose_build(monkeypatch):

@@ -17,6 +17,7 @@ from .zfs import AmbiguousValueError, \
 from .jail import jail_fs_create, \
     jail_create, \
     jail_remove, \
+    jail_stop, \
     backup_file, \
     quote
 from .misc import random_sha256_hexdigest, \
@@ -154,6 +155,16 @@ def build_jails(spec):
     setup_dependencies(spec, generated_names)
 
 
+def stop_jails(spec):
+    for jailname, _ in spec.items():
+        try:
+            name, _ = zfs_find(jailname, focker_type='jail')
+        except ValueError:
+            continue
+        print('Stopping:', jailname)
+        jail_stop(zfs_mountpoint(name))
+
+
 def command_compose_build(args):
     if not os.path.exists(args.filename):
         raise ValueError('File not found: ' + args.filename)
@@ -161,6 +172,8 @@ def command_compose_build(args):
     print('path:', path)
     with open(args.filename, 'r') as f:
         spec = yaml.safe_load(f)
+    if 'jails' in spec:
+        stop_jails(spec['jails'])
     if 'exec.prebuild' in spec:
         exec_prebuild(spec['exec.prebuild'], path)
     if 'volumes' in spec:
