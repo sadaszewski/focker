@@ -3,7 +3,8 @@ import hashlib
 from .misc import find_prefix
 from .zfs import zfs_poolname, \
     zfs_mountpoint, \
-    zfs_tag
+    zfs_tag, \
+    zfs_untag
 
 
 def command_bootstrap(args):
@@ -16,6 +17,7 @@ def command_bootstrap(args):
     poolname = zfs_poolname()
     name = find_prefix(poolname + '/focker/images/', sha256)
     subprocess.check_output(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
+    zfs_untag(tags, focker_type='image')
     zfs_tag(name, tags)
     res = None
     if args.non_interactive:
