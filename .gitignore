@@ -8,3 +8,5 @@ __pycache__
 /example/gitea/x
 .pytest_cache/
 .coverage
+/scripts/jail
+/scripts/focker-bsdinstall.not-needed

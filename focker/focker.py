@@ -82,6 +82,7 @@ def create_parser():
     parser.set_defaults(func=command_bootstrap)
     parser.add_argument('--tags', '-t', type=str, nargs='+', default=None)
     parser.add_argument('--empty', '-e', action='store_true')
+    parser.add_argument('--non-interactive', '-ni', action='store_true')
 
     # image
     subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \
