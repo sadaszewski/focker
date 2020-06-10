@@ -23,7 +23,11 @@ def test_bootstrap_01():
 def test_bootstrap_02():
     subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-focker-bootstrap'])
     args = lambda: 0
+    args.no_image = False
     args.empty = True
+    args.unfinalized = False
+    args.non_interactive = False
+    args.create_interface = False
     args.tags = ['test-focker-bootstrap']
     command_bootstrap(args)
     focker_unlock()

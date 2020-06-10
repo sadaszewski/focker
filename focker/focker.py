@@ -80,9 +80,14 @@ def create_parser():
 
     parser = ListForwarder([subparsers_top.add_parser(cmd) for cmd in ['bootstrap', 'boot', 'bs']])
     parser.set_defaults(func=command_bootstrap)
-    parser.add_argument('--tags', '-t', type=str, nargs='+', default=None)
+    parser.add_argument('--tags', '-t', type=str, nargs='+', default=[])
+    parser.add_argument('--no-image', action='store_true')
     parser.add_argument('--empty', '-e', action='store_true')
-    parser.add_argument('--non-interactive', '-ni', action='store_true')
+    parser.add_argument('--unfinalized', '-u', action='store_true')
+    parser.add_argument('--non-interactive', '-n', action='store_true')
+    parser.add_argument('--create-interface', '-c', action='store_true')
+    parser.add_argument('--interface', '-i', type=str, default='lo1')
+    parser.add_argument('--rename-interface', '-r', type=str, default=None)
 
     # image
     subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \
