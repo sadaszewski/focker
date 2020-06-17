@@ -35,7 +35,10 @@ def backup_file(fname, nbackups=10, chmod=0o600):
     existing_backups.sort(key=lambda a: a[1])
     # overwrite the oldest
     bakname = existing_backups[0][0]
-    shutil.copyfile(fname, bakname)
+    if os.path.exists(fname):
+        shutil.copyfile(fname, bakname)
+    else:
+        open(bakname, 'w').close()
     os.chmod(bakname, chmod)
     return bakname
 
