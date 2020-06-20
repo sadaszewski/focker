@@ -22,10 +22,13 @@ def command_bootstrap(args):
     if args.no_image:
         print('Image creation disabled')
     elif args.empty:
+        print('Creation of empty image selected')
         bootstrap_empty(args)
     elif args.non_interactive:
+        print('Non-interactive setup selected')
         bootstrap_non_interactive(args)
     else:
+        print('Interactive setup selected')
         bootstrap_interactive(args)
 
 
