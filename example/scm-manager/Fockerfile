@@ -1,6 +1,8 @@
 base: freebsd-latest
 
 steps:
+  - run: # Optional: change pkg mirror
+    - sed -i -e 's/pkg.FreeBSD.org/pkg0.tuk.freebsd.org/' /etc/pkg/FreeBSD.conf
   - run: # Install OpenJDK 11
     - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install openjdk11 ca_root_nss
   - run: # Startup script dependency: bash
