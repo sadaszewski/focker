@@ -1,0 +1,42 @@
+base: freebsd-latest
+
+steps:
+  - run: # Install OpenJDK 11
+    - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install openjdk11 ca_root_nss
+  - run: # Startup script dependency: bash
+    - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install bash
+  - run: # Startup script dependency: jsvc
+    - fetch https://downloads.apache.org//commons/daemon/source/commons-daemon-1.2.2-src.tar.gz
+    - tar -zvxf commons-daemon-1.2.2-src.tar.gz
+    - cd /commons-daemon-1.2.2-src/src/native/unix
+    - ./configure --with-java=/usr/local/openjdk11
+    - make
+    - mkdir -p /opt/scm-server/libexec
+    - cp jsvc /opt/scm-server/libexec/jsvc-freebsd-amd64
+    - rm -rvf /commons-daemon-1.2.2-src
+    - rm -v /commons-daemon-1.2.2-src.tar.gz
+  - run: # Optional dependencies: Mercurial
+    - ASSUME_ALWAYS_YES=yes IGNORE_OSVERSION=yes pkg install mercurial
+  - run: # Fetch scm-manager archives
+    - fetch https://packages.scm-manager.org/repository/releases/sonia/scm/packaging/unix/2.1.0/unix-2.1.0-app.tar.gz
+  - run: # Extract the archives to /opt
+    - mkdir -p /opt
+    - tar -zvxf unix-2.1.0-app.tar.gz -C /opt
+  - run: # Clean package archives
+    - rm -v unix-2.1.0-app.tar.gz
+    - ASSUME_ALWAYS_YES=yes pkg clean --all
+  - run: # Basic setup
+    - sysrc sshd_enable=NO
+    - sysrc sendmail_enable=NONE
+    - sysrc clear_tmp_enable=YES
+    - sysrc syslogd_flags="-ss"
+    - chown root:wheel /var/spool/clientmqueue
+    - chmod 000 /var/spool/clientmqueue
+  - run: # Some fixes
+    - ln -s /usr/local/bin/bash /bin/bash
+    - echo "export JAVA_HOME=/usr/local/openjdk11" >>/.profile
+  - run:
+    - pw user mod nobody -d /scm-manager
+    - mkdir -p /scm-manager/.scm
+    - chown -R nobody:nobody /scm-manager
+    - chown -R nobody:nobody /opt/scm-server

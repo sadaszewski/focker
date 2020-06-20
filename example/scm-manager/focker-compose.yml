@@ -1,0 +1,22 @@
+images:
+  scm-manager: .
+
+volumes:
+  scm-manager:
+    chown: 65534:65534
+    chmod: 0750
+
+jails:
+  scm-manager:
+    image: scm-manager
+    mounts:
+      scm-manager: /scm-manager/.scm
+    ip4.addr: 127.0.55.1
+    exec.start: |
+      JAVA_HOME=/usr/local/openjdk11 \
+      HOME=/scm-manager \
+        su -m nobody -c "/opt/scm-server/bin/scm-server start"
+    exec.stop: |
+      JAVA_HOME=/usr/local/openjdk11 \
+      HOME=/scm-manager \
+        su -m nobody -c "/opt/scm-server/bin/scm-server stop"
