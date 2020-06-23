@@ -16,9 +16,14 @@ from focker.zfs import zfs_find, \
     zfs_mountpoint, \
     zfs_exists_snapshot_sha256, \
     zfs_parse_output, \
-    zfs_exists
+    zfs_exists, \
+    zfs_poolname, \
+    zfs_run
 from focker.misc import focker_unlock
 import yaml
+from focker.misc import random_sha256_hexdigest, \
+    find_prefix
+from focker.steps import CopyStep
 
 
 def test_validate_spec_01():
@@ -229,3 +234,46 @@ def test_command_image_remove():
         zfs_find(sha256, focker_type='image')
     assert not os.path.exists(mountpoint)
     assert not zfs_exists(name)
+
+
+def _test_parallel_build(squeeze=False):
+    focker_unlock()
+
+    subprocess.check_output(['focker', 'image', 'remove', '--force', '-R', 'test-parallel-build-01'])
+    subprocess.check_output(['focker', 'bootstrap', '--empty', '-t', 'test-parallel-build-01'])
+
+    _, base_sha256 = zfs_find('test-parallel-build-01', focker_type='image', zfs_type='snapshot')
+
+    spec = dict(base='test-parallel-build-01', steps=[
+        dict(copy=['/etc/localtime', '/etc/localtime'])
+    ])
+
+    args = lambda: 0
+    args.focker_dir = os.path.abspath(os.curdir)
+    step = CopyStep(spec['steps'][0]['copy'])
+    st_sha256 = step.hash(base_sha256, args)
+
+    pool = zfs_poolname()
+    # sha256 = random_sha256_hexdigest()
+    name = find_prefix(pool + '/focker/images/', st_sha256)
+    print('Creating:', name)
+    zfs_run([ 'zfs', 'create', '-o', 'focker:sha256=' + st_sha256, name ])
+
+    with pytest.raises(RuntimeError) as excinfo:
+        if squeeze:
+            build_squeeze(spec, args)
+        else:
+            build(spec, args)
+
+    assert excinfo.value.args[0] == 'A build with the same SHA256 is in progress'
+
+    zfs_run([ 'zfs', 'destroy', name ])
+    zfs_run(['focker', 'image', 'remove', '-R', 'test-parallel-build-01'])
+
+
+def test_parallel_build_01():
+    _test_parallel_build(False)
+
+
+def test_parallel_build_02():
+    _test_parallel_build(True)

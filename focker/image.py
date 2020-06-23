@@ -13,6 +13,7 @@ from .snapshot import new_snapshot
 from tabulate import tabulate
 import subprocess
 from .misc import find_prefix
+from .zfs2 import zfs_find_sha256
 
 
 def validate_spec(spec):
@@ -45,6 +46,11 @@ def build_squeeze(spec, args):
         print('Reusing:', name)
         return (name, sha256)
 
+    res = zfs_find_sha256(sha256, focker_type='image',
+        zfs_type='filesystem')
+    if res is not None:
+        raise RuntimeError('A build with the same SHA256 is in progress')
+
     name = find_prefix(root + '/', sha256)
 
     def atomic():
@@ -74,11 +80,18 @@ def build(spec, args):
     for st in steps:
         st = create_step(st)
         st_sha256 = st.hash(base_sha256, args=args)
+
         if zfs_exists_snapshot_sha256(st_sha256):
             base = zfs_snapshot_by_sha256(st_sha256)
             base_sha256 = st_sha256
             print('Reusing:', base)
             continue
+
+        res = zfs_find_sha256(st_sha256, focker_type='image',
+            zfs_type='filesystem')
+        if res is not None:
+            raise RuntimeError('A build with the same SHA256 is in progress')
+
         for pre in range(7, 64):
             name = root + '/' + st_sha256[:pre]
             if not zfs_exists(name):
