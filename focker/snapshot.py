@@ -10,14 +10,19 @@ from .misc import focker_lock, \
     focker_unlock
 
 
-def new_snapshot(base, fun, name):
+def new_snapshot(base, fun, name, props={}):
     type_ = zfs_get_type(base)
     if type_ != 'snapshot':
         raise ValueError('Provided base dataset is not a snapshot')
     if '/' not in name:
         root = '/'.join(base.split('/')[:-1])
         name = root + '/' + name
-    zfs_run(['zfs', 'clone', base, name])
+    cmd = [ 'zfs', 'clone' ]
+    for k, v in props.items():
+        cmd.append('-o')
+        cmd.append(k + '=' + v)
+    cmd += [ base, name ]
+    zfs_run(cmd)
     try:
         try:
             focker_unlock()

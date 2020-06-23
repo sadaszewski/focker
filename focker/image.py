@@ -57,10 +57,12 @@ def build_squeeze(spec, args):
         for st in steps:
             st = create_step(st)
             st.execute(zfs_mountpoint(name), args=args)
-        zfs_set_props(name,
-            { 'focker:sha256': sha256 })
 
-    name = new_snapshot(base, atomic, name)
+    props = {
+        'focker:sha256': sha256
+    }
+    name = new_snapshot(base, atomic, name, props)
+    
     return (name, sha256)
 
 
@@ -96,15 +98,12 @@ def build(spec, args):
             name = root + '/' + st_sha256[:pre]
             if not zfs_exists(name):
                 break
-        feed = {
+        props = {
             'focker:sha256': st_sha256
         }
         def atomic():
             st.execute(zfs_mountpoint(name), args=args)
-            zfs_set_props(name, feed)
-        snap_name = new_snapshot(base, atomic, name)
-        # zfs_set_props(name, feed)
-        # zfs_set_props(snap_name, feed)
+        snap_name = new_snapshot(base, atomic, name, props)
         base = snap_name
         base_sha256 = st_sha256
 
