@@ -38,7 +38,7 @@ steps:
     - ln -s /usr/local/bin/bash /bin/bash
     - echo "export JAVA_HOME=/usr/local/openjdk11" >>/.profile
   - run:
-    - pw user mod nobody -d /scm-manager
+    - pw user add -n scm-manager -u 65532 -d /scm-manager -c "scm-manager account"
     - mkdir -p /scm-manager/.scm
-    - chown -R nobody:nobody /scm-manager
-    - chown -R nobody:nobody /opt/scm-server
+    - chown -R scm-manager:scm-manager /scm-manager
+    - chown -R scm-manager:scm-manager /opt/scm-server
