@@ -73,10 +73,14 @@ def jailspec_to_jailconf(spec, name):
         'ip4.addr': '127.0.1.0',
         'mount.devfs': True,
         'exec.clean': True,
-        'host.hostname': name
+        'host.hostname': name,
+        'exec.start': '/bin/sh /etc/rc',
+        'exec.stop': '/bin/sh /etc/rc.shutdown'
     }
 
     for k, v in spec.items():
+        if k in _focker_params:
+            continue
         if k in _exec_params:
             if isinstance(v, list):
                 v = ' && '.join(v)
@@ -88,8 +92,9 @@ def jailspec_to_jailconf(spec, name):
         shlex.quote(os.path.join(path, 'etc/resolv.conf')) ]
     poststop = []
     mounts = spec.get('mounts', {})
+    mounts = list(mounts.items())
     if mounts:
-        for from_, on in mounts.items():
+        for from_, on in mounts:
             if not from_.startswith('/'):
                 from_, _ = zfs_find(from_, focker_type='volume')
                 from_ = zfs_mountpoint(from_)
@@ -101,11 +106,12 @@ def jailspec_to_jailconf(spec, name):
 
     if 'exec.prestart' in blk:
         prestart = prestart + [ blk['exec.prestart'] ]
-        prestart = ' && ' .join(prestart)
-
+    
     if 'exec.poststop' in blk:
         poststop = [ blk['exec.poststop'] ] + poststop
-        poststop = ' && '.join(poststop)
+
+    prestart = ' && ' .join(prestart)
+    poststop = ' && '.join(poststop)
 
     if prestart:
         blk['exec.prestart'] = prestart

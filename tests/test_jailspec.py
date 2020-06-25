@@ -159,3 +159,34 @@ def test_jailspec_to_jailconf_05():
     blk = jailspec_to_jailconf(spec, 'noname')
 
     assert blk['command'] == "'export FOO=bar && export BAR=baz && echo Command'"
+
+
+def test_jailspec_to_jailconf_06():
+    with pytest.raises(ValueError) as excinfo:
+        _ = jailspec_to_jailconf({}, 'noname')
+    assert excinfo.value.args == ('Either an image or a path must be specified for a jail',)
+
+    with pytest.raises(ValueError) as excinfo:
+        _ = jailspec_to_jailconf({'image': 'zoo'}, 'noname')
+    assert excinfo.value.args == ('Reference not found: zoo',)
+
+    _ = jailspec_to_jailconf({'path': '/foo/bar'}, 'noname')
+
+    with pytest.raises(ValueError) as excinfo:
+        _ = jailspec_to_jailconf({'image': 'zoo', 'path': '/foo/bar'}, 'noname')
+    assert excinfo.value.args == ('Either an image or a path must be specified for a jail',)
+
+
+def test_jailspec_to_jailconf_07():
+    spec = {
+        'path': '/no/path',
+        'mounts': {
+            '/foo/bar': '/bar/baf',
+            '/bar/baz': '/baz/bee'
+        }
+    }
+    conf = jailspec_to_jailconf(spec, 'noname')
+
+    assert conf['exec.prestart'] == quote('cp /etc/resolv.conf /no/path/etc/resolv.conf && mount -t nullfs /foo/bar /no/path/bar/baf && mount -t nullfs /bar/baz /no/path/baz/bee')
+
+    assert conf['exec.poststop'] == quote('umount -f /no/path/baz/bee && umount -f /no/path/bar/baf')
