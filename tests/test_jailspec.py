@@ -119,3 +119,36 @@ def test_jailspec_to_jailconf_04():
             assert blk[k] == quote(v)
         else:
             assert blk[k] == v
+
+
+def test_jailspec_to_jailconf_05():
+    env= {
+        'FOO': 'bar',
+        'BAR': 'baz'
+    }
+
+    spec = {
+        'exec.prestart': 'echo Prestart',
+        'exec.start': 'echo Start',
+        'exec.poststart': 'echo Poststart',
+        'exec.prestop': 'echo Prestop',
+        'exec.stop': 'echo Stop',
+        'exec.poststop': 'echo Poststop'
+    }
+
+    blk = jailspec_to_jailconf(spec, env, '/foo/bar', 'noname')
+
+    assert blk['exec.prestart'] == "'cp /etc/resolv.conf /foo/bar/etc/resolv.conf && export FOO=bar && export BAR=baz && echo Prestart'"
+    assert blk['exec.start'] == "'export FOO=bar && export BAR=baz && echo Start'"
+    assert blk['exec.poststart'] == "'export FOO=bar && export BAR=baz && echo Poststart'"
+    assert blk['exec.prestop'] == "'export FOO=bar && export BAR=baz && echo Prestop'"
+    assert blk['exec.stop'] == "'export FOO=bar && export BAR=baz && echo Stop'"
+    assert blk['exec.poststop'] == "'export FOO=bar && export BAR=baz && echo Poststop'"
+
+    spec = {
+        'command': 'echo Command'
+    }
+
+    blk = jailspec_to_jailconf(spec, env, '/foo/bar', 'noname')
+
+    assert blk['command'] == "'export FOO=bar && export BAR=baz && echo Command'"
