@@ -1,6 +1,5 @@
 import subprocess
-from .jail import gen_env_command, \
-    quote
+from .jail import gen_env_command
 import shlex
 from .zfs import zfs_find, \
     zfs_mountpoint
@@ -34,7 +33,33 @@ if _focker_params.intersection(_params):
     print('WARNING !!! Legal jail params collide with Focker params. Jail params will take precedence.')
 
 
-def jailspec_to_jailconf(spec, env, path, name):
+def quote(s):
+    if isinstance(s, list):
+        return list(map(quote, s))
+    if not isinstance(s, str):
+        return s
+    s = s.replace('\\', '\\\\')
+    s = s.replace('\'', '\\\'')
+    s = '\'' + s + '\''
+    return s
+
+
+def jailspec_to_jailconf(spec, name):
+    for k in spec.keys():
+        if k not in _params and k not in _focker_params:
+            raise ValueError('Unknown parameter in jail spec: ' + k)
+
+    if ('image' in spec) + ('path' in spec) != 1:
+        raise ValueError('Either an image or a path must be specified for a jail')
+
+    if 'image' in spec:
+        path, _ = zfs_find(spec['image'], focker_type='image', zfs_type='snapshot')
+        path = zfs_mountpoint(path)
+    else:
+        path = spec['path']
+
+    env = spec['env'] if 'env' in spec else {}
+
     if 'exec.start' in spec and 'command' in spec:
         raise KeyError('exec.start and command are mutually exclusive')
 
@@ -52,12 +77,10 @@ def jailspec_to_jailconf(spec, env, path, name):
     }
 
     for k, v in spec.items():
-        if k not in _params and k not in _focker_params:
-            raise ValueError('Unknown parameter in jail spec: ' + k)
         if k in _exec_params:
             if isinstance(v, list):
                 v = ' && '.join(v)
-            print('v:', v)
+            # print('v:', v)
             v = gen_env_command(v, env)
         blk[k] = v
 
@@ -89,23 +112,8 @@ def jailspec_to_jailconf(spec, env, path, name):
     if poststop:
         blk['exec.poststop'] = poststop
 
-    # blk['path'] = path
-
     blk = {
-        k: quote(v) if isinstance(v, str) else v \
-            for k, v in blk.items()
+        k: quote(v) for k, v in blk.items()
     }
-
-    # if command:
-    #     command = gen_env_command(command, env)
-    #     command = quote(command)
-    #     print('command:', command)
-    #     blk['exec.start'] = command
-
-
-    # for (k, v) in overrides.items():
-    #     blk[k] = quote(v) \
-    #         if isinstance(v, str) \
-    #         else v
 
     return blk

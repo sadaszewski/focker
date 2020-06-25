@@ -1,9 +1,10 @@
-from focker.jailspec import jailspec_to_jailconf
+from focker.jailspec import jailspec_to_jailconf, \
+    quote
 import pytest
-from focker.jail import quote
 
 
 _spec = {
+    'path': '/no/path',
     'exec.prestart': 'echo Prestart',
     'exec.start': 'echo Start',
     'command': 'echo Command',
@@ -33,6 +34,7 @@ _spec = {
 
 
 _spec2 = {
+    'path': '/no/path',
     'sysvshm': 1,
     'sysvsem': 1,
     'sysvmsg': 1,
@@ -81,7 +83,7 @@ _spec2 = {
 
 def test_jailspec_to_jailconf_01():
     with pytest.raises(KeyError) as excinfo:
-        blk = jailspec_to_jailconf(_spec, {}, '/foo/bar', 'noname')
+        blk = jailspec_to_jailconf(_spec, 'noname')
     assert excinfo.value.args == ('exec.start and command are mutually exclusive',)
 
 
@@ -89,7 +91,7 @@ def test_jailspec_to_jailconf_02():
     spec = dict(_spec)
     del spec['command']
     with pytest.raises(KeyError) as excinfo:
-        blk = jailspec_to_jailconf(spec, {}, '/foo/bar', 'noname')
+        blk = jailspec_to_jailconf(spec, 'noname')
     assert excinfo.value.args == ('exec.jail_user and exec.system_jail_user are mutually exclusive',)
 
 
@@ -98,7 +100,7 @@ def test_jailspec_to_jailconf_03():
     del spec['command']
     del spec['exec.system_jail_user']
     #with pytest.raises(KeyError) as excinfo:
-    blk = jailspec_to_jailconf(spec, {}, '/foo/bar', 'noname')
+    blk = jailspec_to_jailconf(spec, 'noname')
     # assert excinfo.value.args == ('exec.jail_user and exec.system_jail_user are mutually exclusive',)
     for k, v in spec.items():
         if k == 'exec.prestart' or k == 'exec.poststop':
@@ -107,13 +109,13 @@ def test_jailspec_to_jailconf_03():
             assert blk[k] == quote(v)
         else:
             assert blk[k] == v
-    assert blk['exec.prestart'] == "'cp /etc/resolv.conf /foo/bar/etc/resolv.conf && echo Prestart'"
+    assert blk['exec.prestart'] == "'cp /etc/resolv.conf /no/path/etc/resolv.conf && echo Prestart'"
     assert blk['exec.poststop'] == "'echo Poststop'"
 
 
 def test_jailspec_to_jailconf_04():
     spec = dict(_spec2)
-    blk = jailspec_to_jailconf(spec, {}, '/foo/bar', 'noname')
+    blk = jailspec_to_jailconf(spec, 'noname')
     for k, v in spec.items():
         if isinstance(v, str):
             assert blk[k] == quote(v)
@@ -122,12 +124,12 @@ def test_jailspec_to_jailconf_04():
 
 
 def test_jailspec_to_jailconf_05():
-    env= {
-        'FOO': 'bar',
-        'BAR': 'baz'
-    }
-
     spec = {
+        'path': '/no/path',
+        'env': {
+            'FOO': 'bar',
+            'BAR': 'baz'
+        },
         'exec.prestart': 'echo Prestart',
         'exec.start': 'echo Start',
         'exec.poststart': 'echo Poststart',
@@ -136,9 +138,9 @@ def test_jailspec_to_jailconf_05():
         'exec.poststop': 'echo Poststop'
     }
 
-    blk = jailspec_to_jailconf(spec, env, '/foo/bar', 'noname')
+    blk = jailspec_to_jailconf(spec, 'noname')
 
-    assert blk['exec.prestart'] == "'cp /etc/resolv.conf /foo/bar/etc/resolv.conf && export FOO=bar && export BAR=baz && echo Prestart'"
+    assert blk['exec.prestart'] == "'cp /etc/resolv.conf /no/path/etc/resolv.conf && export FOO=bar && export BAR=baz && echo Prestart'"
     assert blk['exec.start'] == "'export FOO=bar && export BAR=baz && echo Start'"
     assert blk['exec.poststart'] == "'export FOO=bar && export BAR=baz && echo Poststart'"
     assert blk['exec.prestop'] == "'export FOO=bar && export BAR=baz && echo Prestop'"
@@ -146,9 +148,14 @@ def test_jailspec_to_jailconf_05():
     assert blk['exec.poststop'] == "'export FOO=bar && export BAR=baz && echo Poststop'"
 
     spec = {
+        'path': '/no/path',
+        'env': {
+            'FOO': 'bar',
+            'BAR': 'baz'
+        },
         'command': 'echo Command'
     }
 
-    blk = jailspec_to_jailconf(spec, env, '/foo/bar', 'noname')
+    blk = jailspec_to_jailconf(spec, 'noname')
 
     assert blk['command'] == "'export FOO=bar && export BAR=baz && echo Command'"
