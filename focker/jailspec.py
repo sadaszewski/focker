@@ -76,13 +76,13 @@ def jailspec_to_jailconf(spec, env, path, name):
             os.path.join(path, on.strip('/')) \
             for (_, on) in reversed(mounts) ]
 
-    prestart = ' && '.join(prestart)
     if 'exec.prestart' in blk:
-        prestart = ' &&' .join([ prestart, blk['exec.prestart'] ])
+        prestart = prestart + [ blk['exec.prestart'] ]
+        prestart = ' && ' .join(prestart)
 
-    poststop = ' && '.join(poststop)
     if 'exec.poststop' in blk:
-        poststop = ' && '.join([ blk['exec.poststop'], poststop ])
+        poststop = [ blk['exec.poststop'] ] + poststop
+        poststop = ' && '.join(poststop)
 
     if prestart:
         blk['exec.prestart'] = prestart

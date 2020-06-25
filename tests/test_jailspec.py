@@ -1,5 +1,6 @@
 from focker.jailspec import jailspec_to_jailconf
 import pytest
+from focker.jail import quote
 
 
 _spec = {
@@ -31,6 +32,53 @@ _spec = {
 }
 
 
+_spec2 = {
+    'sysvshm': 1,
+    'sysvsem': 1,
+    'sysvmsg': 1,
+    'allow.mount.zfs': True,
+    'allow.mount.tmpfs': True,
+    'allow.mount.linsysfs': True,
+    'allow.mount.linprocfs': True,
+    'allow.mount.procfs': True,
+    'allow.mount.nullfs': True,
+    'allow.mount.fdescfs': True,
+    'allow.mount.devfs': True,
+    'allow.mount': True,
+    'allow.socket_af': True,
+    'allow.quotas': True,
+    'allow.chflags': True,
+    'allow.raw_sockets': True,
+    'allow.sysvipc': True,
+    'allow.set_hostname': True,
+    'ip6.saddrsel': True,
+    'ip6.addr': 'abcd::',
+    'ip6': 'new',
+    'ip4.saddrsel': True,
+    'ip4.addr': '127.0.1.0',
+    'ip4': 'new',
+    'cpuset.id': 1,
+    'host.hostid': 1,
+    'host.hostuuid': 'abc-def',
+    'host.domainname': 'a-domain-name',
+    'host.hostname': 'a-host-name',
+    'host': 'new',
+    'children.max': 1,
+    'children.cur': 0,
+    'dying': False,
+    'persist': True,
+    'devfs_ruleset': 0,
+    'enforce_statfs': True,
+    'osrelease': '11.2',
+    'osreldate': '2020-01-01',
+    'securelevel': 1,
+    'path': '/no/path',
+    'name': 'no-name',
+    'parent': 0,
+    'jid': 1
+}
+
+
 def test_jailspec_to_jailconf_01():
     with pytest.raises(KeyError) as excinfo:
         blk = jailspec_to_jailconf(_spec, {}, '/foo/bar', 'noname')
@@ -52,3 +100,22 @@ def test_jailspec_to_jailconf_03():
     #with pytest.raises(KeyError) as excinfo:
     blk = jailspec_to_jailconf(spec, {}, '/foo/bar', 'noname')
     # assert excinfo.value.args == ('exec.jail_user and exec.system_jail_user are mutually exclusive',)
+    for k, v in spec.items():
+        if k == 'exec.prestart' or k == 'exec.poststop':
+            continue
+        if isinstance(v, str):
+            assert blk[k] == quote(v)
+        else:
+            assert blk[k] == v
+    assert blk['exec.prestart'] == "'cp /etc/resolv.conf /foo/bar/etc/resolv.conf && echo Prestart'"
+    assert blk['exec.poststop'] == "'echo Poststop'"
+
+
+def test_jailspec_to_jailconf_04():
+    spec = dict(_spec2)
+    blk = jailspec_to_jailconf(spec, {}, '/foo/bar', 'noname')
+    for k, v in spec.items():
+        if isinstance(v, str):
+            assert blk[k] == quote(v)
+        else:
+            assert blk[k] == v
