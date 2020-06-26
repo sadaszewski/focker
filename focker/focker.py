@@ -10,7 +10,6 @@ import argparse
 import yaml
 import os
 from functools import reduce
-# from weir import zfs, process
 from .image import command_image_build, \
     command_image_tag, \
     command_image_untag, \
@@ -32,6 +31,7 @@ from .zfs import zfs_init
 from .jail import command_jail_create, \
     command_jail_start, \
     command_jail_stop, \
+    command_jail_restart, \
     command_jail_remove, \
     command_jail_exec, \
     command_jail_oneshot, \
@@ -142,6 +142,10 @@ def create_parser():
 
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['stop', 'sto', 'S']])
     parser.set_defaults(func=command_jail_stop)
+    parser.add_argument('reference', type=str)
+
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['restart', 're', 'R']])
+    parser.set_defaults(func=command_jail_restart)
     parser.add_argument('reference', type=str)
 
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['remove', 'rem', 'rm', 'r']])

@@ -200,6 +200,11 @@ def command_jail_stop(args):
     jail_stop(path)
 
 
+def command_jail_restart(args):
+    command_jail_stop(args)
+    command_jail_start(args)
+
+
 def command_jail_remove(args):
     try:
         name, _ = zfs_find(args.reference, focker_type='jail')
