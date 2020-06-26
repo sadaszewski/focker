@@ -88,6 +88,9 @@ def create_parser():
     parser.add_argument('--create-interface', '-c', action='store_true')
     parser.add_argument('--interface', '-i', type=str, default='lo1')
     parser.add_argument('--rename-interface', '-r', type=str, default=None)
+    parser.add_argument('--add-pf-rule', '-a', action='store_true')
+    parser.add_argument('--external-interface', '-x', type=str, default=None)
+    parser.add_argument('--full-auto', '-f', action='store_true')
 
     # image
     subparsers = ListForwarder([ subparsers_top.add_parser(cmd).add_subparsers(dest='L2_command') \

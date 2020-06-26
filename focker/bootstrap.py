@@ -16,15 +16,18 @@ def command_bootstrap(args):
     if args.no_image and args.unfinalized:
         raise ValueError('--no-image and --unfinalized are mutually exclusive')
 
-    if args.create_interface:
+    if args.create_interface or args.full_auto:
         create_interface(args)
+
+    if args.add_pf_rule or args.full_auto:
+        add_pf_rule(args)
 
     if args.no_image:
         print('Image creation disabled')
     elif args.empty:
         print('Creation of empty image selected')
         bootstrap_empty(args)
-    elif args.non_interactive:
+    elif args.non_interactive or args.full_auto:
         print('Non-interactive setup selected')
         bootstrap_non_interactive(args)
     else:
@@ -106,3 +109,21 @@ def create_interface(args):
             (args.interface, args.interface)])
     subprocess.check_output(['service', 'netif', 'cloneup'])
     print('Interface ready')
+
+
+def add_pf_rule(args):
+    if args.external_interface is None:
+        iface = subprocess.check_output([ 'ifconfig', '-l' ])
+        iface = iface.decode('utf-8').split(' ')
+        iface = [ i for i in iface if not i.startswith('lo') ]
+        iface = iface[0]
+    else:
+        iface = args.external_interface
+    jail_iface = args.rename_interface or args.interface
+    rule = f'nat on {iface} from ({jail_iface}:network) -> ({iface})'
+    with open('/etc/pf.conf', 'a') as f:
+        f.write('\n')
+        f.write('##### Rule added by Focker #####')
+        f.write('\n')
+        f.write(rule)
+        f.write('\n')
