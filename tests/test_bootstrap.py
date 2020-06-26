@@ -28,6 +28,8 @@ def test_bootstrap_02():
     args.unfinalized = False
     args.non_interactive = False
     args.create_interface = False
+    args.full_auto = False
+    args.add_pf_rule = False
     args.tags = ['test-focker-bootstrap']
     command_bootstrap(args)
     focker_unlock()
