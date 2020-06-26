@@ -134,7 +134,7 @@ def jailspec_to_jailconf(spec, name):
     if poststop:
         blk['exec.poststop'] = poststop
 
-    print('blk:', blk)
+    # print('blk:', blk)
 
     blk = {
         k: quote(v) for k, v in blk.items()
@@ -143,7 +143,7 @@ def jailspec_to_jailconf(spec, name):
     blk = { k: v for k, v in blk.items() \
         if not isinstance(v, bool) or v != False }
 
-    print('blk:', blk)
+    # print('blk:', blk)
 
     blk = jailconf.JailBlock(blk)
 
