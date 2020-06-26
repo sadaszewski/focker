@@ -23,6 +23,8 @@ from .jailspec import jailspec_to_jailconf
 
 
 def backup_file(fname, nbackups=10, chmod=0o600):
+    if not os.path.exists(fname):
+        return None
     existing_backups = []
     for i in range(nbackups):
         bakname = '%s.%d' % (fname, i)
@@ -36,10 +38,7 @@ def backup_file(fname, nbackups=10, chmod=0o600):
     existing_backups.sort(key=lambda a: a[1])
     # overwrite the oldest
     bakname = existing_backups[0][0]
-    if os.path.exists(fname):
-        shutil.copyfile(fname, bakname)
-    else:
-        open(bakname, 'w').close()
+    shutil.copyfile(fname, bakname)
     os.chmod(bakname, chmod)
     return bakname
 
@@ -249,8 +248,8 @@ def jail_oneshot(image, command, env, mounts):
 def command_jail_oneshot(args):
     env = { a.split(':')[0]: ':'.join(a.split(':')[1:]) \
         for a in args.env }
-    mounts = [ [ a.split(':')[0], a.split(':')[1] ] \
-        for a in args.mounts]
+    mounts = { a.split(':')[0]: a.split(':')[1] \
+        for a in args.mounts }
     jail_oneshot(args.image, args.command, env, mounts)
 
 
