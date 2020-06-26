@@ -136,21 +136,28 @@ def build_jails(spec):
         zfs_untag([ jailname ], focker_type='jail')
         zfs_tag(name, [ jailname ])
         path = zfs_mountpoint(name)
-        overrides={
-            'exec.stop': jailspec.get('exec.stop', '/bin/sh /etc/rc.shutdown'),
-            'ip4.addr': jailspec.get('ip4.addr', '127.0.1.0'),
-            'interface': jailspec.get('interface', 'lo1'),
-            'host.hostname': jailspec.get('host.hostname', jailname)
-        }
-        if 'jail.conf' in jailspec:
-            overrides.update(jailspec['jail.conf'])
-        generated_names[jailname] = jail_create(path,
-            jailspec.get('exec.start', '/bin/sh /etc/rc'),
-            jailspec.get('env', {}),
-            [ [from_, on] \
-                for (from_, on) in jailspec.get('mounts', {}).items() ],
-            hostname=jailname,
-            overrides=overrides)
+
+        jailspec = dict(jailspec)
+        jailspec['path'] = path
+
+        jail_create(jailspec, jailname)
+        generated_names[jailname] = os.path.split(path)[-1]
+
+        # overrides={
+        #     'exec.stop': jailspec.get('exec.stop', '/bin/sh /etc/rc.shutdown'),
+        #     'ip4.addr': jailspec.get('ip4.addr', '127.0.1.0'),
+        #     'interface': jailspec.get('interface', 'lo1'),
+        #     'host.hostname': jailspec.get('host.hostname', jailname)
+        # }
+        # if 'jail.conf' in jailspec:
+        #     overrides.update(jailspec['jail.conf'])
+        # generated_names[jailname] = jail_create(path,
+        #     jailspec.get('exec.start', '/bin/sh /etc/rc'),
+        #     jailspec.get('env', {}),
+        #     [ [from_, on] \
+        #         for (from_, on) in jailspec.get('mounts', {}).items() ],
+        #     hostname=jailname,
+        #     overrides=overrides)
 
     setup_dependencies(spec, generated_names)
 

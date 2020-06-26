@@ -67,7 +67,7 @@ _spec2 = {
     'host': 'new',
     'children.max': 1,
     'children.cur': 0,
-    'dying': False,
+    'dying': True,
     'persist': True,
     'devfs_ruleset': 0,
     'enforce_statfs': True,
@@ -103,12 +103,9 @@ def test_jailspec_to_jailconf_03():
     blk = jailspec_to_jailconf(spec, 'noname')
     # assert excinfo.value.args == ('exec.jail_user and exec.system_jail_user are mutually exclusive',)
     for k, v in spec.items():
-        if k == 'exec.prestart' or k == 'exec.poststop':
+        if k == 'exec.prestart' or k == 'exec.poststop' or k == 'depend':
             continue
-        if isinstance(v, str):
-            assert blk[k] == quote(v)
-        else:
-            assert blk[k] == v
+        assert blk[k] == quote(v)
     assert blk['exec.prestart'] == "'cp /etc/resolv.conf /no/path/etc/resolv.conf && echo Prestart'"
     assert blk['exec.poststop'] == "'echo Poststop'"
 
@@ -117,10 +114,7 @@ def test_jailspec_to_jailconf_04():
     spec = dict(_spec2)
     blk = jailspec_to_jailconf(spec, 'noname')
     for k, v in spec.items():
-        if isinstance(v, str):
-            assert blk[k] == quote(v)
-        else:
-            assert blk[k] == v
+        assert blk[k] == quote(v)
 
 
 def test_jailspec_to_jailconf_05():
@@ -164,17 +158,15 @@ def test_jailspec_to_jailconf_05():
 def test_jailspec_to_jailconf_06():
     with pytest.raises(ValueError) as excinfo:
         _ = jailspec_to_jailconf({}, 'noname')
-    assert excinfo.value.args == ('Either an image or a path must be specified for a jail',)
+    assert excinfo.value.args == ('Missing path specification for the jail',)
 
     with pytest.raises(ValueError) as excinfo:
         _ = jailspec_to_jailconf({'image': 'zoo'}, 'noname')
-    assert excinfo.value.args == ('Reference not found: zoo',)
+    assert excinfo.value.args == ('Missing path specification for the jail',)
 
     _ = jailspec_to_jailconf({'path': '/foo/bar'}, 'noname')
 
-    with pytest.raises(ValueError) as excinfo:
-        _ = jailspec_to_jailconf({'image': 'zoo', 'path': '/foo/bar'}, 'noname')
-    assert excinfo.value.args == ('Either an image or a path must be specified for a jail',)
+    _ = jailspec_to_jailconf({'image': 'zoo', 'path': '/foo/bar'}, 'noname')
 
 
 def test_jailspec_to_jailconf_07():

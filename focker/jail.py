@@ -19,6 +19,7 @@ import stat
 from .misc import focker_lock, \
     focker_unlock, \
     random_sha256_hexdigest
+from .jailspec import jailspec_to_jailconf
 
 
 def backup_file(fname, nbackups=10, chmod=0o600):
@@ -67,15 +68,6 @@ def jail_fs_create(image=None):
     return name
 
 
-def gen_env_command(command, env):
-    if any(map(lambda a: ' ' in a, env.keys())):
-        raise ValueError('Environment variable names cannot contain spaces')
-    env = [ 'export ' + k + '=' + shlex.quote(v) \
-        for (k, v) in env.items() ]
-    command = ' && '.join(env + [ command ])
-    return command
-
-
 def quote(s):
     s = s.replace('\\', '\\\\')
     s = s.replace('\'', '\\\'')
@@ -83,48 +75,14 @@ def quote(s):
     return s
 
 
-def jail_create(path, command, env, mounts, hostname=None, overrides={}):
-    name = os.path.split(path)[-1]
+def jail_create(spec: dict, name: str) -> None:
     if os.path.exists('/etc/jail.conf'):
         conf = jailconf.load('/etc/jail.conf')
     else:
         conf = jailconf.JailConf()
-    conf[name] = blk = jailconf.JailBlock()
-    blk['path'] = path
-    if command:
-        command = gen_env_command(command, env)
-        command = quote(command)
-        print('command:', command)
-        blk['exec.start'] = command
-    prestart = [ 'cp /etc/resolv.conf ' +
-        shlex.quote(os.path.join(path, 'etc/resolv.conf')) ]
-    poststop = []
-    if mounts:
-        for (from_, on) in mounts:
-            if not from_.startswith('/'):
-                from_, _ = zfs_find(from_, focker_type='volume')
-                from_ = zfs_mountpoint(from_)
-            prestart.append('mount -t nullfs ' + shlex.quote(from_) +
-                ' ' + shlex.quote(os.path.join(path, on.strip('/'))))
-        poststop += [ 'umount -f ' +
-            os.path.join(path, on.strip('/')) \
-            for (_, on) in reversed(mounts) ]
-    if prestart:
-        blk['exec.prestart'] = quote(' && '.join(prestart))
-    if poststop:
-        blk['exec.poststop'] = quote(' && '.join(poststop))
-    blk['persist'] = True
-    blk['interface'] = 'lo1'
-    blk['ip4.addr'] = '127.0.1.0'
-    blk['mount.devfs'] = True
-    blk['exec.clean'] = True
-    blk['host.hostname'] = hostname or name
-    for (k, v) in overrides.items():
-        blk[k] = quote(v) \
-            if isinstance(v, str) \
-            else v
+    blk = jailspec_to_jailconf(spec, name)
+    conf[name] = blk
     jail_conf_write(conf)
-    return name
 
 
 def get_jid(path):
@@ -214,15 +172,18 @@ def command_jail_create(args):
     backup_file('/etc/jail.conf')
     name = jail_fs_create(args.image)
     if args.tags:
+        zfs_untag(args.tags, focker_type='jail')
         zfs_tag(name, args.tags)
     path = zfs_mountpoint(name)
-    jail_create(path, args.command,
-        { a.split(':')[0]: ':'.join(a.split(':')[1:]) \
+    spec = {
+        'path': path,
+        'exec.start': args.command,
+        'env': { a.split(':')[0]: ':'.join(a.split(':')[1:]) \
             for a in args.env },
-        [ [a.split(':')[0], ':'.join(a.split(':')[1:])] \
-            for a in args.mounts ],
-        args.hostname )
-    # print(sha256)
+        'mounts': { a.split(':')[0]: ':'.join(a.split(':')[1:]) \
+            for a in args.mounts }
+    }
+    jail_create(spec, args.hostname)
     print(path)
 
 
@@ -266,9 +227,14 @@ def jail_oneshot(image, command, env, mounts):
     backup_file('/etc/jail.conf')
     name = jail_fs_create(image)
     path = zfs_mountpoint(name)
-    jailname = jail_create(path,
-        ' '.join(map(shlex.quote, command or ['/bin/sh'])),
-        env, mounts)
+    spec = {
+        'path': path,
+        'exec.start': ' '.join(map(shlex.quote, command or ['/bin/sh'])),
+        'env': env,
+        'mounts': mounts
+    }
+    jailname = os.path.split(path)[-1]
+    jail_create(spec, jailname)
     focker_unlock()
     subprocess.run(['jail', '-c', jailname])
     focker_lock()

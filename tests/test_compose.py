@@ -228,10 +228,8 @@ def test_build_jails():
             'ip4.addr': 'test-ip4-addr',
             'interface': 'test-interface',
             'host.hostname': 'test-build-jails-A',
-            'jail.conf': {
-                'allow.mount': True,
-                'ip6.addr': 'abcd:abcd::0'
-            }
+            'allow.mount': True,
+            'ip6.addr': 'abcd:abcd::0'
         }
     }
     spec['test-build-jails-B'] = spec['test-build-jails-A'].copy()
@@ -247,7 +245,7 @@ def test_build_jails():
     for b in blocks:
         name, _ = zfs_find(b['host.hostname'].strip('\'"'), focker_type='jail')
         mountpoint = zfs_mountpoint(name)
-        assert b['path'] == mountpoint
+        assert b['path'].strip('\'"') == mountpoint
         assert b['exec.start'].strip('\'"') == 'test-exec-start'
         assert b['exec.stop'].strip('\'"') == 'test-exec-stop'
         assert b['ip4.addr'].strip('\'"') == 'test-ip4-addr'

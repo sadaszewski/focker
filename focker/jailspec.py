@@ -1,9 +1,9 @@
 import subprocess
-from .jail import gen_env_command
 import shlex
 from .zfs import zfs_find, \
     zfs_mountpoint
 import os
+import jailconf
 
 
 _params = subprocess.check_output(['sysctl', '-N', 'security.jail.param'])
@@ -35,13 +35,32 @@ if _focker_params.intersection(_params):
 
 def quote(s):
     if isinstance(s, list):
-        return list(map(quote, s))
-    if not isinstance(s, str):
+        if len(s) == 0:
+            return False
+        elif len(s) == 1:
+            return quote(s[0])
+        else:
+            return list(map(quote, s))
+    if isinstance(s, bool):
         return s
+    if isinstance(s, int):
+        return str(s)
+    if not isinstance(s, str):
+        s = str(s)
+    # if '\'' in s or '\\' in s or ' ' in s:
     s = s.replace('\\', '\\\\')
     s = s.replace('\'', '\\\'')
     s = '\'' + s + '\''
     return s
+
+
+def gen_env_command(command, env):
+    if any(map(lambda a: ' ' in a, env.keys())):
+        raise ValueError('Environment variable names cannot contain spaces')
+    env = [ 'export ' + k + '=' + shlex.quote(v) \
+        for (k, v) in env.items() ]
+    command = ' && '.join(env + [ command ])
+    return command
 
 
 def jailspec_to_jailconf(spec, name):
@@ -49,16 +68,15 @@ def jailspec_to_jailconf(spec, name):
         if k not in _params and k not in _focker_params:
             raise ValueError('Unknown parameter in jail spec: ' + k)
 
-    if ('image' in spec) + ('path' in spec) != 1:
-        raise ValueError('Either an image or a path must be specified for a jail')
+    if 'path' not in spec:
+        raise ValueError('Missing path specification for the jail')
 
-    if 'image' in spec:
-        path, _ = zfs_find(spec['image'], focker_type='image', zfs_type='snapshot')
-        path = zfs_mountpoint(path)
-    else:
-        path = spec['path']
+    path = spec['path']
 
-    env = spec['env'] if 'env' in spec else {}
+    env = spec.get('env', {})
+
+    mounts = spec.get('mounts', {})
+    mounts = list(mounts.items())
 
     if 'exec.start' in spec and 'command' in spec:
         raise KeyError('exec.start and command are mutually exclusive')
@@ -91,8 +109,6 @@ def jailspec_to_jailconf(spec, name):
     prestart = [ 'cp /etc/resolv.conf ' +
         shlex.quote(os.path.join(path, 'etc/resolv.conf')) ]
     poststop = []
-    mounts = spec.get('mounts', {})
-    mounts = list(mounts.items())
     if mounts:
         for from_, on in mounts:
             if not from_.startswith('/'):
@@ -106,7 +122,7 @@ def jailspec_to_jailconf(spec, name):
 
     if 'exec.prestart' in blk:
         prestart = prestart + [ blk['exec.prestart'] ]
-    
+
     if 'exec.poststop' in blk:
         poststop = [ blk['exec.poststop'] ] + poststop
 
@@ -118,8 +134,17 @@ def jailspec_to_jailconf(spec, name):
     if poststop:
         blk['exec.poststop'] = poststop
 
+    print('blk:', blk)
+
     blk = {
         k: quote(v) for k, v in blk.items()
     }
+
+    blk = { k: v for k, v in blk.items() \
+        if not isinstance(v, bool) or v != False }
+
+    print('blk:', blk)
+
+    blk = jailconf.JailBlock(blk)
 
     return blk

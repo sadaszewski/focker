@@ -1,8 +1,8 @@
 from focker.jail import backup_file, \
     jail_fs_create, \
-    gen_env_command, \
-    quote, \
     jail_create
+from focker.jailspec import gen_env_command, \
+    quote
 import tempfile
 import os
 import subprocess
@@ -90,15 +90,24 @@ def test_jail_create():
     zfs_tag(name, ['test-jail-create'])
     subprocess.check_output(['focker', 'volume', 'create', '-t', 'test-jail-create'])
     mountpoint = zfs_mountpoint(name)
-    jail_name = jail_create(mountpoint, '/bin/sh /etc/rc', {
-        'DUMMY_1': 'foo',
-        'DUMMY_2': 'bar'
-    }, [
-        ('test-jail-create', '/test-jail-create'),
-        ('/tmp', '/test-tmp')
-    ], hostname='test-jail-create', overrides={
-        'ip4.addr': '127.1.2.3'
-    })
+
+    spec = {
+        'path': mountpoint,
+        'exec.start': '/bin/sh /etc/rc',
+        'env':  {
+            'DUMMY_1': 'foo',
+            'DUMMY_2': 'bar'
+        },
+        'mounts': {
+            'test-jail-create': '/test-jail-create',
+            '/tmp': '/test-tmp'
+        },
+        'ip4.addr': '127.1.2.3',
+        'host.hostname': 'test-jail-create'
+    }
+    jail_name = os.path.split(mountpoint)[-1]
+    jail_create(spec, jail_name)
+
     assert jail_name == os.path.split(mountpoint)[-1]
     assert os.path.exists(mountpoint)
     vol_name, _ = zfs_find('test-jail-create', focker_type='volume')
@@ -107,7 +116,7 @@ def test_jail_create():
     conf = jailconf.load('/etc/jail.conf')
     assert jail_name in conf
     conf = conf[jail_name]
-    assert conf['path'] == mountpoint
+    assert conf['path'] == quote(mountpoint)
     assert conf['exec.start'] == '\'export DUMMY_1=foo && export DUMMY_2=bar && /bin/sh /etc/rc\''
     assert conf['exec.prestart'] == f'\'cp /etc/resolv.conf {mountpoint}/etc/resolv.conf && mount -t nullfs {vol_mountpoint} {mountpoint}/test-jail-create && mount -t nullfs /tmp {mountpoint}/test-tmp\''
     assert conf['ip4.addr'] == '\'127.1.2.3\''
