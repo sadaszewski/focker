@@ -6,7 +6,8 @@ from .zfs import zfs_poolname, \
     zfs_mountpoint, \
     zfs_tag, \
     zfs_untag, \
-    zfs_exists_snapshot_sha256
+    zfs_exists_snapshot_sha256, \
+    zfs_run
 
 
 def command_bootstrap(args):
