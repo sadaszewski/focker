@@ -242,6 +242,9 @@ def test_build_jails():
     print(blocks)
     assert len(blocks) == 2
     assert blocks[0]['host.hostname'] != blocks[1]['host.hostname']
+    for i in range(2):
+        jail_sha256_prefix = os.path.split(blocks[i]['path'].strip('\'"'))[-1]
+        assert jail_sha256_prefix in conf
     for b in blocks:
         name, _ = zfs_find(b['host.hostname'].strip('\'"'), focker_type='jail')
         mountpoint = zfs_mountpoint(name)

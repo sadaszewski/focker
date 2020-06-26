@@ -139,9 +139,11 @@ def build_jails(spec):
 
         jailspec = dict(jailspec)
         jailspec['path'] = path
+        jailspec['host.hostname'] = jailname
+        jail_sha256_prefix = os.path.split(path)[-1]
 
-        jail_create(jailspec, jailname)
-        generated_names[jailname] = os.path.split(path)[-1]
+        jail_create(jailspec, jail_sha256_prefix)
+        generated_names[jailname] = jail_sha256_prefix
 
         # overrides={
         #     'exec.stop': jailspec.get('exec.stop', '/bin/sh /etc/rc.shutdown'),

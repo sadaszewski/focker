@@ -12,9 +12,8 @@ jails:
     mounts:
       scm-manager: /scm-manager/.scm
     ip4.addr: 127.0.55.1
-    exec.start: |
-      JAVA_HOME=/usr/local/openjdk11 \
-        su -m scm-manager -c "/opt/scm-server/bin/scm-server start"
-    exec.stop: |
-      JAVA_HOME=/usr/local/openjdk11 \
-        su -m scm-manager -c "/opt/scm-server/bin/scm-server stop"
+    env:
+      JAVA_HOME: /usr/local/openjdk11
+    exec.jail_user: scm-manager
+    exec.start: /opt/scm-server/bin/scm-server start
+    exec.stop: /opt/scm-server/bin/scm-server stop
