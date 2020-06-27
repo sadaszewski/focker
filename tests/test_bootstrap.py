@@ -2,10 +2,13 @@ import subprocess
 from focker.zfs import *
 import re
 import os
-from focker.bootstrap import command_bootstrap
+from focker.bootstrap import command_bootstrap, \
+    bootstrap_empty, \
+    _bootstrap_common
 from focker.misc import focker_unlock
 import pytest
 import focker.bootstrap
+import hashlib
 
 
 def test_bootstrap_01():
@@ -145,3 +148,25 @@ def test_bootstrap_07(monkeypatch):
     # with pytest.raises(RuntimeError) as excinfo:
     command_bootstrap(args)
     # assert excinfo.value.args[1] == ['Image creation disabled']
+
+
+def test_bootstrap_empty_01():
+    args = lambda: 0
+    args.tags = ['test-bootstrap-empty-01']
+    args.unfinalized = False
+    bootstrap_empty(args)
+    name, _ = zfs_find('test-bootstrap-empty-01')
+    zfs_run(['zfs', 'destroy', '-R', '-f', name])
+
+
+def test_bootstrap_common_01(monkeypatch):
+    args = lambda: 0
+    args.tags = ['test-bootstrap-common-01']
+    fake_hashlib = lambda: 0
+    def fake_sha256(data):
+        return hashlib.sha256('fake_sha256'.encode('utf-8'))
+    fake_hashlib.sha256 = fake_sha256
+    monkeypatch.setattr(focker.bootstrap, 'hashlib', fake_hashlib)
+    _bootstrap_common(args)
+    name, _ = zfs_find('test-bootstrap-common-01')
+    zfs_run(['zfs', 'destroy', '-f', name])
