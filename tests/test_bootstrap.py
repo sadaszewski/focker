@@ -4,7 +4,9 @@ import re
 import os
 from focker.bootstrap import command_bootstrap, \
     bootstrap_empty, \
-    _bootstrap_common
+    _bootstrap_common, \
+    _bootstrap_common_finalize, \
+    create_interface
 from focker.misc import focker_unlock
 import pytest
 import focker.bootstrap
@@ -170,3 +172,36 @@ def test_bootstrap_common_01(monkeypatch):
     _bootstrap_common(args)
     name, _ = zfs_find('test-bootstrap-common-01')
     zfs_run(['zfs', 'destroy', '-f', name])
+
+
+def test_bootstrap_common_finalize_01(monkeypatch):
+    args = lambda: 0
+    args.tags = ['test-bootstrap-common-finalize-01']
+    fake_hashlib = lambda: 0
+    def fake_sha256(data):
+        return hashlib.sha256('fake_sha256'.encode('utf-8'))
+    fake_hashlib.sha256 = fake_sha256
+    monkeypatch.setattr(focker.bootstrap, 'hashlib', fake_hashlib)
+    _bootstrap_common(args)
+    name, _ = zfs_find('test-bootstrap-common-finalize-01')
+    _bootstrap_common_finalize(name)
+    lst = zfs_parse_output(['zfs','get','-H','rdonly',name])
+    assert lst[0][2] == 'on'
+    zfs_find('test-bootstrap-common-finalize-01', zfs_type='snapshot')
+    zfs_run(['zfs', 'destroy', '-R', '-f', name])
+
+
+def test_create_interface_01():
+    lst = subprocess.check_output(['ifconfig', '-l'])
+    lst = lst.decode('utf-8').strip().split(' ')
+    assert 'lo123' not in lst
+    args = lambda: 0
+    args.interface = 'lo123'
+    args.rename_interface = None
+    create_interface(args)
+    lst = subprocess.check_output(['ifconfig', '-l'])
+    lst = lst.decode('utf-8').strip().split(' ')
+    assert 'lo123' in lst
+    subprocess.check_output(['service', 'netif', 'clonedown'])
+    subprocess.check_output(['sysrc', 'cloned_interfaces-=lo123'])
+    subprocess.check_output(['service', 'netif', 'cloneup'])
