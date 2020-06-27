@@ -1,7 +1,9 @@
 from focker.jail import backup_file, \
     jail_fs_create, \
     jail_create, \
-    get_jid
+    get_jid, \
+    do_mounts, \
+    undo_mounts
 from focker.jailspec import gen_env_command, \
     quote
 import tempfile
@@ -13,6 +15,7 @@ from focker.zfs import zfs_mountpoint, \
     zfs_find
 import jailconf
 import shutil
+from focker.mount import getmntinfo
 
 
 def test_backup_file():
@@ -147,3 +150,33 @@ def test_get_jid_01():
     _ = get_jid(mountpoint)
     subprocess.check_output(['focker', 'jail', 'remove', 'test-get-jid-01'])
     subprocess.check_output(['focker', 'image', 'remove', 'test-get-jid-01'])
+
+
+def test_do_mounts_01():
+    with tempfile.TemporaryDirectory() as d1:
+        with tempfile.TemporaryDirectory() as d2:
+            os.makedirs(os.path.join(d1, 'mnt'))
+            os.makedirs(os.path.join(d2, 'test'))
+            with open(os.path.join(d2, 'test', 'test.txt'), 'w') as f:
+                f.write('Test\n')
+            do_mounts(d1, [ (d2, '/mnt') ])
+            assert os.path.exists(os.path.join(d1, 'mnt', 'test', 'test.txt'))
+            with open(os.path.join(d1, 'mnt', 'test', 'test.txt'), 'r') as f:
+                assert f.read() == 'Test\n'
+            subprocess.check_output(['umount', '-f', os.path.join(d1, 'mnt')])
+
+
+def test_undo_mounts_01():
+    with tempfile.TemporaryDirectory() as d1:
+        with tempfile.TemporaryDirectory() as d2:
+            os.makedirs(os.path.join(d1, 'mnt'))
+            subprocess.check_output([ 'mount', '-t', 'nullfs', d2,
+                os.path.join(d1, 'mnt') ])
+            print(getmntinfo())
+            lst = [ a for a in getmntinfo() \
+                if a['f_mntfromname'] == d2.encode('utf-8') ]
+            assert len(lst) == 1
+            undo_mounts(d1, [ (d2, '/mnt') ])
+            lst = [ a for a in getmntinfo() \
+                if a['f_mntfromname'] == d2.encode('utf-8') ]
+            assert len(lst) == 0
