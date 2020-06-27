@@ -1,6 +1,7 @@
 from focker.jail import backup_file, \
     jail_fs_create, \
-    jail_create
+    jail_create, \
+    get_jid
 from focker.jailspec import gen_env_command, \
     quote
 import tempfile
@@ -11,6 +12,7 @@ from focker.zfs import zfs_mountpoint, \
     zfs_tag, \
     zfs_find
 import jailconf
+import shutil
 
 
 def test_backup_file():
@@ -122,3 +124,26 @@ def test_jail_create():
     assert conf['ip4.addr'] == '\'127.1.2.3\''
     subprocess.check_output(['focker', 'jail', 'remove', 'test-jail-create'])
     subprocess.check_output(['focker', 'volume', 'remove', 'test-jail-create'])
+
+
+def test_get_jid_01():
+    os.dup(1)
+    with open('/dev/null', 'a') as devnull:
+        os.dup2(devnull.fileno(), 3)
+        subprocess.check_output(['focker', 'bootstrap', '--non-interactive', '--tags', 'test-get-jid-01'], stderr=subprocess.PIPE)
+    # os.makedirs(os.path.join(mountpoint, 'usr/bin'))
+    # os.makedirs(os.path.join(mountpoint, 'lib'))
+    # os.makedirs(os.path.join(mountpoint, 'dev'))
+    # os.makedirs(os.path.join(mountpoint, 'etc'))
+    # shutil.copyfile('/etc/master.passwd', os.path.join(mountpoint, 'etc/master.passwd'))
+    # shutil.copyfile('/usr/bin/true', os.path.join(mountpoint, 'usr/bin/true'))
+    # shutil.copyfile('/lib/libc.so.7', os.path.join(mountpoint, 'lib/libc.so.7'))
+    # subprocess.check_output(['zfs', 'set', 'rdonly=on', name])
+    # subprocess.check_output(['zfs', 'snapshot', name + '@1'])
+    subprocess.check_output(['focker', 'jail', 'create', 'test-get-jid-01', '--tags', 'test-get-jid-01', '--command', '/usr/bin/true'])
+    name, _ = zfs_find('test-get-jid-01', focker_type='jail')
+    mountpoint = zfs_mountpoint(name)
+    subprocess.check_output(['focker', 'jail', 'start', 'test-get-jid-01'])
+    _ = get_jid(mountpoint)
+    subprocess.check_output(['focker', 'jail', 'remove', 'test-get-jid-01'])
+    subprocess.check_output(['focker', 'image', 'remove', 'test-get-jid-01'])
