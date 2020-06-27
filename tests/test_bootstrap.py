@@ -4,6 +4,8 @@ import re
 import os
 from focker.bootstrap import command_bootstrap
 from focker.misc import focker_unlock
+import pytest
+import focker.bootstrap
 
 
 def test_bootstrap_01():
@@ -42,3 +44,104 @@ def test_bootstrap_02():
     assert zfs_exists_snapshot_sha256(sha256)
     assert zfs_parse_output(['zfs', 'get', '-H', 'rdonly', name])[0][2] == 'on'
     subprocess.check_output(['zfs', 'destroy', '-r', '-f', name])
+
+
+def test_bootstrap_03():
+    for a, b, c in [ (1, 1, 0), (0, 1, 1), (1, 0, 1), (1, 1, 1) ]:
+        args = lambda: 0
+        args.no_image, args.empty, args.non_interactive = a, b, c
+        with pytest.raises(ValueError) as excinfo:
+            command_bootstrap(args)
+        assert excinfo.value.args == \
+            ('--no-image, --empty and --non-interactive are mutually exclusive',)
+
+
+def test_bootstrap_04():
+    args = lambda: 0
+    args.no_image = 1
+    args.unfinalized = 1
+    args.empty = 0
+    args.non_interactive = 0
+    with pytest.raises(ValueError) as excinfo:
+        command_bootstrap(args)
+    assert excinfo.value.args == ('--no-image and --unfinalized are mutually exclusive',)
+
+
+def test_bootstrap_05(monkeypatch):
+    def fake_create_interface(args):
+        raise RuntimeError('fake_create_interface called')
+    monkeypatch.setattr(focker.bootstrap, 'create_interface', fake_create_interface)
+    args = lambda: 0
+    args.no_image = args.unfinalized = args.empty = args.non_interactive = 0
+    args.create_interface = 1
+    args.full_auto = 0
+    with pytest.raises(RuntimeError) as excinfo:
+        command_bootstrap(args)
+    assert excinfo.value.args == ('fake_create_interface called',)
+    args.create_interface = 0
+    args.full_auto = 1
+    with pytest.raises(RuntimeError) as excinfo:
+        command_bootstrap(args)
+    assert excinfo.value.args == ('fake_create_interface called',)
+
+
+def test_bootstrap_06(monkeypatch):
+    def fake_add_pf_rule(args):
+        raise RuntimeError('fake_add_pf_rule called')
+    def fake_create_interface(args):
+        pass
+    monkeypatch.setattr(focker.bootstrap, 'add_pf_rule', fake_add_pf_rule)
+    monkeypatch.setattr(focker.bootstrap, 'create_interface', fake_create_interface)
+    args = lambda: 0
+    args.no_image = args.unfinalized = args.empty = args.non_interactive = 0
+    args.create_interface = args.full_auto = 0
+    args.add_pf_rule = 1
+    with pytest.raises(RuntimeError) as excinfo:
+        command_bootstrap(args)
+    assert excinfo.value.args == ('fake_add_pf_rule called',)
+    args.full_auto = 1
+    args.add_pf_rule = 0
+    with pytest.raises(RuntimeError) as excinfo:
+        command_bootstrap(args)
+    assert excinfo.value.args == ('fake_add_pf_rule called',)
+
+
+def test_bootstrap_07(monkeypatch):
+    def fake_add_pf_rule(args):
+        pass
+    def fake_create_interface(args):
+        pass
+    def fake_bootstrap_interactive(args):
+        raise RuntimeError('fake_bootstrap_interactive called')
+    def fake_bootstrap_non_interactive(args):
+        raise RuntimeError('fake_bootstrap_non_interactive called')
+    def fake_bootstrap_empty(args):
+        raise RuntimeError('fake_bootstrap_empty called')
+    # def fake_print(*args):
+    #     raise RuntimeError('fake_print_called', args)
+    monkeypatch.setattr(focker.bootstrap, 'add_pf_rule', fake_add_pf_rule)
+    monkeypatch.setattr(focker.bootstrap, 'create_interface', fake_create_interface)
+    monkeypatch.setattr(focker.bootstrap, 'bootstrap_interactive', fake_bootstrap_interactive)
+    monkeypatch.setattr(focker.bootstrap, 'bootstrap_non_interactive', fake_bootstrap_non_interactive)
+    monkeypatch.setattr(focker.bootstrap, 'bootstrap_empty', fake_bootstrap_empty)
+    args = lambda: 0
+    args.no_image = args.unfinalized = args.empty = args.non_interactive = 0
+    args.create_interface = args.full_auto = args.add_pf_rule = 0
+    with pytest.raises(RuntimeError) as excinfo:
+        command_bootstrap(args)
+    assert excinfo.value.args == ('fake_bootstrap_interactive called',)
+    args.non_interactive = 1
+    with pytest.raises(RuntimeError) as excinfo:
+        command_bootstrap(args)
+    assert excinfo.value.args == ('fake_bootstrap_non_interactive called',)
+    args.non_interactive = 0
+    args.empty = 1
+    with pytest.raises(RuntimeError) as excinfo:
+        command_bootstrap(args)
+    assert excinfo.value.args == ('fake_bootstrap_empty called',)
+    args.empty = 0
+    args.no_image = 1
+    # monkeypatch.setattr(focker.bootstrap, 'print', fake_print)
+    # with pytest.raises(RuntimeError) as excinfo:
+    command_bootstrap(args)
+    # assert excinfo.value.args[1] == ['Image creation disabled']
