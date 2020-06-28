@@ -7,6 +7,7 @@ from focker.zfs import zfs_find
 import os
 import tempfile
 from focker.misc import random_sha256_hexdigest
+import json
 
 
 def setup_module(module):
@@ -104,3 +105,12 @@ def test_create_step_03():
     }
     step = create_step(spec)
     assert isinstance(step, RunStep)
+
+
+def test_create_step_04():
+    spec = {
+        'xxx': [ 'echo test-create-step-03' ]
+    }
+    with pytest.raises(ValueError) as excinfo:
+        _ = create_step(spec)
+    assert excinfo.value.args == ('Unrecognized step spec: ' + json.dumps(spec),)
