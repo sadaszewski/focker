@@ -255,26 +255,6 @@ def command_jail_oneshot(args):
     jail_oneshot(args.image, args.command, env, mounts)
 
 
-# Deprecated
-def command_jail_oneshot_old():
-    base, _ = zfs_snapshot_by_tag_or_sha256(args.image)
-    # root = '/'.join(base.split('/')[:-1])
-    for _ in range(10**6):
-        sha256 = random_sha256_hexdigest()
-        name = sha256[:7]
-        name = base.split('/')[0] + '/focker/jails/' + name
-        if not zfs_exists(name):
-            break
-    zfs_run(['zfs', 'clone', '-o', 'focker:sha256=' + sha256, base, name])
-    try:
-        mounts = list(map(lambda a: a.split(':'), args.mounts))
-        jail_run(zfs_mountpoint(name), args.command, mounts)
-        # subprocess.check_output(['jail', '-c', 'interface=lo1', 'ip4.addr=127.0.1.0', 'path=' + zfs_mountpoint(name), 'command', command])
-    finally:
-        # subprocess.run(['umount', zfs_mountpoint(name) + '/dev'])
-        zfs_run(['zfs', 'destroy', '-f', name])
-        # raise
-
 def command_jail_list(args):
     headers = ['Tags', 'SHA256', 'mountpoint', 'JID']
     res = []
