@@ -66,7 +66,7 @@ class CopyStep(object):
             if 'chmod' in options:
                 os.chmod(os.path.join(path, target), options['chmod'])
             if 'chown' in options:
-                uid, gid = options['chown'].split(':').map(int)
+                uid, gid = map(int, options['chown'].split(':'))
                 os.chown(os.path.join(path, target), uid, gid)
 
 
