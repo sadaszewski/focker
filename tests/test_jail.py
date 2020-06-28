@@ -7,7 +7,8 @@ from focker.jail import backup_file, \
     jail_run, \
     jail_stop, \
     jail_remove, \
-    command_jail_create
+    command_jail_create, \
+    command_jail_list
 from focker.jailspec import gen_env_command, \
     quote
 import tempfile
@@ -21,6 +22,7 @@ import jailconf
 import shutil
 from focker.mount import getmntinfo
 import pytest
+import focker.jail
 
 
 def setup_module(module):
@@ -240,3 +242,24 @@ def test_command_jail_create_01():
     assert blk['exec.prestart'] == f'\'cp /etc/resolv.conf {mountpoint}/etc/resolv.conf && mount -t nullfs /no/path {mountpoint}/mnt\''
     assert blk['host.hostname'] == f'\'{args.hostname}\''
     subprocess.check_output(['focker', 'jail', 'remove', 'test-command-jail-create-01'])
+
+
+def test_command_jail_list_01(monkeypatch):
+    subprocess.check_output(['focker', 'jail', 'create', 'test-jail', '--tags', 'test-command-jail-list-01'])
+    name, sha256 = zfs_find('test-command-jail-list-01', focker_type='jail')
+    mountpoint = zfs_mountpoint(name)
+    def fake_tabulate(data, headers):
+        data = [ d for d in data \
+            if d[0] == 'test-command-jail-list-01' ]
+        assert len(data) == 1
+        data = data[0]
+        assert data[1] == sha256
+        assert data[2] == mountpoint
+        assert data[3] == '-'
+        assert data[4] == 'test-jail'
+    monkeypatch.setattr(focker.jail, 'tabulate', fake_tabulate)
+    args = lambda: 0
+    args.images = True
+    args.full_sha256 = True
+    command_jail_list(args)
+    subprocess.check_output(['focker', 'jail', 'remove', 'test-command-jail-list-01'])
