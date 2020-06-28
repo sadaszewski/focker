@@ -174,16 +174,17 @@ def command_jail_create(args):
         zfs_untag(args.tags, focker_type='jail')
         zfs_tag(name, args.tags)
     path = zfs_mountpoint(name)
+    jail_sha256_prefix = name.split('/')[-1]
     spec = {
         'path': path,
         'exec.start': args.command,
         'env': { a.split(':')[0]: ':'.join(a.split(':')[1:]) \
             for a in args.env },
         'mounts': { a.split(':')[0]: ':'.join(a.split(':')[1:]) \
-            for a in args.mounts }
+            for a in args.mounts },
+        'host.hostname': args.hostname or jail_sha256_prefix
     }
-    jail_sha256_prefix = name.split('/')[-1]
-    jail_create(spec, args.hostname or jail_sha256_prefix)
+    jail_create(spec, jail_sha256_prefix)
     print(path)
 
 

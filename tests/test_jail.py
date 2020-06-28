@@ -6,7 +6,8 @@ from focker.jail import backup_file, \
     undo_mounts, \
     jail_run, \
     jail_stop, \
-    jail_remove
+    jail_remove, \
+    command_jail_create
 from focker.jailspec import gen_env_command, \
     quote
 import tempfile
@@ -217,3 +218,25 @@ def test_jail_remove_01():
     with pytest.raises(ValueError):
         _ = get_jid(mountpoint)
     assert not os.path.exists(mountpoint)
+
+
+def test_command_jail_create_01():
+    args = lambda: 0
+    args.image = 'test-jail'
+    args.tags = [ 'test-command-jail-create-01' ]
+    args.command = '/bin/sh /etc/rc'
+    args.env = [ 'FOO:1', 'BAR:2' ]
+    args.mounts = [ f'/no/path:/mnt' ]
+    args.hostname = 'test-command-jail-create-01'
+    command_jail_create(args)
+    name, _ = zfs_find('test-command-jail-create-01', focker_type='jail')
+    mountpoint = zfs_mountpoint(name)
+    jail_sha256_prefix = name.split('/')[-1]
+    conf = jailconf.load('/etc/jail.conf')
+    assert jail_sha256_prefix in conf
+    blk = conf[jail_sha256_prefix]
+    assert blk['path'] == f'\'{mountpoint}\''
+    assert blk['exec.start'] == f'\'export FOO=1 && export BAR=2 && {args.command}\''
+    assert blk['exec.prestart'] == f'\'cp /etc/resolv.conf {mountpoint}/etc/resolv.conf && mount -t nullfs /no/path {mountpoint}/mnt\''
+    assert blk['host.hostname'] == f'\'{args.hostname}\''
+    subprocess.check_output(['focker', 'jail', 'remove', 'test-command-jail-create-01'])
