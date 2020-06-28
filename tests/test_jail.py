@@ -7,6 +7,7 @@ from focker.jail import backup_file, \
     jail_run, \
     jail_stop, \
     jail_remove, \
+    jail_oneshot, \
     command_jail_create, \
     command_jail_list
 from focker.jailspec import gen_env_command, \
@@ -23,6 +24,7 @@ import shutil
 from focker.mount import getmntinfo
 import pytest
 import focker.jail
+from focker.misc import focker_unlock
 
 
 def setup_module(module):
@@ -220,6 +222,17 @@ def test_jail_remove_01():
     with pytest.raises(ValueError):
         _ = get_jid(mountpoint)
     assert not os.path.exists(mountpoint)
+
+
+def test_jail_oneshot_01():
+    with tempfile.TemporaryDirectory() as d:
+        jail_oneshot('test-jail',
+            ['/bin/sh', '-c', 'echo test-jail-oneshot-01 $FOO $BAR >/mnt/test.txt'],
+            {'FOO': '1', 'BAR': '2'}, {d: '/mnt'})
+        focker_unlock()
+        assert os.path.exists(os.path.join(d, 'test.txt'))
+        with open(os.path.join(d, 'test.txt'), 'r') as f:
+            assert f.read() == 'test-jail-oneshot-01 1 2\n'
 
 
 def test_command_jail_create_01():
