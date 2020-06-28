@@ -5,7 +5,8 @@ from focker.jail import backup_file, \
     do_mounts, \
     undo_mounts, \
     jail_run, \
-    jail_stop
+    jail_stop, \
+    jail_remove
 from focker.jailspec import gen_env_command, \
     quote
 import tempfile
@@ -202,3 +203,17 @@ def test_jail_stop_01():
     with pytest.raises(ValueError):
         _ = get_jid(mountpoint)
     subprocess.check_output(['focker', 'jail', 'remove', 'test-jail-stop-01'])
+
+
+def test_jail_remove_01():
+    subprocess.check_output(['focker', 'jail', 'create', 'test-jail', '--tags', 'test-jail-remove-01'])
+    name, _ = zfs_find('test-jail-remove-01', focker_type='jail')
+    mountpoint = zfs_mountpoint(name)
+    with pytest.raises(ValueError):
+        _ = get_jid(mountpoint)
+    subprocess.check_output(['focker', 'jail', 'start', 'test-jail-remove-01'])
+    _ = get_jid(mountpoint)
+    jail_remove(mountpoint)
+    with pytest.raises(ValueError):
+        _ = get_jid(mountpoint)
+    assert not os.path.exists(mountpoint)
