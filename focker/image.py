@@ -5,6 +5,7 @@
 # URL: https://adared.ch/focker
 #
 
+from datetime import datetime
 from .zfs import *
 import os
 import yaml
@@ -14,7 +15,7 @@ from tabulate import tabulate
 import subprocess
 from .misc import find_prefix
 from .zfs2 import zfs_find_sha256
-
+from .classes import Image
 
 def validate_spec(spec):
     if 'base' not in spec:
@@ -147,6 +148,44 @@ def command_image_list(args):
         a[2] if args.full_sha256 else a[2][:7],
         a[4].split('/')[-1].split('@')[0] ], lst))
     print(tabulate(lst, headers=['Tags', 'Size', 'SHA256', 'Base']))
+
+
+def command_image_tree(args):
+    lst = zfs_list(fields=['creation', 'name', 'refer', 'focker:tags', 'origin'],
+            focker_type='image')
+    lst = list(filter(lambda a: a[2] != '-', lst))
+    images = {}
+    parents = {}
+    base_images = []
+    for [creation, name, size, tags, parent, sha256] in lst:
+        creation = datetime.strptime(creation, "%a %b %d %H:%M %Y")
+        name = name.split('/')[-1]
+        parent = None if parent == '-' else parent.split('/')[-1].split('@')[0]
+        parents[name] = parent
+        tags = [] if tags == '-' else tags.split()
+        if args.untagged or tags:
+            images[name] = Image(name, sha256, tags, size, creation)
+
+    for name, image in images.items():
+        if parents[name]:
+            putative_parent_name = parents[name]
+            while not putative_parent_name in images:
+                putative_parent_name = parents[putative_parent_name]
+            image.parent = images[putative_parent_name]
+        else:
+            base_images.append(image)
+
+    displayed_property = 'sha256' if args.full_sha256 else 'name'
+    for base_image in base_images: 
+        for pre, fill, node in base_image.render_tree():
+            tags = "|".join(node.tags)
+            if tags:
+                tags += ' '
+            name = getattr(node, displayed_property)
+            treestr = f"{pre}{tags}*{name}*"
+            if args.show_creation:
+                treestr += f"[{node.creation}]"
+            print(treestr.ljust(8))
 
 
 def command_image_prune(args):

@@ -14,6 +14,7 @@ from .image import command_image_build, \
     command_image_tag, \
     command_image_untag, \
     command_image_list, \
+    command_image_tree, \
     command_image_prune, \
     command_image_remove
 from .volume import command_volume_create, \
@@ -117,6 +118,12 @@ def create_parser():
     parser.set_defaults(func=command_image_list)
     parser.add_argument('--full-sha256', '-f', action='store_true')
     parser.add_argument('--tagged-only', '-t', action='store_true')
+
+    parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['tree', 'tr']])
+    parser.set_defaults(func=command_image_tree)
+    parser.add_argument('--full-sha256', '-f', action='store_true')
+    parser.add_argument('--untagged', '-u', action='store_true')
+    parser.add_argument('--show-creation', '-c', action='store_true')
 
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['prune', 'pru', 'p']])
     parser.set_defaults(func=command_image_prune)
