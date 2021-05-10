@@ -80,6 +80,22 @@ Upon first execution of the `focker` command, Focker will automatically create t
 
 `images`, `jails`, and `volumes` have corresponding ZFS datasets with `canmount=off` so that they serve as mountpoint anchors for child entries.
 
+### Setting up jail network interface
+
+To communicate with the outside jails need to be added to a network interface. You can use any loopback interface and specify it through environment variable FOCKER_INTERFACE:
+
+```
+export FOCKER_INTERFACE=lo1
+```
+
+By default focker relies on a renamed loopback interface focker0. You can create oit as follows:
+
+```
+my_box ~ # sysrc cloned_interfaces+=lo1
+my_box ~ # sysrc ifconfig_lo1_name="focker0"
+my_box ~ # service netif cloneup
+```
+
 ### Preparing base image
 
 To bootstrap the images system you need to install FreeBSD in jail mode to a ZFS dataset placed in `/focker/images` and provide two user-defined properties - `focker:sha256` and `focker:tags`. One way to achieve this would be the following (using Bash shell):
@@ -325,7 +341,7 @@ jails:
       wp-volume2: /mnt/volume2
       wp-volume1: /mnt/volume1
     ip4.addr: 127.0.1.1
-    interface: lo1
+    interface: focker0
 
 volumes:
   wp-volume1: {}

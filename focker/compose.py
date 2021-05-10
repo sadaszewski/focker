@@ -29,6 +29,8 @@ from .misc import focker_lock, \
     focker_unlock
 import pdb
 
+FOCKER_INTERFACE = os.environ.get('FOCKER_INTERFACE', 'focker0')
+
 
 def exec_hook(spec, path, hook_name='exec.prebuild'):
     if isinstance(spec, str):
@@ -148,7 +150,7 @@ def build_jails(spec):
         # overrides={
         #     'exec.stop': jailspec.get('exec.stop', '/bin/sh /etc/rc.shutdown'),
         #     'ip4.addr': jailspec.get('ip4.addr', '127.0.1.0'),
-        #     'interface': jailspec.get('interface', 'lo1'),
+        #     'interface': jailspec.get('interface', FOCKER_INTERFACE),
         #     'host.hostname': jailspec.get('host.hostname', jailname)
         # }
         # if 'jail.conf' in jailspec:

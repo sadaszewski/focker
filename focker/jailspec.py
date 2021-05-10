@@ -5,6 +5,8 @@ from .zfs import zfs_find, \
 import os
 import jailconf
 
+FOCKER_INTERFACE = os.environ.get('FOCKER_INTERFACE', 'focker0')
+
 
 _params = subprocess.check_output(['sysctl', '-N', 'security.jail.param'])
 _params = _params.decode('utf-8')
@@ -87,7 +89,7 @@ def jailspec_to_jailconf(spec, name):
     blk = {
         'path': path,
         'persist': True,
-        'interface': 'lo1',
+        'interface': FOCKER_INTERFACE,
         'ip4.addr': '127.0.1.0',
         'mount.devfs': True,
         'exec.clean': True,

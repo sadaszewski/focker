@@ -45,6 +45,8 @@ from .compose import \
 from .bootstrap import command_bootstrap
 from .misc import focker_lock
 
+FOCKER_INTERFACE = os.environ.get('FOCKER_INTERFACE', 'focker0')
+
 
 class ListForwarderFunctor(object):
     def __init__(self, lst):
@@ -86,7 +88,7 @@ def create_parser():
     parser.add_argument('--unfinalized', '-u', action='store_true')
     parser.add_argument('--non-interactive', '-n', action='store_true')
     parser.add_argument('--create-interface', '-c', action='store_true')
-    parser.add_argument('--interface', '-i', type=str, default='lo1')
+    parser.add_argument('--interface', '-i', type=str, default=FOCKER_INTERFACE)
     parser.add_argument('--rename-interface', '-r', type=str, default=None)
     parser.add_argument('--add-pf-rule', '-a', action='store_true')
     parser.add_argument('--external-interface', '-x', type=str, default=None)

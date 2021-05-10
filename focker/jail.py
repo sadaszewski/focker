@@ -21,6 +21,8 @@ from .misc import focker_lock, \
     random_sha256_hexdigest
 from .jailspec import jailspec_to_jailconf
 
+FOCKER_INTERFACE = os.environ.get('FOCKER_INTERFACE', 'focker0')
+
 
 def backup_file(fname, nbackups=10, chmod=0o600):
     if not os.path.exists(fname):
@@ -118,7 +120,7 @@ def undo_mounts(path, mounts):
 
 
 def jail_run(path, command, mounts=[]):
-    command = ['jail', '-c', 'host.hostname=' + os.path.split(path)[1], 'persist=1', 'mount.devfs=1', 'interface=lo1', 'ip4.addr=127.0.1.0', 'path=' + path, 'command', '/bin/sh', '-c', command]
+    command = ['jail', '-c', 'host.hostname=' + os.path.split(path)[1], 'persist=1', 'mount.devfs=1', f'interface={FOCKER_INTERFACE}', 'ip4.addr=127.0.1.0', 'path=' + path, 'command', '/bin/sh', '-c', command]
     print('Running:', ' '.join(command))
     try:
         do_mounts(path, mounts)
