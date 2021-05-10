@@ -1,4 +1,4 @@
-base: freebsd-11.2
+base: freebsd-latest
 
 steps:
   - run: # install dependencies

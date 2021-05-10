@@ -13,11 +13,6 @@ volumes:
 
 jails:
   gitea:
-    meta:
-      domains:
-        - xyz.com
-        - www.xyz.com
-        - gitea.xyz.com
     image: gitea-disable
     mounts:
       gitea-data: /var/db/gitea
