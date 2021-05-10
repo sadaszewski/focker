@@ -133,6 +133,10 @@ focker
 |  |  `- TAG [...TAG]
 |  |- list|ls|l
 |  |  `- --full-sha256|-f
+|  |- tree|tr
+|  |  `- --full-sha256|-f
+|  |  `- --show-untagged|-u
+|  |  `- --show-creation|-c
 |  |- prune|p
 |  `- remove|r
 |     |- REFERENCE
@@ -207,6 +211,10 @@ Removes one or more image tags.
 ##### list|ls|l [--full-sha256|-f]
 
 Lists existing Focker images, optionally with full SHA256 checksums (instead of the default 7 first characters).
+
+##### tree|tr [--full-sha256|-f] [--show-untagged|-u] [--show-creation|-c]
+
+Lists existing Focker images as a tree showing lineage, optionally with full SHA256 checksums (instead of the default 7 first characters). By default it only returns tagged images but will inclde untagged images if argument --show-untagged is specified. If argument --show-creation is specified creation time of each image is also included.
 
 ##### prune|p
 

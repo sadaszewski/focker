@@ -122,7 +122,7 @@ def create_parser():
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['tree', 'tr']])
     parser.set_defaults(func=command_image_tree)
     parser.add_argument('--full-sha256', '-f', action='store_true')
-    parser.add_argument('--untagged', '-u', action='store_true')
+    parser.add_argument('--show-untagged', '-u', action='store_true')
     parser.add_argument('--show-creation', '-c', action='store_true')
 
     parser = ListForwarder([subparsers.add_parser(cmd) for cmd in ['prune', 'pru', 'p']])

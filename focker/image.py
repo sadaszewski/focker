@@ -163,7 +163,7 @@ def command_image_tree(args):
         parent = None if parent == '-' else parent.split('/')[-1].split('@')[0]
         parents[name] = parent
         tags = [] if tags == '-' else tags.split()
-        if args.untagged or tags:
+        if args.show_untagged or tags:
             images[name] = Image(name, sha256, tags, size, creation)
 
     for name, image in images.items():
