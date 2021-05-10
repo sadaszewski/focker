@@ -17,6 +17,7 @@ first time using Focker, please refer to the
 	- [Installing the Python package from PyPi](#installing-the-python-package-from-pypi)
 	- [Installing the Python package from GitHub](#installing-the-python-package-from-github)
 	- [Setting up ZFS](#setting-up-zfs)
+	- [Setting up jail network interface](#setting-up-jail-network-interface)
 	- [Preparing base image](#preparing-base-image)
 - [Usage](#usage)
 	- [`focker` command syntax](#focker-command-syntax)
