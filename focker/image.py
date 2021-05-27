@@ -12,7 +12,9 @@ from .steps import create_step
 from .snapshot import new_snapshot
 from tabulate import tabulate
 import subprocess
-from .misc import find_prefix
+from .misc import find_prefix, \
+    focker_subprocess_check_output, \
+    focker_subprocess_run
 from .zfs2 import zfs_find_sha256
 
 
@@ -62,7 +64,7 @@ def build_squeeze(spec, args):
         'focker:sha256': sha256
     }
     name = new_snapshot(base, atomic, name, props)
-    
+
     return (name, sha256)
 
 
@@ -190,7 +192,7 @@ def command_image_remove(args):
     if args.remove_dependents:
         command.append('-R')
     command.append(ds)
-    res = subprocess.run(command)
+    res = focker_subprocess_run(command)
     if res.returncode != 0:
         raise RuntimeError('zfs destroy failed')
     # zfs_run(['zfs', 'destroy', ds])

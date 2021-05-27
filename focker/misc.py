@@ -10,6 +10,9 @@ from .zfs import zfs_exists
 import os
 import fcntl
 import hashlib
+import inspect
+from .plugin import PLUGINS
+import subprocess
 
 
 def filehash(fname):
@@ -55,3 +58,17 @@ def focker_unlock():
         return
     fcntl.flock(focker_lock.fd, fcntl.LOCK_UN)
     print('Lock released')
+
+
+def focker_subprocess_run(command, *args, **kwargs):
+    frame = inspect.currentframe()
+    name = frame.f_back.f_code.co_name
+    command = PLUGINS.modify(f'{name}_command', command, frame)
+    return subprocess.run(command, *args, **kwargs)
+
+
+def focker_subprocess_check_output(command, *args, **kwargs):
+    frame = inspect.currentframe()
+    name = frame.f_back.f_code.co_name
+    command = PLUGINS.modify(f'{name}_command', command, frame)
+    return subprocess.check_output(command, *args, **kwargs)

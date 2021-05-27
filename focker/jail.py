@@ -18,7 +18,9 @@ import shlex
 import stat
 from .misc import focker_lock, \
     focker_unlock, \
-    random_sha256_hexdigest
+    random_sha256_hexdigest, \
+    focker_subprocess_check_output, \
+    focker_subprocess_run
 from .jailspec import jailspec_to_jailconf
 
 
@@ -85,7 +87,7 @@ def jail_create(spec: dict, name: str) -> None:
 
 
 def get_jid(path):
-    data = json.loads(subprocess.check_output(['jls', '--libxo=json']))
+    data = json.loads(focker_subprocess_check_output(['jls', '--libxo=json']))
     lst = data['jail-information']['jail']
     lst = list(filter(lambda a: a['path'] == path, lst))
     if len(lst) == 0:
@@ -105,7 +107,7 @@ def do_mounts(path, mounts):
             name = zfs_mountpoint(name)
         while target.startswith('/'):
             target = target[1:]
-        subprocess.check_output(['mount', '-t', 'nullfs',
+        focker_subprocess_check_output(['mount', '-t', 'nullfs',
             shlex.quote(name), shlex.quote(os.path.join(path, target))])
 
 
@@ -113,7 +115,7 @@ def undo_mounts(path, mounts):
     for (_, target) in reversed(mounts):
         while target.startswith('/'):
             target = target[1:]
-        subprocess.check_output(['umount', '-f',
+        focker_subprocess_check_output(['umount', '-f',
             shlex.quote(os.path.join(path, target))])
 
 
@@ -125,16 +127,16 @@ def jail_run(path, command, mounts=[]):
         os.makedirs(os.path.join(path, 'etc'), exist_ok=True)
         os.makedirs(os.path.join(path, 'dev'), exist_ok=True)
         shutil.copyfile('/etc/resolv.conf', os.path.join(path, 'etc/resolv.conf'))
-        res = subprocess.run(command)
+        res = focker_subprocess_run(command)
     finally:
         try:
-            subprocess.run(['jail', '-r', get_jid(path)])
+            focker_subprocess_run(['jail', '-r', get_jid(path)])
         except ValueError:
             pass
-        subprocess.run(['umount', '-f', os.path.join(path, 'dev')])
+        focker_subprocess_run(['umount', '-f', os.path.join(path, 'dev')])
         undo_mounts(path, mounts)
     if res.returncode != 0:
-        # subprocess.run(['umount', os.path.join(path, 'dev')])
+        # focker_subprocess_run(['umount', os.path.join(path, 'dev')])
         raise RuntimeError('Command failed')
 
 
@@ -142,7 +144,7 @@ def jail_stop(path):
     try:
         jid = get_jid(path)
         jailname = os.path.split(path)[-1]
-        subprocess.run(['jail', '-r', jailname])
+        focker_subprocess_run(['jail', '-r', jailname])
     except ValueError:
         print('JID could not be determined')
     # import time
@@ -152,13 +154,13 @@ def jail_stop(path):
         mntonname = m['f_mntonname'].decode('utf-8')
         if mntonname.startswith(path + os.path.sep):
             print('Unmounting:', mntonname)
-            subprocess.run(['umount', '-f', mntonname])
+            focker_subprocess_run(['umount', '-f', mntonname])
 
 
 def jail_remove(path):
     print('Removing jail:', path)
     jail_stop(path)
-    subprocess.run(['zfs', 'destroy', '-r', '-f', zfs_name(path)])
+    focker_subprocess_run(['zfs', 'destroy', '-r', '-f', zfs_name(path)])
     if os.path.exists('/etc/jail.conf'):
         conf = jailconf.load('/etc/jail.conf')
         name = os.path.split(path)[-1]
@@ -192,7 +194,7 @@ def command_jail_start(args):
     name, _ = zfs_find(args.reference, focker_type='jail')
     path = zfs_mountpoint(name)
     jailname = os.path.split(path)[-1]
-    subprocess.run(['jail', '-c', jailname])
+    focker_subprocess_run(['jail', '-c', jailname])
 
 
 def command_jail_stop(args):
@@ -224,7 +226,7 @@ def command_jail_exec(args):
     path = zfs_mountpoint(name)
     jid = get_jid(path)
     focker_unlock()
-    subprocess.run(['jexec', str(jid)] + args.command)
+    focker_subprocess_run(['jexec', str(jid)] + args.command)
     focker_lock()
 
 
@@ -242,7 +244,7 @@ def jail_oneshot(image, command, env, mounts):
     jailname = os.path.split(path)[-1]
     jail_create(spec, jailname)
     focker_unlock()
-    subprocess.run(['jail', '-c', jailname])
+    focker_subprocess_run(['jail', '-c', jailname])
     focker_lock()
     jail_remove(path)
 
@@ -259,7 +261,7 @@ def command_jail_list(args):
     headers = ['Tags', 'SHA256', 'mountpoint', 'JID']
     res = []
 
-    jails = subprocess.check_output(['jls', '--libxo=json'])
+    jails = focker_subprocess_check_output(['jls', '--libxo=json'])
     jails = json.loads(jails)['jail-information']['jail']
     jails = { j['path']: j for j in jails }
 
@@ -301,7 +303,7 @@ def command_jail_untag(args):
 
 
 def command_jail_prune(args):
-    jails = subprocess.check_output(['jls', '--libxo=json'])
+    jails = focker_subprocess_check_output(['jls', '--libxo=json'])
     jails = json.loads(jails)['jail-information']['jail']
     used = set()
     for j in jails:

@@ -44,7 +44,7 @@ from .compose import \
     command_compose_run
 from .bootstrap import command_bootstrap
 from .misc import focker_lock
-from .plugin import Plugins
+from .plugin import PLUGINS
 
 
 class ListForwarderFunctor(object):
@@ -258,29 +258,29 @@ def create_parser(return_dict=False):
 
 
 def main():
-    plugins = Plugins()
-    plugins.notify('focker_start')
+    PLUGINS.load()
+    PLUGINS.notify('focker_start')
 
     focker_lock()
     zfs_init()
     parser_dict = create_parser(return_dict=True)
     parser = parser_dict['top']
 
-    plugins.notify('focker_create_parser',
+    PLUGINS.notify('focker_create_parser',
         parser=parser, parser_dict=parser_dict)
 
     args = parser.parse_args()
-    plugins.notify('focker_parse_args', args=args)
+    PLUGINS.notify('focker_parse_args', args=args)
 
     if not hasattr(args, 'func'):
         parser.print_usage()
         sys.exit('You must choose a mode')
 
-    plugins.notify('focker_pre_' + args.func.__name__, args=args)
+    PLUGINS.notify('focker_pre_' + args.func.__name__, args=args)
     args.func(args)
-    plugins.notify('focker_post_' + args.func.__name__, args=args)
+    PLUGINS.notify('focker_post_' + args.func.__name__, args=args)
 
-    plugins.notify('focker_quit', args=args)
+    PLUGINS.notify('focker_quit', args=args)
 
 
 if __name__ == '__main__':

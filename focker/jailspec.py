@@ -4,9 +4,11 @@ from .zfs import zfs_find, \
     zfs_mountpoint
 import os
 import jailconf
+from .misc import focker_subprocess_check_output, \
+    focker_subprocess_run
 
 
-_params = subprocess.check_output(['sysctl', '-N', 'security.jail.param'])
+_params = focker_subprocess_check_output(['sysctl', '-N', 'security.jail.param'])
 _params = _params.decode('utf-8')
 _params = _params.split('\n')
 _params = filter(None, _params)

@@ -1,7 +1,9 @@
 import subprocess
 import hashlib
 from .misc import find_prefix, \
-    random_sha256_hexdigest
+    random_sha256_hexdigest, \
+    focker_subprocess_check_output, \
+    focker_subprocess_run
 from .zfs import zfs_poolname, \
     zfs_mountpoint, \
     zfs_tag, \
@@ -43,7 +45,7 @@ def bootstrap_empty(args):
 
     poolname = zfs_poolname()
     name = find_prefix(poolname + '/focker/images/', sha256)
-    subprocess.check_output(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
+    focker_subprocess_check_output(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
     zfs_untag(args.tags, focker_type='image')
     zfs_tag(name, args.tags)
 
@@ -52,7 +54,7 @@ def bootstrap_empty(args):
 
 
 def _bootstrap_common(args):
-    version = subprocess.check_output(['freebsd-version']).decode('utf-8')
+    version = focker_subprocess_check_output(['freebsd-version']).decode('utf-8')
     print('FreeBSD version:', version)
     tags = args.tags or [ 'freebsd-' + version.split('-')[0], 'freebsd-latest' ]
 
@@ -62,7 +64,7 @@ def _bootstrap_common(args):
 
     poolname = zfs_poolname()
     name = find_prefix(poolname + '/focker/images/', sha256)
-    subprocess.check_output(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
+    focker_subprocess_check_output(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
     zfs_untag(tags, focker_type='image')
     zfs_tag(name, tags)
 
@@ -70,14 +72,14 @@ def _bootstrap_common(args):
 
 
 def _bootstrap_common_finalize(name):
-    subprocess.check_output(['zfs', 'set', 'rdonly=on', name])
-    subprocess.check_output(['zfs', 'snapshot', name + '@1'])
+    focker_subprocess_check_output(['zfs', 'set', 'rdonly=on', name])
+    focker_subprocess_check_output(['zfs', 'snapshot', name + '@1'])
 
 
 def bootstrap_interactive(args):
     name = _bootstrap_common(args)
 
-    res = subprocess.run(['bsdinstall', 'jail', zfs_mountpoint(name)])
+    res = focker_subprocess_run(['bsdinstall', 'jail', zfs_mountpoint(name)])
     if res.returncode != 0:
         zfs_run(['zfs', 'destroy', '-r', '-f', name])
         raise ValueError('bsdinstall failed')
@@ -89,7 +91,7 @@ def bootstrap_interactive(args):
 def bootstrap_non_interactive(args):
     name = _bootstrap_common(args)
 
-    res = subprocess.run(['focker-bsdinstall', zfs_mountpoint(name)])
+    res = focker_subprocess_run(['focker-bsdinstall', zfs_mountpoint(name)])
     if res.returncode != 0:
         zfs_run(['zfs', 'destroy', '-r', '-f', name])
         raise ValueError('focker-bsdinstall failed')
@@ -100,21 +102,21 @@ def bootstrap_non_interactive(args):
 
 def create_interface(args):
     print('Creating interface', args.interface, '...')
-    subprocess.check_output(['sysrc', 'cloned_interfaces+=' + args.interface])
+    focker_subprocess_check_output(['sysrc', 'cloned_interfaces+=' + args.interface])
     if args.rename_interface:
         print('Renaming interface', args.interface, '->', args.rename_interface)
-        subprocess.check_output(['sysrc', 'ifconfig_%s_name=%s' % \
+        focker_subprocess_check_output(['sysrc', 'ifconfig_%s_name=%s' % \
             (args.interface, args.rename_interface)])
     else:
-        subprocess.check_output(['sysrc', 'ifconfig_%s_name=%s' % \
+        focker_subprocess_check_output(['sysrc', 'ifconfig_%s_name=%s' % \
             (args.interface, args.interface)])
-    subprocess.check_output(['service', 'netif', 'cloneup'])
+    focker_subprocess_check_output(['service', 'netif', 'cloneup'])
     print('Interface ready')
 
 
 def add_pf_rule(args):
     if args.external_interface is None:
-        iface = subprocess.check_output([ 'ifconfig', '-l' ])
+        iface = focker_subprocess_check_output([ 'ifconfig', '-l' ])
         iface = iface.decode('utf-8').split(' ')
         iface = [ i for i in iface if not i.startswith('lo') ]
         iface = iface[0]

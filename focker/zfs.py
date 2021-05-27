@@ -9,6 +9,8 @@ import subprocess
 import csv
 import io
 import os
+from .plugin import PLUGINS
+import inspect
 
 
 class AmbiguousValueError(ValueError):
@@ -18,12 +20,18 @@ class AmbiguousValueError(ValueError):
 
 def zfs_run(command):
     # print('Running:', command)
+    frame = inspect.currentframe()
+    name = frame.f_back.f_code.co_name
+    command = PLUGINS.modify(f'{name}_command', command, frame)
     out = subprocess.check_output(command, stderr=subprocess.STDOUT)
     return out
 
 
 def zfs_parse_output(command):
-    out = zfs_run(command)
+    frame = inspect.currentframe()
+    name = frame.f_back.f_code.co_name
+    command = PLUGINS.modify(f'{name}_command', command, frame)
+    out = subprocess.check_output(command, stderr=subprocess.STDOUT)
     s = io.StringIO(out.decode('utf-8'))
     r = csv.reader(s, delimiter='\t')
     return [a for a in r]

@@ -21,7 +21,9 @@ from .jail import jail_fs_create, \
     backup_file, \
     quote
 from .misc import random_sha256_hexdigest, \
-    find_prefix
+    find_prefix, \
+    focker_subprocess_check_output, \
+    focker_subprocess_run
 import subprocess
 import jailconf
 import os
@@ -41,7 +43,7 @@ def exec_hook(spec, path, hook_name='exec.prebuild'):
     oldwd = os.getcwd()
     os.chdir(path)
     focker_unlock()
-    res = subprocess.run(spec)
+    res = focker_subprocess_run(spec)
     focker_lock()
     if res.returncode != 0:
         raise RuntimeError('%s failed' % hook_name)
@@ -67,7 +69,7 @@ def build_volumes(spec):
         if name is None:
             sha256 = random_sha256_hexdigest()
             name = find_prefix(poolname + '/focker/volumes/', sha256)
-            subprocess.check_output(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
+            focker_subprocess_check_output(['zfs', 'create', '-o', 'focker:sha256=' + sha256, name])
             zfs_untag([ tag ], focker_type='volume')
             zfs_tag(name, [ tag ])
         mountpoint = zfs_mountpoint(name)
@@ -93,7 +95,7 @@ def build_images(spec, path, args):
         if args.squeeze:
             cmd.append('--squeeze')
         focker_unlock()
-        res = subprocess.run(cmd)
+        res = focker_subprocess_run(cmd)
         focker_lock()
         if res.returncode != 0:
             raise RuntimeError('Image build failed: ' + str(res.returncode))
