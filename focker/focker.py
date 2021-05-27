@@ -74,7 +74,7 @@ class ListForwarder(object):
             setattr(elem, name, value)
 
 
-def create_parser():
+def create_parser(return_dict=False):
     parser_dict = {}
 
     parser_dict['top'] = parser_top = ArgumentParser()
@@ -251,7 +251,10 @@ def create_parser():
     parser.add_argument('filename', type=str)
     parser.add_argument('command', type=str)
 
-    return parser_top, parser_dict
+    if return_dict:
+        return parser_dict
+    else:
+        return parser_top
 
 
 def main():
@@ -260,7 +263,8 @@ def main():
 
     focker_lock()
     zfs_init()
-    parser, parser_dict = create_parser()
+    parser_dict = create_parser(return_dict=True)
+    parser = parser_dict['top']
 
     plugins.notify('focker_create_parser',
         parser=parser, parser_dict=parser_dict)
