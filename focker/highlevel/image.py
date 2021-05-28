@@ -1,7 +1,9 @@
 from ..zfs import zfs_list, \
     zfs_clone, \
     zfs_mountpoint, \
-    zfs_set_props
+    zfs_set_props, \
+    zfs_tag, \
+    zfs_untag
 from ..zfs2 import zfs_shortest_unique_name, \
     zfs_snapshot, \
     zfs_exists_props
@@ -90,3 +92,12 @@ class Image:
 
     def snapshot_name(self):
         return self.name + '@1'
+
+    def add_tags(self, tags):
+        zfs_untag(tags, focker_type='image')
+        zfs_tag(self.name, tags)
+
+    def remove_tags(self, tags):
+        if any(t not in self.tags for t in tags):
+            raise RuntimeError('This image does not seem to be tagged with all the specified tags')
+        zfs_untag(tags, focker_type='image')
