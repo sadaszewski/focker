@@ -13,15 +13,15 @@ Image='Image'
 class Image:
     __init_key = object()
 
-    def __init__(self, init_key, name, sha256, tags, mountpoint, is_finalized):
-        if not init_key == self.__init_key:
+    def __init__(self, **kwargs):
+        if 'init_key' not in kwargs or kwargs['init_key'] != self.__init_key:
             raise RuntimeError('Image must be created using one of the factory methods')
 
-        self.name = name
-        self.sha256 = sha256
-        self.tags = tags
-        self.mountpoint = mountpoint
-        self.is_finalized = is_finalized
+        self.name = kwargs['name']
+        self.sha256 = kwargs['sha256']
+        self.tags = kwargs['tags']
+        self.mountpoint = kwargs['mountpoint']
+        self.is_finalized = kwargs['is_finalized']
 
     @staticmethod
     def handle_from_predicate_corner_cases(lst):
@@ -40,7 +40,7 @@ class Image:
         name, mountpoint, sha256, tags, rdonly, *_ = lst[0]
         tags = tags.split(' ')
         is_finalized = (rdonly == 'on')
-        return Image(Image.__init_key, name=name, sha256=sha256,
+        return Image(init_key=Image.__init_key, name=name, sha256=sha256,
             tags=tags, mountpoint=mountpoint, is_finalized=is_finalized)
 
     @staticmethod
@@ -71,7 +71,7 @@ class Image:
         name = zfs_shortest_unique_name(sha256, focker_type='image')
         zfs_clone(base.snapshot_name(), name, { 'focker:sha256': sha256 })
         mountpoint = zfs_mountpoint(name)
-        return Image(Image.__init_key, name=name, sha256=sha256,
+        return Image(init_key=Image.__init_key, name=name, sha256=sha256,
             tags=[], mountpoint=mountpoint, is_finalized=False)
 
     def apply_spec(self):
