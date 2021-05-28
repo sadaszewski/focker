@@ -21,7 +21,7 @@ class Image:
 
         self.name = kwargs['name']
         self.sha256 = kwargs['sha256']
-        self.tags = kwargs['tags']
+        self.tags = set(kwargs['tags'])
         self.mountpoint = kwargs['mountpoint']
         self.is_finalized = kwargs['is_finalized']
 
@@ -95,9 +95,11 @@ class Image:
 
     def add_tags(self, tags):
         zfs_untag(tags, focker_type='image')
+        self.tags = self.tags.union(tags)
         zfs_tag(self.name, tags)
 
     def remove_tags(self, tags):
         if any(t not in self.tags for t in tags):
             raise RuntimeError('This image does not seem to be tagged with all the specified tags')
         zfs_untag(tags, focker_type='image')
+        self.tags = self.tags.difference(tags)
