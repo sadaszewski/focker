@@ -3,7 +3,8 @@ from ..zfs import zfs_list, \
     zfs_mountpoint, \
     zfs_set_props
 from ..zfs2 import zfs_shortest_unique_name, \
-    zfs_snapshot
+    zfs_snapshot, \
+    zfs_exists_props
 from ..snapshot import new_snapshot
 from ..misc import find_prefix
 
@@ -62,6 +63,9 @@ class Image:
     def from_base(base: Image, sha256: str) -> Image:
         if not base.is_finalized:
             raise RuntimeError('Base must be finalized')
+        if zfs_exists_props({ 'focker:sha256': sha256 }, focker_type='image',
+            zfs_type='filesystem'):
+            raise RuntimeError('Image with specified SHA256 already exists')
         name = zfs_shortest_unique_name(sha256, focker_type='image')
         zfs_clone(base.snapshot_name(), name, { 'focker:sha256': sha256 })
         mountpoint = zfs_mountpoint(name)

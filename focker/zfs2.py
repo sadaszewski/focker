@@ -2,7 +2,8 @@ from .zfs import zfs_list, \
     zfs_run, \
     zfs_poolname
 from .misc import find_prefix
-from typing import Tuple
+from typing import Tuple, \
+    Dict
 
 
 def zfs_find_sha256(sha256: str, focker_type: str,
@@ -26,3 +27,18 @@ def zfs_shortest_unique_name(name: str, focker_type: str) -> str:
 
 def zfs_snapshot(snapshot_name: str) -> None:
     zfs_run([ 'zfs', 'snapshot', snapshot_name ])
+
+
+def zfs_find_props(props: Dict[str, str], focker_type: str, zfs_type: str) -> Tuple[list, list]:
+    pkeys = list(props.keys())
+    pvals = [ props[k] for k in pkeys ]
+    n_props = len(props)
+    lst = zfs_list(pkeys, focker_type=focker_type,
+        zfs_type=zfs_type)
+    lst = [ e for e in lst if all([ e[i] == pvals[i] for i in range(n_props) ]) ]
+    return lst, pkeys
+
+
+def zfs_exists_props(props: Dict[str, str], focker_type: str, zfs_type: str) -> bool:
+    lst, _ = zfs_find_props(props, focker_type, zfs_type)
+    return ( len(lst) > 0 )
