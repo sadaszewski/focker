@@ -1,4 +1,7 @@
-from .zfs import zfs_list
+from .zfs import zfs_list, \
+    zfs_run, \
+    zfs_poolname
+from .misc import find_prefix
 from typing import Tuple
 
 
@@ -13,3 +16,13 @@ def zfs_find_sha256(sha256: str, focker_type: str,
     if len(lst) > 1:
         raise RuntimeError('Ambiguous SHA256 - this should never happen')
     return lst[0][:2]
+
+
+def zfs_shortest_unique_name(name: str, focker_type: str) -> str:
+    poolname = zfs_poolname()
+    head = f'{poolname}/{focker_type}s/'
+    return find_prefix(head, name)
+
+
+def zfs_snapshot(snapshot_name: str) -> None:
+    zfs_run([ 'zfs', 'snapshot', snapshot_name ])

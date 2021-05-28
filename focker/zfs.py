@@ -125,8 +125,13 @@ def zfs_unprotect(name):
     zfs_run(['zfs', 'inherit', '-r', 'focker:protect', name])
 
 
-def zfs_clone(name, target_name):
-    zfs_run(['zfs', 'clone', name, target_name])
+def zfs_clone(name, target_name, props={}):
+    cmd = [ 'zfs', 'clone' ]
+    for k, v in props.items():
+        cmd.append('-o')
+        cmd.append(f'{k}={v}')
+    cmd += [ name, target_name ]
+    zfs_run(cmd)
 
 
 def zfs_exists(name):
