@@ -2,7 +2,12 @@ from ..zfs import zfs_list
 
 
 class Image:
-    def __init__(self, sha256=None, mountpoint=None):
+    __init_key = object()
+
+    def __init__(self, init_key=None, sha256=None, mountpoint=None):
+        if not init_key == self.__init_key:
+            raise RuntimeError('Image must be created using one of the factory methods')
+
         self.sha256 = sha256
         self.mountpoint = mountpoint
 
@@ -20,7 +25,7 @@ class Image:
         lst = [ e for e in lst if pred(e) ]
         Image.handle_from_predicate_corner_cases(lst)
         name, mountpoint, sha256, *_ = lst[0]
-        return Image(sha256=sha256, mountpoint=mountpoint)
+        return Image(Image.__init_key, sha256=sha256, mountpoint=mountpoint)
 
     @staticmethod
     def from_sha256(sha256: str):
