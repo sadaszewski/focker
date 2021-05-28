@@ -13,12 +13,13 @@ Image='Image'
 class Image:
     __init_key = object()
 
-    def __init__(self, init_key, name, sha256, mountpoint, is_finalized):
+    def __init__(self, init_key, name, sha256, tags, mountpoint, is_finalized):
         if not init_key == self.__init_key:
             raise RuntimeError('Image must be created using one of the factory methods')
 
         self.name = name
         self.sha256 = sha256
+        self.tags = tags
         self.mountpoint = mountpoint
         self.is_finalized = is_finalized
 
@@ -36,10 +37,11 @@ class Image:
         lst = [ e for e in lst if pred(e) ]
         # print(lst)
         Image.handle_from_predicate_corner_cases(lst)
-        name, mountpoint, sha256, _, rdonly, *_ = lst[0]
+        name, mountpoint, sha256, tags, rdonly, *_ = lst[0]
+        tags = tags.split(' ')
         is_finalized = (rdonly == 'on')
         return Image(Image.__init_key, name=name, sha256=sha256,
-            mountpoint=mountpoint, is_finalized=is_finalized)
+            tags=tags, mountpoint=mountpoint, is_finalized=is_finalized)
 
     @staticmethod
     def from_sha256(sha256: str):
@@ -70,7 +72,7 @@ class Image:
         zfs_clone(base.snapshot_name(), name, { 'focker:sha256': sha256 })
         mountpoint = zfs_mountpoint(name)
         return Image(Image.__init_key, name=name, sha256=sha256,
-            mountpoint=mountpoint, is_finalized=False)
+            tags=[], mountpoint=mountpoint, is_finalized=False)
 
     def apply_spec(self):
         raise NotImplementedError
