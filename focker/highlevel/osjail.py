@@ -7,44 +7,53 @@ import os
 from .mount import MountManager
 from ..misc import focker_subprocess_check_output
 from .misc import PrePostCommandManager
+from typing import Dict
+from .image import Image
+from .jailspec import JailSpec
+
+OSJailSpec = 'OSJailSpec'
 
 
-DEFAULT_PARAMS = {
-    'persist': True,
-    'interface': 'lo1',
-    'ip4.addr': '127.0.1.0',
-    'mount.devfs': True,
-    'exec.clean': True,
-    'exec.start': '/bin/sh /etc/rc',
-    'exec.stop': '/bin/sh /etc/rc.shutdown'
-}
+class OSJailSpec:
+    __init_key = object()
 
+    def __init__(self, **kwargs):
+        if kwargs.get('init_key') != OSJailSpec.__init_key:
+            raise RuntimeError('OSJailSpec must be created using one of the factory methods')
 
-class OSJailParams:
-    def __init__(self, path, hostname, params):
-        self.params = dict(DEFAULT_PARAMS)
-        self.params.update(params)
-        self.params['path'] = path
-        self.params['host.hostname'] = hostname
+        self.params = kwargs.get('params')
+
+    @staticmethod
+    def from_jailspec(jailspec: JailSpec) -> OSJailSpec:
+        params = dict(jailspec.rest_params)
+        params.update(jailspec.exec_params)
+        params['path'] = jailspec.image.path()
+        params['host.hostname'] = jailspec.hostname
+        # mounts
+        # env
+        return OSJailSpec(init_key=OSJailSpec.__init_key, params=params)
 
     def to_dict(self):
         return dict(self.params)
 
 
+OSJail = 'OSJail'
+
+
 class OSJail:
-    def __init__(self, image, mounts, env, params: OSJailParams):
-        self.image = image
-        self.mounts = mounts
-        self.env = env
-        self.params = params
+    __init_key = object()
+    def __init__(self, **kwargs):
+        if kwargs.get('init_key') != OSJail.__init_key:
+            raise RuntimeError('OSJail must be created using one of the factory methods')
 
-        self.prestart = [ 'cp /etc/resolv.conf ' +
-            shlex.quote(os.path.join(path, 'etc/resolv.conf')) ]
-        self.poststop = []
+        self.spec = kwargs['spec']
 
+    def from_spec(spec: OSJailSpec) -> OSJail:
+        return OSJail(spec=spec)
+        
     def run_command(self, command):
-        with MountManager(self.mounts),
-            PrePostCommandManager(' && '.join(self.prestart),
+        with (MountManager(self.mounts),
+            PrePostCommandManager(' && '.join(self.prestart)),
                 ' && '.join(self.poststop)):
             command = gen_env_command(command, self.env)
             focker_subprocess_check_output(command)
