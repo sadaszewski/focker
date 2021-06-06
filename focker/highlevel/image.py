@@ -58,10 +58,18 @@ class Image:
         return Image.from_predicate(lambda e: e[2].startswith(sha256))
 
     @staticmethod
+    def from_partial_tag(tag: str):
+        return Image.from_predicate(lambda e: any(t.startswith(tag) for t in e[3].split(' ')))
+
+    @staticmethod
     def from_any_id(id_: str, strict=False):
-        return Image.from_predicate(lambda e: \
-            id_ in e[3].split(' ') or \
-            ( e[2] == id_ if strict else e[2].startswith(id_) ) )
+        if strict:
+            return Image.from_predicate(lambda e: \
+                id_ in e[3].split(' ') or e[2] == id_)
+        else:
+            return Image.from_predicate(lambda e: \
+                any(t.startswith(id_) for t in e[3].split(' ')) or \
+                e[2].startswith(id_))
 
     @staticmethod
     def from_base(base: Image, sha256: str) -> Image:

@@ -3,6 +3,7 @@ from typing import Dict
 from ..jailspec import _focker_params, \
     _exec_params, \
     _params
+from .mount import Mount
 
 
 DEFAULT_PARAMS = {
@@ -37,7 +38,7 @@ class JailSpec:
         self.rest_params = kwargs['rest_params']
 
     @staticmethod
-    def from_jailspec_dict(jailspec: Dict):
+    def validate_dict(jailspec: Dict):
         for k in jailspec.keys():
             if k not in _params and k not in _focker_params:
                 raise ValueError('Unknown parameter in jail spec: ' + k)
@@ -50,6 +51,10 @@ class JailSpec:
 
         if 'path' in jailspec:
             raise RuntimeError('Path should not be specified, use image instead')
+
+    @staticmethod
+    def from_dict(jailspec: Dict):
+        JailSpec.validate_dict(jailspec)
 
         focker_spec = { k: v for k, v in jailspec.items()
             if k in _focker_params }
@@ -65,6 +70,7 @@ class JailSpec:
 
         image = Image.from_any_id(focker_spec['image'], strict=True)
         mounts = focker_spec.get('mounts', [])
+        mounts = [ Mount(m[0], m[1]) for m in mounts ]
         env = focker_spec.get('env', {})
         hostname = rest_spec['host.hostname']
 
