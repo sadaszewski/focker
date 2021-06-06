@@ -10,31 +10,8 @@ from .misc import PrePostCommandManager
 from typing import Dict
 from .image import Image
 from .jailspec import JailSpec
+from .osjailspec import OSJailSpec
 
-OSJailSpec = 'OSJailSpec'
-
-
-class OSJailSpec:
-    __init_key = object()
-
-    def __init__(self, **kwargs):
-        if kwargs.get('init_key') != OSJailSpec.__init_key:
-            raise RuntimeError('OSJailSpec must be created using one of the factory methods')
-
-        self.params = kwargs.get('params')
-
-    @staticmethod
-    def from_jailspec(jailspec: JailSpec) -> OSJailSpec:
-        params = dict(jailspec.rest_params)
-        params.update(jailspec.exec_params)
-        params['path'] = jailspec.image.path()
-        params['host.hostname'] = jailspec.hostname
-        # mounts
-        # env
-        return OSJailSpec(init_key=OSJailSpec.__init_key, params=params)
-
-    def to_dict(self):
-        return dict(self.params)
 
 
 OSJail = 'OSJail'
@@ -50,7 +27,7 @@ class OSJail:
 
     def from_spec(spec: OSJailSpec) -> OSJail:
         return OSJail(spec=spec)
-        
+
     def run_command(self, command):
         with (MountManager(self.mounts),
             PrePostCommandManager(' && '.join(self.prestart)),

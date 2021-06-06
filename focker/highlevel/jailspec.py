@@ -59,9 +59,9 @@ class JailSpec:
         rest_spec = dict(DEFAULT_PARAMS)
         rest_spec.update(rest_spec_1)
 
-        rest_spec = { k: concat_commands(v)
-            if k in _exec_params else v
-            for k, v in rest_spec.items() }
+        #rest_spec = { k: v
+        #    if k in _exec_params else v
+        #    for k, v in rest_spec.items() }
 
         image = Image.from_any_id(focker_spec['image'], strict=True)
         mounts = focker_spec.get('mounts', [])

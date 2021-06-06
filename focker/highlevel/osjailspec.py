@@ -1,6 +1,8 @@
 OSJailSpec = 'OSJailSpec'
 import shlex
 from ..jailspec import _exec_params
+from .jailspec import JailSpec
+import os
 
 
 def gen_env_command(command, env):
@@ -16,6 +18,9 @@ def concat_commands(lst):
     if isinstance(lst, str):
         return lst
     return ' && '.join(lst)
+
+
+OSJailSpec = 'OSJailSpec'
 
 
 class OSJailSpec:
@@ -48,9 +53,8 @@ class OSJailSpec:
             poststop.insert(0, f'umount -f {shlex.quote(mountpoint)}')
 
         exec_params = dict(jailspec.exec_params)
-        prestart += exec_params['exec.prestart']
-        exec_params['exec.prestart'] = prestart
-        exec_params['post_stop'] += poststop
+        exec_params['exec.prestart'] = prestart + exec_params.get('exec.prestart', [])
+        exec_params['exec.poststop'] = exec_params.get('exec.poststop', []) + poststop
 
         for k, v in exec_params.items():
             params[k] = gen_env_command(concat_commands(v), jailspec.env)
