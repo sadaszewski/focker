@@ -8,6 +8,7 @@ class Taggable:
     _meta_list_columns = ['name', 'mountpoint', 'focker:sha256', 'focker:tags', 'rdonly']
     _meta_focker_type = 'image'
     _meta_zfs_type = 'filesystem'
+    __init_key = object()
 
     def __init__(self, **kwargs):
         if 'init_key' not in kwargs or kwargs['init_key'] != self.__init_key:
@@ -72,8 +73,11 @@ class Taggable:
 
     def remove_tags(self, tags):
         if any(t not in self.tags for t in tags):
-            raise RuntimeError(f'This {self.__class__.__name__} does not seem to be tagged with all the specified tags')
+            raise RuntimeError(f'This {self.__class__.__name__.lower()} does not seem to be tagged with all the specified tags')
         zfs_untag(tags, focker_type=self._meta_focker_type)
         self.tags = self.tags.difference(tags)
+
+    def path(self):
+        return self.mountpoint
 
 Taggable._meta_class = Taggable
