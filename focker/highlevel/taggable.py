@@ -8,10 +8,10 @@ class Taggable:
     _meta_list_columns = ['name', 'mountpoint', 'focker:sha256', 'focker:tags', 'rdonly']
     _meta_focker_type = 'image'
     _meta_zfs_type = 'filesystem'
-    __init_key = object()
+    _init_key = object()
 
     def __init__(self, **kwargs):
-        if 'init_key' not in kwargs or kwargs['init_key'] != self.__init_key:
+        if 'init_key' not in kwargs or kwargs['init_key'] != self._init_key:
             raise RuntimeError(f'{self.__class__.__name__} must be created using one of the factory methods')
 
         self.name = kwargs['name']
@@ -37,7 +37,7 @@ class Taggable:
         name, mountpoint, sha256, tags, rdonly, *_ = lst[0]
         tags = tags.split(' ')
         is_finalized = (rdonly == 'on')
-        return cls._meta_class(init_key=cls.__init_key, name=name, sha256=sha256,
+        return cls._meta_class(init_key=cls._init_key, name=name, sha256=sha256,
             tags=tags, mountpoint=mountpoint, is_finalized=is_finalized)
 
     @classmethod

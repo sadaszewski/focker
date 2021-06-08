@@ -11,6 +11,10 @@ class Image(Taggable, Cloneable):
         Taggable.__init__(self, **kwargs)
         Cloneable.__init__(self, **kwargs)
 
+    @staticmethod
+    def from_base(base: Image, sha256: str) -> Image:
+        return Image.clone_from(base)
+
     def apply_spec(self):
         raise NotImplementedError
 
@@ -18,3 +22,4 @@ class Image(Taggable, Cloneable):
         raise NotImplementedError
 
 Image._meta_class = Image
+Image._meta_cloneable_from = Image

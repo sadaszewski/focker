@@ -21,7 +21,7 @@ def zfs_find_sha256(sha256: str, focker_type: str,
 
 def zfs_shortest_unique_name(name: str, focker_type: str) -> str:
     poolname = zfs_poolname()
-    head = f'{poolname}/{focker_type}s/'
+    head = f'{poolname}/focker/{focker_type}s/'
     return find_prefix(head, name)
 
 
