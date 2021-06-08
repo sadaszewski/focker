@@ -1,6 +1,7 @@
 from .zfs import zfs_list, \
     zfs_run, \
-    zfs_poolname
+    zfs_poolname, \
+    zfs_parse_output
 from .misc import find_prefix
 from typing import Tuple, \
     Dict
@@ -42,3 +43,9 @@ def zfs_find_props(props: Dict[str, str], focker_type: str, zfs_type: str) -> Tu
 def zfs_exists_props(props: Dict[str, str], focker_type: str, zfs_type: str) -> bool:
     lst, _ = zfs_find_props(props, focker_type, zfs_type)
     return ( len(lst) > 0 )
+
+
+def zfs_get_property(name, prop_name):
+    lst = zfs_parse_output([ 'zfs', 'get', '-H', prop_name, name ])
+    assert len(lst) == 1
+    return lst[0][2]

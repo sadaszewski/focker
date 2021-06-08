@@ -1,6 +1,10 @@
 from ..zfs import zfs_list, \
     zfs_tag, \
-    zfs_untag
+    zfs_untag, \
+    zfs_destroy, \
+    zfs_protect, \
+    zfs_unprotect
+from ..zfs2 import zfs_get_property
 
 
 class Taggable:
@@ -76,6 +80,29 @@ class Taggable:
             raise RuntimeError(f'This {self.__class__.__name__.lower()} does not seem to be tagged with all the specified tags')
         zfs_untag(tags, focker_type=self._meta_focker_type)
         self.tags = self.tags.difference(tags)
+
+    def in_use(self):
+        fields = ['name', 'origin']
+        lst = zfs_list(fields, focker_type='image') + \
+            zfs_list(fields, focker_type='jail')
+        if any(item[1].startswith(f'{self.name}@') for item in lst):
+            return True
+        return False
+
+    def destroy(self):
+        if self.in_use():
+            raise RuntimeError(f'This {self.__class__.__name__.lower()} is in use')
+        zfs_destroy(self.name)
+
+    def is_protected(self):
+        protect = zfs_get_property(self.name, 'focker:protect')
+        return (protect != '-')
+
+    def protect(self):
+        zfs_protect(self.name)
+
+    def unprotect(self):
+        zfs_unprotect(self.name)
 
     def path(self):
         return self.mountpoint
