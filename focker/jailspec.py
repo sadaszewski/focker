@@ -26,7 +26,7 @@ _pseudo_params = {'exec.prestart', 'exec.start', 'command',
 
 _params = _params.union(_pseudo_params)
 
-_focker_params = { 'image', 'mounts', 'env' }
+_focker_params = { 'image', 'mounts', 'env', 'meta' }
 
 _exec_params = {'exec.prestart', 'exec.start', 'command',
     'exec.poststart', 'exec.prestop', 'exec.stop', 'exec.poststop'}
