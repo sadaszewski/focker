@@ -26,7 +26,7 @@ _pseudo_params = {'exec.prestart', 'exec.start', 'command',
 
 _params = _params.union(_pseudo_params)
 
-_focker_params = { 'image', 'mounts', 'env' }
+_focker_params = { 'image', 'mounts', 'env', 'meta' }
 
 _exec_params = {'exec.prestart', 'exec.start', 'command',
     'exec.poststart', 'exec.prestop', 'exec.stop', 'exec.poststop'}
@@ -114,8 +114,10 @@ def jailspec_to_jailconf(spec, name):
     if mounts:
         for from_, on in mounts:
             if not from_.startswith('/'):
-                from_, _ = zfs_find(from_, focker_type='volume')
+                vol_name, *vol_path = from_.split('/')
+                from_, _ = zfs_find(vol_name, focker_type='volume')
                 from_ = zfs_mountpoint(from_)
+                from_ = os.path.join(from_, *vol_path)
             prestart.append('mount -t nullfs ' + shlex.quote(from_) +
                 ' ' + shlex.quote(os.path.join(path, on.strip('/'))))
         poststop += [ 'umount -f ' +
