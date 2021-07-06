@@ -1,6 +1,5 @@
 OSJailSpec = 'OSJailSpec'
 import shlex
-from ..jailspec import _exec_params
 from .jailspec import JailSpec
 import os
 

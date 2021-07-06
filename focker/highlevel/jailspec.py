@@ -1,9 +1,11 @@
 from .image import Image
 from typing import Dict
-from ..jailspec import _focker_params, \
-    _exec_params, \
-    _params
+from .constant import JAIL_FOCKER_PARAMS, \
+    JAIL_EXEC_PARAMS, \
+    JAIL_PARAMS
 from .mount import Mount
+import os
+from .jailfs import JailFs
 
 
 DEFAULT_PARAMS = {
@@ -30,7 +32,7 @@ class JailSpec:
         if kwargs.get('init_key') != JailSpec.__init_key:
             raise RuntimeError('JailSpec must be created using one of the factory methods')
 
-        self.image = kwargs['image']
+        self.path = kwargs['path']
         self.hostname = kwargs['hostname']
         self.mounts = kwargs['mounts']
         self.env = kwargs['env']
@@ -40,7 +42,7 @@ class JailSpec:
     @staticmethod
     def validate_dict(jailspec: Dict):
         for k in jailspec.keys():
-            if k not in _params and k not in _focker_params:
+            if k not in JAIL_PARAMS and k not in JAIL_FOCKER_PARAMS:
                 raise ValueError('Unknown parameter in jail spec: ' + k)
 
         if 'exec.start' in jailspec and 'command' in jailspec:
@@ -49,26 +51,32 @@ class JailSpec:
         if 'exec.jail_user' in jailspec and 'exec.system_jail_user' in jailspec:
             raise KeyError('exec.jail_user and exec.system_jail_user are mutually exclusive')
 
-        if 'path' in jailspec:
-            raise RuntimeError('Path should not be specified, use image instead')
+        if ('path' in jailspec) + ('image' in jailspec) + ('jailfs') != 1:
+            raise RuntimeError('Exactly one of path, image or jailfs must be specified')
+
+        if 'path' in jailspec and not os.path.exists(jailspec['path']):
+            raise RuntimeError('Specified path does not exist')
 
     @staticmethod
     def from_dict(jailspec: Dict):
         JailSpec.validate_dict(jailspec)
 
         focker_spec = { k: v for k, v in jailspec.items()
-            if k in _focker_params }
+            if k in JAIL_FOCKER_PARAMS }
         rest_spec_1 = { k: v for k, v in jailspec.items()
-            if k not in _focker_params }
+            if k not in JAIL_FOCKER_PARAMS }
 
         rest_spec = dict(DEFAULT_PARAMS)
         rest_spec.update(rest_spec_1)
 
-        #rest_spec = { k: v
-        #    if k in _exec_params else v
-        #    for k, v in rest_spec.items() }
-
-        image = Image.from_any_id(focker_spec['image'], strict=True)
+        if 'path' in focker_spec:
+            path = focker_spec['path']
+        elif 'image' in focker_spec:
+            path = Image.from_any_id(focker_spec['image'], strict=True)
+            path = path.path()
+        else:
+            path = JailFs.from_any_id(focker_spec['jailfs'], strict=True)
+            path = path.path()
         mounts = focker_spec.get('mounts', [])
         mounts = [ Mount(m[0], m[1]) for m in mounts ]
         env = focker_spec.get('env', {})
@@ -77,9 +85,9 @@ class JailSpec:
         del rest_spec['host.hostname']
 
         exec_params = { k: ensure_list(v) for k, v in rest_spec.items()
-            if k in _exec_params }
+            if k in JAIL_EXEC_PARAMS }
         rest_params = { k: v for k, v in rest_spec.items()
-            if k not in _exec_params }
+            if k not in JAIL_EXEC_PARAMS }
 
         return JailSpec(init_key=JailSpec.__init_key, image=image,
             hostname=hostname, mounts=mounts, env=env,

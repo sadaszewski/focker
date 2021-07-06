@@ -1,7 +1,7 @@
-from ..zfs import zfs_list, \
+from .zfs import zfs_list, \
     zfs_clone, \
-    zfs_mountpoint
-from ..zfs2 import zfs_exists_props, \
+    zfs_mountpoint, \
+    zfs_exists_props, \
     zfs_shortest_unique_name
 from .taggable import Taggable
 

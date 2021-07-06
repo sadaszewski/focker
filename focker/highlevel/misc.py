@@ -1,4 +1,4 @@
-from ..misc import focker_subprocess_check_output
+from .process import focker_subprocess_check_output
 
 
 class PrePostCommandManager:

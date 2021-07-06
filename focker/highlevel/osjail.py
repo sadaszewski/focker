@@ -1,17 +1,13 @@
-from ..jailspec import _params, \
-    _focker_params, \
-    _exec_params, \
-    gen_env_command
+from .osjailspec import gen_env_command
 import shlex
 import os
 from .mount import MountManager
-from ..misc import focker_subprocess_check_output
+from .process import focker_subprocess_check_output
 from .misc import PrePostCommandManager
 from typing import Dict
 from .image import Image
 from .jailspec import JailSpec
 from .osjailspec import OSJailSpec
-
 
 
 OSJail = 'OSJail'

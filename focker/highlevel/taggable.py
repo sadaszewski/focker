@@ -1,10 +1,10 @@
-from ..zfs import zfs_list, \
+from .zfs import zfs_list, \
     zfs_tag, \
     zfs_untag, \
     zfs_destroy, \
     zfs_protect, \
-    zfs_unprotect
-from ..zfs2 import zfs_get_property
+    zfs_unprotect, \
+    zfs_get_property
 
 
 class Taggable:

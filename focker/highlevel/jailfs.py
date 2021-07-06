@@ -1,5 +1,5 @@
 from .image import Image
-from ..zfs2 import zfs_shortest_unique_name
+from .zfs import zfs_shortest_unique_name
 from .taggable import Taggable
 from .cloneable import Cloneable
 
