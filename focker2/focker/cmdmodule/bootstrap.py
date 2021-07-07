@@ -12,18 +12,6 @@ class BootstrapPlugin(Plugin):
             )
         )
 
-    @staticmethod
-    def extend_parsers():
-        return dict(
-            image=dict(
-                subparsers=dict(
-                    list=dict(
-                        tree=dict(action='store_true')
-                    )
-                )
-            )
-        )
-
 
 def cmd_bootstrap(args):
     raise NotImplementedError
