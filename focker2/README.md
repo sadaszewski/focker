@@ -20,6 +20,7 @@ and some smaller fixes:
 - Automatically create mount destinations if they don't exist
 - Allow for bootstrapping images using different versions of FreeBSD not only the current one,
 - Allow to include other Fockerfiles inside of a Fockerfile, as an alternative to base image system,
-- Make a few more settings configurable, e.g. whether to copy /etc/resolv.conf or not, possibility of static resolv.conf, etc.
+- Make a few more settings configurable, e.g. whether to copy /etc/resolv.conf or not, possibility of static resolv.conf, etc.,
+- Sorting of listing results.
 
 Stay tuned.

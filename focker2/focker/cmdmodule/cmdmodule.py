@@ -1,4 +1,4 @@
 class CmdModule:
     @staticmethod
-    def provide_parsers(subp):
+    def provide_parsers():
         return None
