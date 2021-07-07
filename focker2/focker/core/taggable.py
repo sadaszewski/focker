@@ -33,7 +33,6 @@ class Taggable:
             for name, mountpoint, sha256, tags, rdonly, *_ in res ]
         return res
 
-
     @classmethod
     def from_predicate_handle_corner_cases(cls, lst):
         if len(lst) == 0:
