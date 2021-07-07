@@ -1,6 +1,8 @@
 # Focker 2
 
-<font color=red>This version is not ready for any kind of use. Best not to touch it before the official availability announcement. It is being developed directly in this branch just for convenience.</font>
+```diff
+- This version is not ready for any kind of use. Best not to touch it before the official availability announcement. It is being developed directly in this branch just for convenience.
+```
 
 Focker is currently undergoing a slow overhaul which will eventually result
 in version 2.0. The aim of this is to make the code more structured, have
