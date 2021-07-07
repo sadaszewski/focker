@@ -25,6 +25,16 @@ class Taggable:
         self.is_finalized = kwargs['is_finalized']
 
     @classmethod
+    def list(cls):
+        res = zfs_list(cls._meta_list_columns, focker_type=cls._meta_focker_type,
+            zfs_type=cls._meta_zfs_type)
+        res = [ cls._meta_class(init_key=cls._init_key, name=name, sha256=sha256,
+            tags=tags.split(' '), mountpoint=mountpoint, is_finalized=(rdonly == 'on'))
+            for name, mountpoint, sha256, tags, rdonly, *_ in res ]
+        return res
+
+
+    @classmethod
     def from_predicate_handle_corner_cases(cls, lst):
         if len(lst) == 0:
             raise RuntimeError(f'{cls.__name__} not found')

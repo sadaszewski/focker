@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='focker',
-    version='0.95',
+    version='2.00',
     author='Stanislaw Adaszewski',
     author_email='s.adaszewski@gmail.com',
     url='https://github.com/sadaszewski/focker',
