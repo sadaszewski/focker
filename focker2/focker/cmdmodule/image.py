@@ -3,6 +3,7 @@ from .cmdmodule import CmdModule
 from argparse import ArgumentParser
 from ..core import Image
 from tabulate import tabulate
+from .common import cmd_taggable_list
 
 
 class CmdModuleImagePlugin(Plugin):
@@ -54,8 +55,7 @@ def cmd_image_build(args):
 
 
 def cmd_image_list(args):
-    res = [ (' '.join(im.tags), im.mountpoint, ) for im in Image.list() ]
-    print(tabulate(res, headers=['Tags', 'Mountpoint']))
+    cmd_taggable_list(args, Image)
 
 
 def cmd_image_tag(args):
