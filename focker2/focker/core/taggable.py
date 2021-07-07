@@ -103,6 +103,7 @@ class Taggable:
             raise RuntimeError(f'This {self.__class__.__name__.lower()} is in use')
         zfs_destroy(self.name)
 
+    @property
     def is_protected(self):
         protect = zfs_get_property(self.name, 'focker:protect')
         return (protect != '-')

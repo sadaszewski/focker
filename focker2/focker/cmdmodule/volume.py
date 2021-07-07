@@ -1,6 +1,8 @@
 from ..plugin import Plugin
 from .cmdmodule import CmdModule
 from tabulate import tabulate
+from .common import cmd_taggable_list
+from ..core import Volume
 
 
 class CmdModuleVolumePlugin(Plugin):
@@ -17,7 +19,20 @@ class CmdModuleVolume(CmdModule):
                 subparsers=dict(
                     list=dict(
                         aliases=['lst', 'ls', 'l'],
-                        func=cmd_volume_list
+                        func=cmd_volume_list,
+                        output=dict(
+                            aliases=['o'],
+                            type=str,
+                            default=['tags', 'mountpoint', 'is_protected'],
+                            nargs='+',
+                            choices=['name', 'tags', 'sha256', 'mountpoint', 'is_finalized']
+                        ),
+                        sort=dict(
+                            aliases=['s'],
+                            type=str,
+                            default=None,
+                            choices=['name', 'tags', 'sha256', 'mountpoint', 'is_finalized']
+                        )
                     )
                 )
             )
@@ -25,4 +40,4 @@ class CmdModuleVolume(CmdModule):
 
 
 def cmd_volume_list(args):
-    raise NotImplementedError
+    cmd_taggable_list(args, Volume)

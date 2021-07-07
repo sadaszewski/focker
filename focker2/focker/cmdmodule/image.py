@@ -30,13 +30,13 @@ class CmdModuleImage(CmdModule):
                             type=str,
                             default=['tags', 'mountpoint'],
                             nargs='+',
-                            choices=['name', 'tags', 'sha256', 'mountpoint', 'is_finalized']
+                            choices=['name', 'tags', 'sha256', 'mountpoint', 'is_finalized', 'is_protected']
                         ),
                         sort=dict(
                             aliases=['s'],
                             type=str,
                             default=None,
-                            choices=['name', 'tags', 'sha256', 'mountpoint', 'is_finalized']
+                            choices=['name', 'tags', 'sha256', 'mountpoint', 'is_finalized', 'is_protected']
                         )
                     )
                 )
