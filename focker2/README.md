@@ -1,7 +1,10 @@
 # Focker 2
 
 ```diff
-- This version is not ready for any kind of use. Best not to touch it before the official availability announcement. It is being developed directly in this branch just for convenience.
+- This version is not ready for any kind of use.
+- Best not to touch it before the official
+- availability announcement. It is being developed
+- directly in this branch just for convenience.
 ```
 
 Focker is currently undergoing a slow overhaul which will eventually result
