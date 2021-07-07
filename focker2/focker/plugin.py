@@ -4,12 +4,12 @@ import pkgutil
 
 class Plugin:
     @staticmethod
-    def provide_command_modules():
-        return []
+    def provide_parsers():
+        return {}
 
     @staticmethod
-    def extend_command_modules(mods):
-        pass
+    def extend_parsers():
+        return {}
 
     @staticmethod
     def change_defaults():

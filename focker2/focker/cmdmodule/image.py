@@ -1,17 +1,11 @@
 from ..plugin import Plugin
-from .cmdmodule import CmdModule
 from argparse import ArgumentParser
 from ..core import Image
 from tabulate import tabulate
 from .common import cmd_taggable_list
 
 
-class CmdModuleImagePlugin(Plugin):
-    def provide_command_modules():
-        return [ CmdModuleImage ]
-
-
-class CmdModuleImage(CmdModule):
+class ImagePlugin(Plugin):
     @staticmethod
     def provide_parsers():
         return dict(
@@ -42,12 +36,6 @@ class CmdModuleImage(CmdModule):
                 )
             )
         )
-        #parser = subp.add_parser('image', aliases=['ima', 'img', 'im', 'i'])
-        #subp = parser.add_subparsers()
-        #parser = subp.add_parser('build', aliases=['bld', 'b'])
-        #parser.set_defaults(func=cmd_image_build)
-        #parser = subp.add_parser('list', aliases=['lst', 'ls', 'l'])
-        #parser.set_defaults(func=cmd_image_list)
 
 
 def cmd_image_build(args):

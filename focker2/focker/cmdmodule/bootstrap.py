@@ -1,20 +1,26 @@
 from ..plugin import Plugin
-from .cmdmodule import CmdModule
 from tabulate import tabulate
 
 
-class CmdModuleBootstrapPlugin(Plugin):
-    def provide_command_modules():
-        return [ CmdModuleBootstrap ]
-
-
-class CmdModuleBootstrap(CmdModule):
+class BootstrapPlugin(Plugin):
     @staticmethod
     def provide_parsers():
         return dict(
             bootstrap=dict(
                 aliases=['boot', 'bs', 'b'],
                 func=cmd_bootstrap
+            )
+        )
+
+    @staticmethod
+    def extend_parsers():
+        return dict(
+            image=dict(
+                subparsers=dict(
+                    list=dict(
+                        tree=dict(action='store_true')
+                    )
+                )
             )
         )
 

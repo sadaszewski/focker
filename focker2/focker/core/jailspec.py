@@ -6,6 +6,8 @@ from .constant import JAIL_FOCKER_PARAMS, \
 from .mount import Mount
 import os
 from .jailfs import JailFs
+import yaml
+from ..misc import merge_dicts
 
 
 DEFAULT_PARAMS = {
@@ -17,6 +19,20 @@ DEFAULT_PARAMS = {
     'exec.start': '/bin/sh /etc/rc',
     'exec.stop': '/bin/sh /etc/rc.shutdown'
 }
+
+
+def load_default_jail_params_overrides():
+    global DEFAULT_PARAMS
+    for p in [ os.path.expanduser('~/.focker/jail-defaults.conf'),
+        '/usr/local/etc/focker/jail-defaults.conf',
+        '/etc/focker/jail-defaults.conf' ]:
+        if os.path.exists(p):
+            with open(p) as f:
+                DEFAULT_PARAMS = merge_dicts(DEFAULT_PARAMS, yaml.safe_load(f))
+            break
+
+
+load_default_jail_params_overrides()
 
 
 def ensure_list(lst):

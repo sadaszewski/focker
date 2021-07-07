@@ -1,16 +1,10 @@
 from ..plugin import Plugin
-from .cmdmodule import CmdModule
 from tabulate import tabulate
 from .common import cmd_taggable_list
 from ..core import Volume
 
 
-class CmdModuleVolumePlugin(Plugin):
-    def provide_command_modules():
-        return [ CmdModuleVolume ]
-
-
-class CmdModuleVolume(CmdModule):
+class VolumePlugin(Plugin):
     @staticmethod
     def provide_parsers():
         return dict(

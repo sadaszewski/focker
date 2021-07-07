@@ -1,3 +1,3 @@
-from .image import CmdModuleImagePlugin
-from .bootstrap import CmdModuleBootstrapPlugin
-from .volume import CmdModuleVolumePlugin
+from .image import ImagePlugin
+from .bootstrap import BootstrapPlugin
+from .volume import VolumePlugin

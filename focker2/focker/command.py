@@ -2,12 +2,13 @@ from argparse import ArgumentParser
 from .plugin import PLUGIN_MANAGER
 import os
 import yaml
+from .misc import merge_dicts
 
 
 def load_overrides():
     res = {}
-    paths = [ os.path.expanduser('~/.focker.conf'), '/usr/local/etc/focker.conf',
-        '/etc/focker.conf' ]
+    paths = [ os.path.expanduser('~/.focker/command.conf'), '/usr/local/etc/.focker/command.conf',
+        '/etc/focker/command.conf' ]
     for p in paths:
         if not os.path.exists(p):
             continue
@@ -52,8 +53,19 @@ def materialize_parsers(defs, subp, overrides):
 def create_parser():
     parser = ArgumentParser('focker')
     subp = parser.add_subparsers()
+
     overrides = load_overrides()
+
+    provided_parsers = {}
     for p in PLUGIN_MANAGER.discovered_plugins:
-        for m in p.provide_command_modules():
-            materialize_parsers(m.provide_parsers(), subp, overrides)
+        provided_parsers.update(p.provide_parsers())
+
+    for p in PLUGIN_MANAGER.discovered_plugins:
+        # print('Extending parsers with:', p.extend_parsers())
+        provided_parsers = merge_dicts(provided_parsers, p.extend_parsers())
+
+    # print('provided_parsers:', provided_parsers)
+
+    materialize_parsers(provided_parsers, subp, overrides)
+
     return parser
