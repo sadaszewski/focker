@@ -33,7 +33,7 @@ class OSJailSpec:
 
     @staticmethod
     def from_jailspec(jailspec: JailSpec) -> OSJailSpec:
-        path = jailspec.image.path()
+        path = jailspec.path
 
         params = dict(jailspec.rest_params)
 

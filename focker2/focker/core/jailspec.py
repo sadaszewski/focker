@@ -67,7 +67,7 @@ class JailSpec:
         if 'exec.jail_user' in jailspec and 'exec.system_jail_user' in jailspec:
             raise KeyError('exec.jail_user and exec.system_jail_user are mutually exclusive')
 
-        if ('path' in jailspec) + ('image' in jailspec) + ('jailfs') != 1:
+        if ('path' in jailspec) + ('image' in jailspec) + ('jailfs' in jailspec) != 1:
             raise RuntimeError('Exactly one of path, image or jailfs must be specified')
 
         if 'path' in jailspec and not os.path.exists(jailspec['path']):
@@ -105,6 +105,6 @@ class JailSpec:
         rest_params = { k: v for k, v in rest_spec.items()
             if k not in JAIL_EXEC_PARAMS }
 
-        return JailSpec(init_key=JailSpec.__init_key, image=image,
+        return JailSpec(init_key=JailSpec.__init_key, path=path,
             hostname=hostname, mounts=mounts, env=env,
             exec_params=exec_params, rest_params=rest_params)
