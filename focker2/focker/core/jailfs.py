@@ -2,6 +2,8 @@ from .image import Image
 from .zfs import zfs_shortest_unique_name
 from .taggable import Taggable
 from .cloneable import Cloneable
+from .process import focker_subprocess_check_output
+import json
 
 
 JailFs = 'JailFs'
@@ -31,5 +33,17 @@ class JailFs(Taggable, Cloneable):
 
     def path(self):
         return self.mountpoint
+
+    @property
+    def jid(self):
+        info = focker_subprocess_check_output([ 'jls', '--libxo',  'json' ])
+        info = json.loads(info)
+        info = [ j for j in info['jail-information']['jail']
+            if j['path'] == self.path() ]
+        if len(info) == 0:
+            return None
+        if len(info) == 1:
+            return info[0]['jid']
+        raise RuntimeError('Multiple jails with the same path - unsupported')
 
 JailFs._meta_class = JailFs

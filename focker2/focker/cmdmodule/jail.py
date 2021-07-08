@@ -3,6 +3,8 @@ from argparse import ArgumentParser
 from ..core import JailFs
 from tabulate import tabulate
 from .common import cmd_taggable_list
+from ..core.process import focker_subprocess_check_output, \
+    focker_subprocess_run
 
 
 class JailPlugin(Plugin):
@@ -52,4 +54,5 @@ def cmd_jail_list(args):
 
 
 def cmd_jail_exec(args):
-    raise NotImplementedError
+    jfs = JailFs.from_any_id(args.identifier)
+    focker_subprocess_run([ 'jexec', str(jfs.jid), args.command ])
