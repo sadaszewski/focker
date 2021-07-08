@@ -1,9 +1,13 @@
-from .process import focker_subprocess_check_output
+from .process import focker_subprocess_check_output, \
+    focker_subprocess_run
 from typing import Dict, \
     Tuple
 import subprocess
 import io
 import csv
+import yaml
+import os
+from functools import reduce
 
 
 def zfs_run(command):
@@ -26,11 +30,78 @@ def zfs_poolname():
     return poolname
 
 
+ROOT_DATASET = None
+ROOT_MOUNTPOINT = None
+
+
+def zfs_load_config():
+    global ROOT_DATASET
+    global ROOT_MOUNTPOINT
+    res = None
+    for p in [ os.path.expanduser('~/.focker/focker.conf'),
+        '/usr/local/etc/focker/focker.conf', '/etc/focker/focker.conf' ]:
+        if os.path.exists(p):
+            with open(p) as f:
+                data = yaml.safe_load(f)
+            ROOT_DATASET = data.get('root_dataset', None)
+            ROOT_MOUNTPOINT = data.get('root_mountpoint', None)
+            break
+    if 'FOCKER_ROOT_DATASET' in os.environ:
+        ROOT_DATASET = os.environ['FOCKER_ROOT_DATASET']
+    if 'FOCKER_ROOT_MOUNTPOINT' is os.environ:
+        ROOT_MOUNTPOINT = os.environ['FOCKER_ROOT_MOUNTPOINT']
+    if ROOT_DATASET is None:
+        ROOT_DATASET = zfs_poolname() + '/focker'
+    if ROOT_MOUNTPOINT is None:
+        ROOT_MOUNTPOINT = '/focker'
+
+zfs_load_config()
+
+
+def zfs_exists(name):
+    try:
+        zfs_run(['zfs', 'list', name])
+    except subprocess.CalledProcessError as e:
+        return False
+    return True
+
+
+def zfs_create(name, props={}, exist_ok=False):
+    if zfs_exists(name):
+        if exist_ok:
+            return
+        else:
+            raise RuntimeError('Specified ZFS dataset already exists')
+    props = [ [ '-o', f'{k}={v}' ] for k, v in props.items() ]
+    props = reduce(list.__add__, props)
+    cmd = [ 'zfs', 'create', *props, name ]
+    # print('cmd:', cmd)
+    focker_subprocess_run(cmd)
+
+
+def zfs_init():
+    for path in ['images', 'volumes', 'jails']:
+        os.makedirs(os.path.join(ROOT_MOUNTPOINT, path), exist_ok=True)
+    os.chmod(ROOT_MOUNTPOINT, 0o600)
+    zfs_create(ROOT_DATASET, dict(canmount='off', mountpoint=ROOT_MOUNTPOINT), exist_ok=True)
+    zfs_create(ROOT_DATASET + '/images', dict(canmount='off'), exist_ok=True)
+    zfs_create(ROOT_DATASET + '/volumes', dict(canmount='off'), exist_ok=True)
+    zfs_create(ROOT_DATASET + '/jails', dict(canmount='off'), exist_ok=True)
+
+    #if not zfs_exists(poolname + '/focker'):
+    #    zfs_run(['zfs', 'create', '-o', 'canmount=off', '-o', 'mountpoint=/focker', poolname + '/focker'])
+    #if not zfs_exists(poolname + '/focker/images'):
+    #    zfs_run(['zfs', 'create', '-o', 'canmount=off', poolname + '/focker/images'])
+    #if not zfs_exists(poolname + '/focker/volumes'):
+    #    zfs_run(['zfs', 'create', '-o', 'canmount=off', poolname + '/focker/volumes'])
+    #if not zfs_exists(poolname + '/focker/jails'):
+    #    zfs_run(['zfs', 'create', '-o', 'canmount=off', poolname + '/focker/jails'])
+
+
 def zfs_list(fields=['name'], focker_type='image', zfs_type='filesystem'):
-    poolname = zfs_poolname()
     fields.append('focker:sha256')
     lst = zfs_parse_output(['zfs', 'list', '-o', ','.join(fields),
-        '-H', '-t', zfs_type, '-r', poolname + '/focker/' + focker_type + 's'])
+        '-H', '-t', zfs_type, '-r', ROOT_DATASET + '/' + focker_type + 's'])
     lst = list(filter(lambda a: a[-1] != '-', lst))
     return lst
 
@@ -54,8 +125,7 @@ def zfs_untag(tags, focker_type='image'):
     if any(map(lambda a: ' ' in a, tags)):
         raise ValueError('Tags cannot contain spaces')
     # print('zfs_untag(), tags:', tags)
-    poolname = zfs_poolname()
-    lst = zfs_parse_output(['zfs', 'list', '-o', 'name,focker:tags', '-H', '-r', poolname + '/focker/' + focker_type + 's'])
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'name,focker:tags', '-H', '-r', ROOT_DATASET + '/' + focker_type + 's'])
     lst = filter(lambda a: any([b in a[1].split(' ') for b in tags]), lst)
     for row in lst:
         cur_tags = row[1].split(' ')
@@ -116,6 +186,5 @@ def zfs_exists_props(props: Dict[str, str], focker_type: str, zfs_type: str) -> 
 
 
 def zfs_shortest_unique_name(name: str, focker_type: str) -> str:
-    poolname = zfs_poolname()
-    head = f'{poolname}/focker/{focker_type}s/'
+    head = f'{ROOT_DATASET}/{focker_type}s/'
     return find_prefix(head, name)

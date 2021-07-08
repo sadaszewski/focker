@@ -1,5 +1,6 @@
 from ..plugin import Plugin
 from tabulate import tabulate
+from ..core.zfs import zfs_init
 
 
 class BootstrapPlugin(Plugin):
@@ -8,10 +9,17 @@ class BootstrapPlugin(Plugin):
         return dict(
             bootstrap=dict(
                 aliases=['boot', 'bs', 'b'],
-                func=cmd_bootstrap
+                subparsers=dict(
+                    filesystem=dict(
+                        aliases=['fs'],
+                        func=cmd_bootstrap_filesystem
+                    )
+                )
             )
         )
 
 
-def cmd_bootstrap(args):
-    raise NotImplementedError
+def cmd_bootstrap_filesystem(args):
+    print('Creating necessary filesystem objects...')
+    zfs_init()
+    print('Done.')
