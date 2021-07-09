@@ -1,7 +1,7 @@
 def quote_for_jailconf(s):
     if isinstance(s, list):
         if len(s) == 0:
-            return None
+            return ''
         elif len(s) == 1:
             return quote_for_jailconf(s[0])
         else:
