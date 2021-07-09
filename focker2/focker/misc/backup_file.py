@@ -1,5 +1,6 @@
 import os
 import time
+import shutil
 
 
 def backup_file(fname, interval=24*3600, chmod=0o600):

@@ -27,7 +27,7 @@ JAIL_PSEUDO_PARAMS = {'exec.prestart', 'exec.start', 'command',
 JAIL_PARAMS = JAIL_SYSCTL_PARAMS.union(JAIL_PSEUDO_PARAMS)
 
 
-JAIL_FOCKER_PARAMS = { 'image', 'mounts', 'env' }
+JAIL_FOCKER_PARAMS = { 'image', 'mounts', 'env', 'jailfs' }
 
 
 JAIL_EXEC_PARAMS = {'exec.prestart', 'exec.start', 'command',

@@ -2,6 +2,10 @@ OSJailSpec = 'OSJailSpec'
 import shlex
 from .jailspec import JailSpec
 import os
+from ..misc import load_jailconf, \
+    save_jailconf, \
+    quote_for_jailconf
+import jailconf
 
 
 def gen_env_command(command, env):
@@ -29,10 +33,12 @@ class OSJailSpec:
         if kwargs.get('init_key') != OSJailSpec.__init_key:
             raise RuntimeError('OSJailSpec must be created using one of the factory methods')
 
-        self.params = kwargs.get('params')
+        self.params = kwargs['params']
+        self.name = kwargs['name']
 
     @staticmethod
     def from_jailspec(jailspec: JailSpec) -> OSJailSpec:
+        name = jailspec.name
         path = jailspec.path
 
         params = dict(jailspec.rest_params)
@@ -61,7 +67,28 @@ class OSJailSpec:
         params['path'] = path
         params['host.hostname'] = jailspec.hostname
         # mounts
-        return OSJailSpec(init_key=OSJailSpec.__init_key, params=params)
+        return OSJailSpec(init_key=OSJailSpec.__init_key, params=params, name=name)
 
     def to_dict(self):
         return dict(self.params)
+
+    def to_jail_block(self):
+        blk = {
+            k: quote_for_jailconf(v) for k, v in self.params.items()
+        }
+
+        #blk = { k: v for k, v in self.params.items() \
+        #    if not isinstance(v, bool) or v != False }
+
+        blk = jailconf.JailBlock(blk)
+        return blk
+
+    def add(self, fname='/etc/jail.conf'):
+        conf = load_jailconf(fname)
+        conf[self.name] = self.to_jail_block()
+        save_jailconf(conf, fname)
+
+    def remove(self, fname='/etc/jail.conf'):
+        conf = load_jailconf(fname)
+        del conf[self.name]
+        save_jailconf(conf, fname)

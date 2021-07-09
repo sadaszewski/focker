@@ -1,4 +1,7 @@
-from .process import focker_subprocess_check_output
+from .process import focker_subprocess_check_output, \
+    focker_subprocess_run
+from .jailspec import JailSpec
+from .osjailspec import OSJailSpec
 
 
 class PrePostCommandManager:
@@ -14,4 +17,14 @@ class PrePostCommandManager:
 
 
 def default_jail_run(im, command):
-    raise NotImplementedError
+    spec = JailSpec.from_dict({
+        'image': im
+    })
+    ospec = OSJailSpec.from_jailspec(spec)
+    ospec.add()
+    focker_subprocess_check_output(['jail', '-c', ospec.name])
+    try:
+        focker_subprocess_check_output(['jexec', ospec.name, command])
+    finally:
+        focker_subprocess_check_output(['jail', '-r', ospec.name])
+        ospec.remove()
