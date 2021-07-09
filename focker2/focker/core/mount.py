@@ -7,8 +7,8 @@ class Mount:
         mountpoint: Union[str, object],
         fs_type: str = 'nullfs') -> None:
 
-        self.source = source if isinstance(source, str) else source.path()
-        self.mountpoint = mountpoint if isinstance(mountpoint, str) else mountpoint.path()
+        self.source = source if isinstance(source, str) else source.path
+        self.mountpoint = mountpoint if isinstance(mountpoint, str) else mountpoint.path
         self.fs_type = fs_type
 
     def mount(self) -> None:

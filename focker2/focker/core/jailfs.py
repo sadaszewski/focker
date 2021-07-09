@@ -31,15 +31,15 @@ class JailFs(Taggable, Cloneable):
         #return JailFs(init_key=JailFs.__init_key, name=name, sha256=sha256,
         #    mountpoint=mountpoint)
 
-    def path(self):
-        return self.mountpoint
+    #def path(self):
+    #    return self.mountpoint
 
     @property
     def jid(self):
         info = focker_subprocess_check_output([ 'jls', '--libxo',  'json' ])
         info = json.loads(info)
         info = [ j for j in info['jail-information']['jail']
-            if j['path'] == self.path() ]
+            if j['path'] == self.path ]
         if len(info) == 0:
             return None
         if len(info) == 1:

@@ -41,6 +41,22 @@ class Taggable:
             raise RuntimeError(f'Ambiguous {cls.__name__.lower()} reference')
 
     @classmethod
+    def exists_predicate(cls, pred):
+        lst = zfs_list(cls._meta_list_columns,
+            focker_type=cls._meta_focker_type, zfs_type=cls._meta_zfs_type)
+        lst = [ e for e in lst if pred(e) ]
+        if len(lst) == 0:
+            return False
+        elif len(lst) == 1:
+            return True
+        else:
+            raise RuntimeError('Ambiguous reference')
+
+    @classmethod
+    def exists_sha256(cls, sha256: str):
+        return cls.exists_predicate(lambda e: e[2] == sha256)
+
+    @classmethod
     def from_predicate(cls, pred):
         lst = zfs_list(cls._meta_list_columns,
             focker_type=cls._meta_focker_type, zfs_type=cls._meta_zfs_type)
@@ -114,6 +130,7 @@ class Taggable:
     def unprotect(self):
         zfs_unprotect(self.name)
 
+    @property
     def path(self):
         return self.mountpoint
 

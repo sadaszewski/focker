@@ -47,7 +47,7 @@ def materialize_parsers(defs, subp, overrides):
                     v_2['default'] = o[k_1].split(',') \
                         if ',' in o[k_1] else o[k_1]
                 if v_1.get('positional', False):
-                    parser.add_argument(f'{k_1.replace("_", "-")}', **v_2)
+                    parser.add_argument(k_1, **v_2)
                 else:
                     parser.add_argument(f'--{k_1.replace("_", "-")}',
                         *[ f'-{a}' for a in v_1.get('aliases', []) ],

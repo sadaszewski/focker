@@ -89,10 +89,10 @@ class JailSpec:
             path = focker_spec['path']
         elif 'image' in focker_spec:
             path = Image.from_any_id(focker_spec['image'], strict=True)
-            path = path.path()
+            path = path.path
         else:
             path = JailFs.from_any_id(focker_spec['jailfs'], strict=True)
-            path = path.path()
+            path = path.path
         mounts = focker_spec.get('mounts', [])
         mounts = [ Mount(m[0], m[1]) for m in mounts ]
         env = focker_spec.get('env', {})

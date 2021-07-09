@@ -185,6 +185,14 @@ def zfs_exists_props(props: Dict[str, str], focker_type: str, zfs_type: str) -> 
     return ( len(lst) > 0 )
 
 
+def zfs_find_prefix(head, tail):
+    for pre in range(7, len(tail)):
+        name = head + tail[:pre]
+        if not zfs_exists(name):
+            break
+    return name
+
+
 def zfs_shortest_unique_name(name: str, focker_type: str) -> str:
     head = f'{ROOT_DATASET}/{focker_type}s/'
-    return find_prefix(head, name)
+    return zfs_find_prefix(head, name)

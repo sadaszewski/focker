@@ -1,8 +1,9 @@
-from ..plugin import Plugin
+from ...plugin import Plugin
 from argparse import ArgumentParser
-from ..core import Image
+from ...core import Image
 from tabulate import tabulate
-from .common import cmd_taggable_list
+from ..common import cmd_taggable_list
+from .build import cmd_image_build
 
 
 class ImagePlugin(Plugin):
@@ -14,7 +15,21 @@ class ImagePlugin(Plugin):
                 subparsers=dict(
                     build=dict(
                         aliases=['bld', 'b'],
-                        func=cmd_image_build
+                        func=cmd_image_build,
+                        focker_dir=dict(
+                            positional=True,
+                            type=str
+                        ),
+                        tags=dict(
+                            aliases=['t'],
+                            type=str,
+                            nargs='+',
+                            default=[]
+                        ),
+                        squeeze=dict(
+                            aliases=['s'],
+                            action='store_true'
+                        )
                     ),
                     list=dict(
                         aliases=['lst', 'ls', 'l'],
@@ -36,10 +51,6 @@ class ImagePlugin(Plugin):
                 )
             )
         )
-
-
-def cmd_image_build(args):
-    raise NotImplementedError
 
 
 def cmd_image_list(args):

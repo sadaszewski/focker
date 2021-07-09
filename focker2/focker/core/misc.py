@@ -11,3 +11,7 @@ class PrePostCommandManager:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         focker_subprocess_check_output(self.post_command)
+
+
+def default_jail_run(im, command):
+    raise NotImplementedError
