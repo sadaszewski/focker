@@ -2,6 +2,8 @@ from .process import focker_subprocess_check_output, \
     focker_subprocess_run
 from .jailspec import JailSpec
 from .osjailspec import OSJailSpec
+from .jailfs import JailFs
+from .image import Image
 
 
 class PrePostCommandManager:
@@ -17,14 +19,22 @@ class PrePostCommandManager:
 
 
 def default_jail_run(im, command):
-    spec = JailSpec.from_dict({
-        'image': im
-    })
+    feed = {
+        'exec.start': '',
+        'exec.stop': ''
+    }
+    if isinstance(im, JailFs):
+        feed['jailfs'] = im
+    elif isinstance(im, Image):
+        feed['image'] = im
+    else:
+        raise TypeError('Expected JailFs or Image')
+    spec = JailSpec.from_dict(feed)
     ospec = OSJailSpec.from_jailspec(spec)
     ospec.add()
     focker_subprocess_check_output(['jail', '-c', ospec.name])
     try:
-        focker_subprocess_check_output(['jexec', ospec.name, command])
+        focker_subprocess_run(['jexec', ospec.name, '/bin/sh', '-c', command])
     finally:
         focker_subprocess_check_output(['jail', '-r', ospec.name])
         ospec.remove()

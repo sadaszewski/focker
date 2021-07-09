@@ -110,13 +110,17 @@ class JailSpec:
             name = JAIL_NAME_PREFIX + 'raw_' + sha256
             hostname = rest_spec.get('host.hostname', sha256)
         elif 'image' in focker_spec:
-            path = Image.from_any_id(focker_spec['image'], strict=True)
+            path = focker_spec['image']
+            path = path if isinstance(path, Image) \
+                else Image.from_any_id(path, strict=True)
             path = path.path
             _, name = os.path.split(path)
             hostname = rest_spec.get('host.hostname', name)
             name = JAIL_NAME_PREFIX + 'img_' + name
         else:
-            path = JailFs.from_any_id(focker_spec['jailfs'], strict=True)
+            path = focker_spec['jailfs']
+            path = path if isinstance(path, JailFs) \
+                else JailFs.from_any_id(path, strict=True)
             path = path.path
             _, name = os.path.split(path)
             hostname = rest_spec.get('host.hostname', name)

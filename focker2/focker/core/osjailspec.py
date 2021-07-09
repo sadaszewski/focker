@@ -23,6 +23,12 @@ def concat_commands(lst):
     return ' && '.join(lst)
 
 
+def neg_key_name(k):
+    k = k.split('.')
+    k = '.'.join(k[:-1] + [ 'no' + k[-1] ])
+    return k
+
+
 OSJailSpec = 'OSJailSpec'
 
 
@@ -77,8 +83,14 @@ class OSJailSpec:
             k: quote_for_jailconf(v) for k, v in self.params.items()
         }
 
-        #blk = { k: v for k, v in self.params.items() \
-        #    if not isinstance(v, bool) or v != False }
+        blk = { neg_key_name(k) if isinstance(v, bool) \
+            and v == False else k: v \
+                for k, v in blk.items() }
+
+        blk = { k: v for k, v in blk.items()
+            if v is not None }
+
+        print('blk:', blk)
 
         blk = jailconf.JailBlock(blk)
         return blk
