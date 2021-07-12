@@ -114,6 +114,10 @@ class Taggable:
         zfs_untag(tags, focker_type=self._meta_focker_type)
         self.tags = self.tags.difference(tags)
 
+    @classmethod
+    def untag(cls, tags):
+        zfs_untag(tags, focker_type=cls._meta_focker_type)
+
     def in_use(self):
         fields = ['name', 'origin']
         lst = zfs_list(fields, focker_type='image') + \

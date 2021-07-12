@@ -40,9 +40,28 @@ class VolumePlugin(Plugin):
                     prune=dict(
                         aliases=['pru', 'p'],
                         func=cmd_volume_prune
+                    ),
+                    tag=dict(
+                        aliases=['t'],
+                        func=cmd_volume_tag,
+                        reference=dict(
+                            positional=True,
+                            type=str
+                        ),
+                        tags=dict(
+                            positional=True,
+                            type=str,
+                            nargs='+'
+                        )
+                    ),
+                    untag=dict(
+                        aliases=['u'],
+                        func=cmd_volume_untag,
+                        tags=dict(
+                            positional=True,
+                            nargs='+'
+                        )
                     )
-                    #    command_volume_tag, \
-                    #    command_volume_untag, \
                     #    command_volume_remove, \
                     #    command_volume_set, \
                     #    command_volume_get, \
@@ -64,3 +83,12 @@ def cmd_volume_create(args):
 
 def cmd_volume_prune(args):
     Volume.prune()
+
+
+def cmd_volume_tag(args):
+    v = Volume.from_any_id(args.reference)
+    v.add_tags(args.tags)
+
+
+def cmd_volume_untag(args):
+    Volume.untag(args.tags)
