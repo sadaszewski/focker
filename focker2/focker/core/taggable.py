@@ -1,10 +1,13 @@
 from .zfs import zfs_list, \
     zfs_tag, \
     zfs_untag, \
+    zfs_create, \
     zfs_destroy, \
     zfs_protect, \
     zfs_unprotect, \
-    zfs_get_property
+    zfs_get_property, \
+    random_sha256_hexdigest, \
+    zfs_shortest_unique_name
 
 
 class Taggable:
@@ -96,11 +99,15 @@ class Taggable:
                 e[2].startswith(id_))
 
     def add_tags(self, tags):
+        if tags is None:
+            return
         zfs_untag(tags, focker_type=self._meta_focker_type)
         zfs_tag(self.name, tags)
         self.tags = self.tags.union(tags)
 
     def remove_tags(self, tags):
+        if tags is None:
+            return
         if any(t not in self.tags for t in tags):
             raise RuntimeError(f'This {self.__class__.__name__.lower()} does not seem to be tagged with all the specified tags')
         zfs_untag(tags, focker_type=self._meta_focker_type)
@@ -113,6 +120,14 @@ class Taggable:
         if any(item[1].startswith(f'{self.name}@') for item in lst):
             return True
         return False
+
+    @classmethod
+    def create(cls, sha256=None):
+        if sha256 is None:
+            sha256 = random_sha256_hexdigest()
+        name = zfs_shortest_unique_name(sha256, cls._meta_focker_type)
+        zfs_create(name, { 'focker:sha256': sha256 })
+        return cls.from_sha256(sha256)
 
     def destroy(self):
         if self.in_use():

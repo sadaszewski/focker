@@ -27,11 +27,33 @@ class VolumePlugin(Plugin):
                             default=None,
                             choices=['name', 'tags', 'sha256', 'mountpoint', 'is_finalized']
                         )
-                    )
+                    ),
+                    create=dict(
+                        aliases=['creat', 'crea', 'cre', 'c'],
+                        func=cmd_volume_create,
+                        tags=dict(
+                            aliases=['t'],
+                            type=str,
+                            nargs='+'
+                        )
+                    ),
+                    # command_volume_prune, \
+                    #    command_volume_tag, \
+                    #    command_volume_untag, \
+                    #    command_volume_remove, \
+                    #    command_volume_set, \
+                    #    command_volume_get, \
+                    #    command_volume_protect, \
+                    #    command_volume_unprotect
                 )
             )
         )
 
-
 def cmd_volume_list(args):
     cmd_taggable_list(args, Volume)
+
+
+def cmd_volume_create(args):
+    v = Volume.create()
+    v.add_tags(args.tags)
+    print('Created', v.name, 'mounted at', v.path)
