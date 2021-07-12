@@ -8,7 +8,9 @@ from .zfs import zfs_list, \
     zfs_get_property, \
     random_sha256_hexdigest, \
     zfs_shortest_unique_name, \
-    zfs_prune
+    zfs_prune, \
+    zfs_set_props, \
+    zfs_get_property
 
 
 class Taggable:
@@ -157,5 +159,11 @@ class Taggable:
     @property
     def path(self):
         return self.mountpoint
+
+    def set_props(self, props):
+        zfs_set_props(self.name, props)
+
+    def get_props(self, props):
+        return { k: zfs_get_property(self.name, k) for k in props }
 
 Taggable._meta_class = Taggable

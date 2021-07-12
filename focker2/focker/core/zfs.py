@@ -232,3 +232,8 @@ def zfs_prune(focker_type='image'):
             print('Removing:', r[3])
             zfs_run(['zfs', 'destroy', '-r', '-f', r[3]])
             again = True
+
+
+def zfs_set_props(name, props):
+    for (k, v) in props.items():
+        zfs_run(['zfs', 'set', k + '=' + v, name])

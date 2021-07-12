@@ -2,6 +2,7 @@ from ..plugin import Plugin
 from tabulate import tabulate
 from .common import cmd_taggable_list
 from ..core import Volume
+import argparse
 
 
 class VolumePlugin(Plugin):
@@ -61,10 +62,39 @@ class VolumePlugin(Plugin):
                             positional=True,
                             nargs='+'
                         )
+                    ),
+                    remove=dict(
+                        aliases=['rm', 'r'],
+                        func=cmd_volume_remove,
+                        reference=dict(
+                            positional=True,
+                            type=str
+                        )
+                    ),
+                    set=dict(
+                        func=cmd_volume_set,
+                        reference=dict(
+                            positional=True,
+                            type=str
+                        ),
+                        properties=dict(
+                            positional=True,
+                            type=str,
+                            nargs=argparse.REMAINDER
+                        )
+                    ),
+                    get=dict(
+                        func=cmd_volume_get,
+                        reference=dict(
+                            positional=True,
+                            type=str
+                        ),
+                        properties=dict(
+                            positional=True,
+                            type=str,
+                            nargs=argparse.REMAINDER
+                        )
                     )
-                    #    command_volume_remove, \
-                    #    command_volume_set, \
-                    #    command_volume_get, \
                     #    command_volume_protect, \
                     #    command_volume_unprotect
                 )
@@ -92,3 +122,25 @@ def cmd_volume_tag(args):
 
 def cmd_volume_untag(args):
     Volume.untag(args.tags)
+
+
+def cmd_volume_remove(args):
+    v = Volume.from_any_id(args.reference)
+    v.destroy()
+
+
+def cmd_volume_set(args):
+    v = Volume.from_any_id(args.reference)
+    if not args.properties:
+        raise ValueError('You must specify some properties')
+    props = { p.split('=')[0]: '='.join(p.split('=')[1:]) for p in args.properties }
+    v.set_props(props)
+
+
+def cmd_volume_get(args):
+    v = Volume.from_any_id(args.reference)
+    if not args.properties:
+        raise ValueError('You must specify some properties')
+    res = v.get_props(args.properties)
+    res = [ [ k, res[k] ] for k in args.properties ]
+    print(tabulate(res, headers=['Property', 'Value']))
