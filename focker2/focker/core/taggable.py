@@ -7,7 +7,8 @@ from .zfs import zfs_list, \
     zfs_unprotect, \
     zfs_get_property, \
     random_sha256_hexdigest, \
-    zfs_shortest_unique_name
+    zfs_shortest_unique_name, \
+    zfs_prune
 
 
 class Taggable:
@@ -133,6 +134,10 @@ class Taggable:
         if self.in_use():
             raise RuntimeError(f'This {self.__class__.__name__.lower()} is in use')
         zfs_destroy(self.name)
+
+    @classmethod
+    def prune(cls):
+        zfs_prune(cls._meta_focker_type)
 
     @property
     def is_protected(self):

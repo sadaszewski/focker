@@ -209,3 +209,26 @@ def random_sha256_hexdigest():
         if not res[:7].isnumeric():
             return res
     raise ValueError('Couldn\'t find random SHA256 hash with non-numeric 7-character prefix in 10^6 trials o_O')
+
+
+def zfs_prune(focker_type='image'):
+    again = True
+    while again:
+        again = False
+        lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:sha256,focker:tags,origin,name,focker:protect', '-H', '-r', ROOT_DATASET + '/' + focker_type + 's'])
+        used = set()
+        for r in lst:
+            if r[2] == '-':
+                continue
+            used.add(r[2].split('@')[0])
+        for r in lst:
+            if r[0] == '-' or r[1] != '-':
+                continue
+            if r[3] in used:
+                continue
+            if r[4] != '-':
+                print('%s is protected against removal' % r[3])
+                continue
+            print('Removing:', r[3])
+            zfs_run(['zfs', 'destroy', '-r', '-f', r[3]])
+            again = True

@@ -24,5 +24,6 @@ and some smaller fixes:
 - [ ] Sorting of listing results,
 - [ ] Configurable prefix for names in /etc/jail.conf,
 - [ ] Configurable location (dataset) for focker objects.
+- [ ] Detect usage of volumes by jails when pruning (maybe)
 
 Stay tuned.

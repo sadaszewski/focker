@@ -19,13 +19,13 @@ class VolumePlugin(Plugin):
                             type=str,
                             default=['tags', 'mountpoint', 'is_protected'],
                             nargs='+',
-                            choices=['name', 'tags', 'sha256', 'mountpoint', 'is_finalized']
+                            choices=['name', 'tags', 'sha256', 'mountpoint', 'is_protected']
                         ),
                         sort=dict(
                             aliases=['s'],
                             type=str,
                             default=None,
-                            choices=['name', 'tags', 'sha256', 'mountpoint', 'is_finalized']
+                            choices=['name', 'tags', 'sha256', 'mountpoint', 'is_protected']
                         )
                     ),
                     create=dict(
@@ -37,7 +37,10 @@ class VolumePlugin(Plugin):
                             nargs='+'
                         )
                     ),
-                    # command_volume_prune, \
+                    prune=dict(
+                        aliases=['pru', 'p'],
+                        func=cmd_volume_prune
+                    )
                     #    command_volume_tag, \
                     #    command_volume_untag, \
                     #    command_volume_remove, \
@@ -57,3 +60,7 @@ def cmd_volume_create(args):
     v = Volume.create()
     v.add_tags(args.tags)
     print('Created', v.name, 'mounted at', v.path)
+
+
+def cmd_volume_prune(args):
+    Volume.prune()
