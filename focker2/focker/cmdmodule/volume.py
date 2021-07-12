@@ -94,9 +94,23 @@ class VolumePlugin(Plugin):
                             type=str,
                             nargs=argparse.REMAINDER
                         )
+                    ),
+                    protect=dict(
+                        aliases=['pro'],
+                        func=cmd_volume_protect,
+                        reference=dict(
+                            positional=True,
+                            type=str
+                        )
+                    ),
+                    unprotect=dict(
+                        aliases=['unp'],
+                        func=cmd_volume_unprotect,
+                        reference=dict(
+                            positional=True,
+                            type=str
+                        )
                     )
-                    #    command_volume_protect, \
-                    #    command_volume_unprotect
                 )
             )
         )
@@ -144,3 +158,13 @@ def cmd_volume_get(args):
     res = v.get_props(args.properties)
     res = [ [ k, res[k] ] for k in args.properties ]
     print(tabulate(res, headers=['Property', 'Value']))
+
+
+def cmd_volume_protect(args):
+    v = Volume.from_any_id(args.reference)
+    v.protect()
+
+
+def cmd_volume_unprotect(args):
+    v = Volume.from_any_id(args.reference)
+    v.unprotect()
