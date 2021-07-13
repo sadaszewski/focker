@@ -10,6 +10,8 @@ class VolumePlugin(Plugin):
         return dict(
             volume=dict(
                 aliases=['vol', 'v'],
-                subparsers=standard_fobject_commands(Volume)
+                subparsers=dict(
+                    **standard_fobject_commands(Volume)
+                )
             )
         )

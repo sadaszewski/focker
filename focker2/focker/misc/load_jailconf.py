@@ -3,7 +3,7 @@ import os
 import jailconf
 
 
-def load_jailconf(fname):
+def load_jailconf(fname='/etc/jail.conf'):
     if os.path.exists(fname):
         conf = jailconf.load(fname)
     else:
@@ -11,6 +11,6 @@ def load_jailconf(fname):
     return conf
 
 
-def save_jailconf(conf, fname):
+def save_jailconf(conf, fname='/etc/jail.conf'):
     backup_file(fname)
     conf.write(fname)

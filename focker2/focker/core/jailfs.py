@@ -4,6 +4,8 @@ from .taggable import Taggable
 from .cloneable import Cloneable
 from .process import focker_subprocess_check_output
 import json
+from ..misc import load_jailconf, \
+    save_jailconf
 
 
 JailFs = 'JailFs'
@@ -33,6 +35,14 @@ class JailFs(Taggable, Cloneable):
 
     #def path(self):
     #    return self.mountpoint
+
+    def destroy(self):
+        jconf = load_jailconf()
+        for k, blk in list(jconf.items()):
+            if blk['path'].strip('\'"') == self.path:
+                del jconf[k]
+        save_jailconf(jconf)
+        super().destroy()
 
     @property
     def jid(self):
