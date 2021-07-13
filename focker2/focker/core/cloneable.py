@@ -2,7 +2,8 @@ from .zfs import zfs_list, \
     zfs_clone, \
     zfs_mountpoint, \
     zfs_exists_props, \
-    zfs_shortest_unique_name
+    zfs_shortest_unique_name, \
+    random_sha256_hexdigest
 from .taggable import Taggable
 
 
@@ -11,11 +12,13 @@ class Cloneable:
         pass
 
     @classmethod
-    def clone_from(cls, base: Taggable, sha256: str) -> Taggable:
+    def clone_from(cls, base: Taggable, sha256: str = None) -> Taggable:
         if not isinstance(base, cls._meta_cloneable_from):
             raise TypeError(f'{base.__class__.__name__} is not the expected type - {cls._meta_cloneable_from.__name__}')
         if not base.is_finalized:
             raise RuntimeError(f'{base.__class__.__name__} must be finalized')
+        if sha256 is None:
+            sha256 = random_sha256_hexdigest()
         if zfs_exists_props({ 'focker:sha256': sha256 }, focker_type=cls._meta_focker_type,
             zfs_type=cls._meta_zfs_type):
             raise RuntimeError(f'{cls.__name__} with specified SHA256 already exists')
