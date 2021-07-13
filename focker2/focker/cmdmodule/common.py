@@ -1,4 +1,5 @@
 from tabulate import tabulate
+import argparse
 
 
 def standard_fobject_commands(fobject_class,
@@ -7,7 +8,7 @@ def standard_fobject_commands(fobject_class,
     return dict(
         list=dict(
             aliases=['lst', 'ls', 'l'],
-            cmd=lambda args: cmd_taggable_list(args, fobject_class),
+            func=lambda args: cmd_taggable_list(args, fobject_class),
             output=dict(
                 aliases=['o'],
                 type=str,
