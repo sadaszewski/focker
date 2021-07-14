@@ -84,7 +84,11 @@ class Jail:
     def untag(tags, cls=JailFs):
         cls.untag(tags)
 
+    @staticmethod
+    def prune(cls=JailFs):
+        cls.prune()
+
     def __getattr__(self, attr):
-        if hasattr(self.fobject, attr):
+        if self.fobject is not None and hasattr(self.fobject, attr):
             return getattr(self.fobject, attr)
         raise AttributeError
