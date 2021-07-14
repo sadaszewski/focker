@@ -54,7 +54,8 @@ class Jail:
         conf = load_jailconf()
         for k, blk in conf.items():
             if jailconf_unquote(blk.get('path')) == fobj.path:
-                return Jail(init_key=Jail._init_key, jail_name=k, fobject=fobj)
+                return Jail(init_key=Jail._init_key,
+                    jail_name=jailconf_unquote(k), fobject=fobj)
         return None
 
     @staticmethod

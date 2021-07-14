@@ -22,7 +22,7 @@ def quote_for_jailconf(s):
 def jailconf_unquote(s):
     if not isinstance(s, str):
         return s
-    s = s.strip('\'')
+    s = s.strip('\'"')
     s = s.replace('\\\'', '\'')
     s = s.replace('\\\\', '\\')
     return s
