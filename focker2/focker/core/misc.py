@@ -4,6 +4,8 @@ from .jailspec import JailSpec
 from .osjailspec import OSJailSpec
 from .jailfs import JailFs
 from .image import Image
+import os
+import yaml
 
 
 class PrePostCommandManager:

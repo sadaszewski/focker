@@ -17,3 +17,12 @@ def quote_for_jailconf(s):
     s = s.replace('\'', '\\\'')
     s = '\'' + s + '\''
     return s
+
+
+def jailconf_unquote(s):
+    if not isinstance(s, str):
+        return s
+    s = s.strip('\'')
+    s = s.replace('\\\'', '\'')
+    s = s.replace('\\\\', '\\')
+    return s
