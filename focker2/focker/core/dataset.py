@@ -19,7 +19,6 @@ class Dataset:
         self.sha256 = kwargs['sha256']
         self.tags = set(kwargs['tags'])
         self.mountpoint = kwargs['mountpoint']
-        self.is_finalized = kwargs['is_finalized']
 
     @classmethod
     def clone_from(cls, base: Dataset, sha256: str = None) -> Dataset:
@@ -38,12 +37,16 @@ class Dataset:
         zfs_clone(base.snapshot_name, name, { 'focker:sha256': sha256 })
         mountpoint = zfs_mountpoint(name)
         return cls._meta_class(init_key=cls._init_key, name=name, sha256=sha256,
-            tags=[], mountpoint=mountpoint, is_finalized=False)
+            tags=[], mountpoint=mountpoint)
 
     def finalize(self):
         zfs_set_props(self.name, { 'rdonly': 'on' })
         zfs_snapshot(self.snapshot_name)
-        self.is_finalized = True
+
+    @property
+    def is_finalized(self):
+        res = zfs_get_property(self.name, [ 'rdonly' ])
+        return (res == 'on')
 
     @property
     def snapshot_name(self):
@@ -54,8 +57,8 @@ class Dataset:
         res = zfs_list(cls._meta_list_columns, focker_type=cls._meta_focker_type,
             zfs_type=cls._meta_zfs_type)
         res = [ cls._meta_class(init_key=cls._init_key, name=name, sha256=sha256,
-            tags=tags.split(' '), mountpoint=mountpoint, is_finalized=(rdonly == 'on'))
-            for name, mountpoint, sha256, tags, rdonly, *_ in res ]
+            tags=tags.split(' '), mountpoint=mountpoint)
+                for name, mountpoint, sha256, tags, *_ in res ]
         return res
 
     @classmethod
@@ -88,11 +91,10 @@ class Dataset:
         lst = [ e for e in lst if pred(e) ]
         # print(lst)
         cls.from_predicate_handle_corner_cases(lst)
-        name, mountpoint, sha256, tags, rdonly, *_ = lst[0]
+        name, mountpoint, sha256, tags, *_ = lst[0]
         tags = tags.split(' ')
-        is_finalized = (rdonly == 'on')
         return cls._meta_class(init_key=cls._init_key, name=name, sha256=sha256,
-            tags=tags, mountpoint=mountpoint, is_finalized=is_finalized)
+            tags=tags, mountpoint=mountpoint)
 
     @classmethod
     def from_sha256(cls, sha256: str):
