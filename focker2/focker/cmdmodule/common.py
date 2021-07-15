@@ -3,12 +3,13 @@ import argparse
 
 
 def standard_fobject_commands(fobject_class,
-    display_fields=['name', 'tags', 'sha256', 'mountpoint', 'is_protected', 'is_finalized']):
+    display_fields=['name', 'tags', 'sha256', 'mountpoint', 'is_protected', 'is_finalized'],
+    **kwargs):
 
     return dict(
         list=dict(
             aliases=['lst', 'ls', 'l'],
-            func=lambda args: cmd_taggable_list(args, fobject_class),
+            func=kwargs.get('list', lambda args: cmd_taggable_list(args, fobject_class)),
             output=dict(
                 aliases=['o'],
                 type=str,
@@ -25,7 +26,7 @@ def standard_fobject_commands(fobject_class,
         ),
         create=dict(
             aliases=['creat', 'crea', 'cre', 'c'],
-            func=lambda args: cmd_fobject_create(args, fobject_class),
+            func=kwargs.get('create', lambda args: cmd_fobject_create(args, fobject_class)),
             tags=dict(
                 aliases=['t'],
                 type=str,
@@ -34,11 +35,11 @@ def standard_fobject_commands(fobject_class,
         ),
         prune=dict(
             aliases=['pru', 'p'],
-            func=lambda args: cmd_fobject_prune(args, fobject_class)
+            func=kwargs.get('prune', lambda args: cmd_fobject_prune(args, fobject_class))
         ),
         tag=dict(
             aliases=['t'],
-            func=lambda args: cmd_fobject_tag(args, fobject_class),
+            func=kwargs.get('tag', lambda args: cmd_fobject_tag(args, fobject_class)),
             reference=dict(
                 positional=True,
                 type=str
@@ -51,7 +52,7 @@ def standard_fobject_commands(fobject_class,
         ),
         untag=dict(
             aliases=['u'],
-            func=lambda args: cmd_fobject_untag(args, fobject_class),
+            func=kwargs.get('untag', lambda args: cmd_fobject_untag(args, fobject_class)),
             tags=dict(
                 positional=True,
                 nargs='+'
@@ -59,14 +60,14 @@ def standard_fobject_commands(fobject_class,
         ),
         remove=dict(
             aliases=['rm', 'r'],
-            func=lambda args: cmd_fobject_remove(args, fobject_class),
+            func=kwargs.get('remove', lambda args: cmd_fobject_remove(args, fobject_class)),
             reference=dict(
                 positional=True,
                 type=str
             )
         ),
         set=dict(
-            func=lambda args: cmd_fobject_set(args, fobject_class),
+            func=kwargs.get('set', lambda args: cmd_fobject_set(args, fobject_class)),
             reference=dict(
                 positional=True,
                 type=str
@@ -78,7 +79,7 @@ def standard_fobject_commands(fobject_class,
             )
         ),
         get=dict(
-            func=lambda args: cmd_fobject_get(args, fobject_class),
+            func=kwargs.get('get', lambda args: cmd_fobject_get(args, fobject_class)),
             reference=dict(
                 positional=True,
                 type=str
@@ -91,7 +92,7 @@ def standard_fobject_commands(fobject_class,
         ),
         protect=dict(
             aliases=['pro'],
-            func=lambda args: cmd_fobject_protect(args, fobject_class),
+            func=kwargs.get('protect', lambda args: cmd_fobject_protect(args, fobject_class)),
             reference=dict(
                 positional=True,
                 type=str
@@ -99,7 +100,7 @@ def standard_fobject_commands(fobject_class,
         ),
         unprotect=dict(
             aliases=['unp'],
-            func=lambda args: cmd_fobject_unprotect(args, fobject_class),
+            func=kwargs.get('unprotect', lambda args: cmd_fobject_unprotect(args, fobject_class)),
             reference=dict(
                 positional=True,
                 type=str
