@@ -9,6 +9,7 @@ import yaml
 import os
 from functools import reduce
 import random
+from ..misc import load_overrides
 
 
 def zfs_run(command):
@@ -38,23 +39,9 @@ ROOT_MOUNTPOINT = None
 def zfs_load_config():
     global ROOT_DATASET
     global ROOT_MOUNTPOINT
-    res = None
-    for p in [ os.path.expanduser('~/.focker/focker.conf'),
-        '/usr/local/etc/focker/focker.conf', '/etc/focker/focker.conf' ]:
-        if os.path.exists(p):
-            with open(p) as f:
-                data = yaml.safe_load(f)
-            ROOT_DATASET = data.get('root_dataset', None)
-            ROOT_MOUNTPOINT = data.get('root_mountpoint', None)
-            break
-    if 'FOCKER_ROOT_DATASET' in os.environ:
-        ROOT_DATASET = os.environ['FOCKER_ROOT_DATASET']
-    if 'FOCKER_ROOT_MOUNTPOINT' is os.environ:
-        ROOT_MOUNTPOINT = os.environ['FOCKER_ROOT_MOUNTPOINT']
-    if ROOT_DATASET is None:
-        ROOT_DATASET = zfs_poolname() + '/focker'
-    if ROOT_MOUNTPOINT is None:
-        ROOT_MOUNTPOINT = '/focker'
+    conf = load_overrides('focker.conf', [ 'root_dataset', 'root_mountpoint' ])
+    ROOT_DATASET = conf.get('root_dataset', zfs_poolname() + '/focker')
+    ROOT_MOUNTPOINT = conf.get('root_mountpoint', '/focker')
 
 zfs_load_config()
 
