@@ -1,7 +1,6 @@
 from .image import Image
 from .zfs import zfs_shortest_unique_name
-from .taggable import Taggable
-from .cloneable import Cloneable
+from .dataset import Dataset
 from .process import focker_subprocess_check_output
 import json
 from ..misc import load_jailconf, \
@@ -10,13 +9,12 @@ from ..misc import load_jailconf, \
 
 JailFs = 'JailFs'
 
-class JailFs(Taggable, Cloneable):
+class JailFs(Dataset):
     _meta_focker_type = 'jail'
     _meta_cloneable_from = Image
 
     def __init__(self, **kwargs):
-        Taggable.__init__(self, **kwargs)
-        Cloneable.__init__(self, **kwargs)
+        super().__init__(**kwargs)
 
     @staticmethod
     def from_image(image: Image, sha256: str) -> JailFs:

@@ -1,10 +1,10 @@
-from .taggable import Taggable
+from .dataset import Dataset
 
 
-class Volume(Taggable):
+class Volume(Dataset):
     _meta_focker_type = 'volume'
 
     def __init__(self, **kwargs):
-        Taggable.__init__(self, **kwargs)
+        super().__init__(**kwargs)
 
 Volume._meta_class = Volume

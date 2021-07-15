@@ -1,15 +1,13 @@
-from .taggable import Taggable
-from .cloneable import Cloneable
+from .dataset import Dataset
 
 
 Image='Image'
 
-class Image(Taggable, Cloneable):
+class Image(Dataset):
     _meta_focker_type = 'image'
 
     def __init__(self, **kwargs):
-        Taggable.__init__(self, **kwargs)
-        Cloneable.__init__(self, **kwargs)
+        super().__init__(**kwargs)
 
     @staticmethod
     def from_base(base: Image, sha256: str) -> Image:

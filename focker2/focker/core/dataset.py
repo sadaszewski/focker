@@ -1,23 +1,14 @@
-from .zfs import zfs_list, \
-    zfs_tag, \
-    zfs_untag, \
-    zfs_create, \
-    zfs_destroy, \
-    zfs_protect, \
-    zfs_unprotect, \
-    zfs_get_property, \
-    random_sha256_hexdigest, \
-    zfs_shortest_unique_name, \
-    zfs_prune, \
-    zfs_set_props, \
-    zfs_get_property
+from .zfs import *
 
 
-class Taggable:
+Dataset = 'Dataset'
+
+class Dataset:
     _meta_class = None
     _meta_list_columns = ['name', 'mountpoint', 'focker:sha256', 'focker:tags', 'rdonly']
     _meta_focker_type = 'image'
     _meta_zfs_type = 'filesystem'
+    _meta_cloneable_from = None
     _init_key = object()
 
     def __init__(self, **kwargs):
@@ -29,6 +20,34 @@ class Taggable:
         self.tags = set(kwargs['tags'])
         self.mountpoint = kwargs['mountpoint']
         self.is_finalized = kwargs['is_finalized']
+
+    @classmethod
+    def clone_from(cls, base: Dataset, sha256: str = None) -> Dataset:
+        if cls._meta_cloneable_from is None:
+            raise RuntimeError(f'{cls.__name__} cannot be created by cloning')
+        if not isinstance(base, cls._meta_cloneable_from):
+            raise TypeError(f'{base.__class__.__name__} is not the expected type - {cls._meta_cloneable_from.__name__}')
+        if not base.is_finalized:
+            raise RuntimeError(f'{base.__class__.__name__} must be finalized')
+        if sha256 is None:
+            sha256 = random_sha256_hexdigest()
+        if zfs_exists_props({ 'focker:sha256': sha256 }, focker_type=cls._meta_focker_type,
+            zfs_type=cls._meta_zfs_type):
+            raise RuntimeError(f'{cls.__name__} with specified SHA256 already exists')
+        name = zfs_shortest_unique_name(sha256, focker_type=cls._meta_focker_type)
+        zfs_clone(base.snapshot_name, name, { 'focker:sha256': sha256 })
+        mountpoint = zfs_mountpoint(name)
+        return cls._meta_class(init_key=cls._init_key, name=name, sha256=sha256,
+            tags=[], mountpoint=mountpoint, is_finalized=False)
+
+    def finalize(self):
+        zfs_set_props(self.name, { 'rdonly': 'on' })
+        zfs_snapshot(self.snapshot_name)
+        self.is_finalized = True
+
+    @property
+    def snapshot_name(self):
+        return self.name + '@1'
 
     @classmethod
     def list(cls):
@@ -166,4 +185,4 @@ class Taggable:
     def get_props(self, props):
         return { k: zfs_get_property(self.name, k) for k in props }
 
-Taggable._meta_class = Taggable
+Dataset._meta_class = Dataset
