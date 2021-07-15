@@ -17,7 +17,6 @@ class Dataset:
 
         self.name = kwargs['name']
         self.sha256 = kwargs['sha256']
-        self.tags = set(kwargs['tags'])
         self.mountpoint = kwargs['mountpoint']
 
     @classmethod
@@ -37,7 +36,7 @@ class Dataset:
         zfs_clone(base.snapshot_name, name, { 'focker:sha256': sha256 })
         mountpoint = zfs_mountpoint(name)
         return cls._meta_class(init_key=cls._init_key, name=name, sha256=sha256,
-            tags=[], mountpoint=mountpoint)
+            mountpoint=mountpoint)
 
     def finalize(self):
         zfs_set_props(self.name, { 'rdonly': 'on' })
@@ -45,8 +44,14 @@ class Dataset:
 
     @property
     def is_finalized(self):
-        res = zfs_get_property(self.name, [ 'rdonly' ])
+        res = zfs_get_property(self.name, 'rdonly')
         return (res == 'on')
+
+    @property
+    def tags(self):
+        res = zfs_get_property(self.name, 'focker:tags')
+        res = res.split(' ')
+        return set(res)
 
     @property
     def snapshot_name(self):
@@ -57,8 +62,8 @@ class Dataset:
         res = zfs_list(cls._meta_list_columns, focker_type=cls._meta_focker_type,
             zfs_type=cls._meta_zfs_type)
         res = [ cls._meta_class(init_key=cls._init_key, name=name, sha256=sha256,
-            tags=tags.split(' '), mountpoint=mountpoint)
-                for name, mountpoint, sha256, tags, *_ in res ]
+            mountpoint=mountpoint)
+                for name, mountpoint, sha256, *_ in res ]
         return res
 
     @classmethod
@@ -91,10 +96,9 @@ class Dataset:
         lst = [ e for e in lst if pred(e) ]
         # print(lst)
         cls.from_predicate_handle_corner_cases(lst)
-        name, mountpoint, sha256, tags, *_ = lst[0]
-        tags = tags.split(' ')
+        name, mountpoint, sha256, *_ = lst[0]
         return cls._meta_class(init_key=cls._init_key, name=name, sha256=sha256,
-            tags=tags, mountpoint=mountpoint)
+            mountpoint=mountpoint)
 
     @classmethod
     def from_sha256(cls, sha256: str):
@@ -127,7 +131,6 @@ class Dataset:
             return
         zfs_untag(tags, focker_type=self._meta_focker_type)
         zfs_tag(self.name, tags)
-        self.tags = self.tags.union(tags)
 
     def remove_tags(self, tags):
         if tags is None:
@@ -135,7 +138,6 @@ class Dataset:
         if any(t not in self.tags for t in tags):
             raise RuntimeError(f'This {self.__class__.__name__.lower()} does not seem to be tagged with all the specified tags')
         zfs_untag(tags, focker_type=self._meta_focker_type)
-        self.tags = self.tags.difference(tags)
 
     @classmethod
     def untag(cls, tags):
