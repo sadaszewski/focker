@@ -42,7 +42,7 @@ def default_jail_run(im, command):
         ospec.remove()
 
 
-def handle_path_spec(spec, mode='attach'):
+def get_path_and_name(spec, mode='attach'):
     if mode not in ['create', 'attach']:
         raise RuntimeError('Mode can be "create" or "attach" only')
 
@@ -58,12 +58,19 @@ def handle_path_spec(spec, mode='attach'):
             path = Image.from_any_id(path, strict=True)
         if mode == 'create':
             path = JailFs.clone_from(path)
-        return path.path
+        path = path.path
+        _, name = os.path.split(path)
+        name = name if mode == 'create' else 'img_' + name
     elif 'jailfs' in spec:
         path = spec['jailfs']
         if isinstance(path, str):
             path = JailFs.from_any_id(path, strict=True)
-        return path.path
+        path = path.path
+        _, name = os.path.split(path)
     else:
         path = spec['path']
+        name = hashlib.sha256(os.path.abspath(path).encode('utf-8')).hexdigest()[:7]
+        name = 'raw_' + name
         return path
+
+    return path, name

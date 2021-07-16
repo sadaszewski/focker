@@ -4,11 +4,13 @@ from .osjailspec import OSJailSpec, \
 from .process import focker_subprocess_run, \
     focker_subprocess_check_output
 from .image import Image
+from .misc import get_path_and_name
+from ..misc import load_jailconf, \
+    jailconf_unquote
+
 import shlex
 import os
 from typing import Dict
-from ..misc import load_jailconf, \
-    jailconf_unquote
 
 
 OSJail = 'OSJail'
@@ -44,15 +46,23 @@ class OSJail:
 
 
 class TemporaryOSJail:
-    def __init__(self, create_started=True, **kwargs):
-        self.pathspec = { k: v for k, v in kwargs.items() if k in ['path', 'image', 'jailfs'] }
+    def __init__(self, mode='attach', use_rc=False, create_started=True, **kwargs):
+        if mode != 'attach':
+            raise RuntimeError('Temporary jail can only use "attach" mode')
+        self.mode = mode
+        self.use_rc = False
         self.create_started = create_started
+        self.pathspec = { k: v for k, v in kwargs.items() if k in ['path', 'image', 'jailfs'] }
 
         self.ospec = None
         self.osjail = None
 
     def __enter__(self):
-        spec = JailSpec.from_dict({ **self.pathspec, 'exec.start': '', 'exec.stop': '' })
+        path, name = get_path_and_name(self.pathspec, mode=self.mode)
+        spec = { 'path': path, 'name': name }
+        if not self.use_rc:
+            spec.update({ 'exec.start': '', 'exec.stop': '' })
+        spec = JailSpec.from_dict(spec)
         self.ospec = OSJailSpec.from_jailspec(spec)
         self.ospec.add()
         self.osjail = OSJail.from_name(self.ospec.name)

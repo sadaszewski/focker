@@ -5,7 +5,7 @@ Dataset = 'Dataset'
 
 class Dataset:
     _meta_class = None
-    _meta_list_columns = ['name', 'mountpoint', 'focker:sha256', 'focker:tags', 'rdonly']
+    _meta_list_columns = ['name', 'mountpoint', 'focker:sha256', 'focker:tags', 'rdonly', 'used']
     _meta_focker_type = 'image'
     _meta_zfs_type = 'filesystem'
     _meta_cloneable_from = None
@@ -59,6 +59,10 @@ class Dataset:
     @property
     def snapshot_name(self):
         return self.name + '@1'
+
+    @property
+    def used(self):
+        return zfs_get_property(self.name, 'used')
 
     @classmethod
     def list(cls):

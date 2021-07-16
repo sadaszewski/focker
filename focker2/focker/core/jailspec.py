@@ -63,7 +63,6 @@ class JailSpec:
         self.exec_params = kwargs['exec_params']
         self.rest_params = kwargs['rest_params']
         self.name = kwargs['name']
-        self.fobject = kwargs['fobject']
 
     @staticmethod
     def validate_dict(jailspec: Dict):
@@ -77,41 +76,11 @@ class JailSpec:
         if 'exec.jail_user' in jailspec and 'exec.system_jail_user' in jailspec:
             raise KeyError('exec.jail_user and exec.system_jail_user are mutually exclusive')
 
-        if ('path' in jailspec) + ('image' in jailspec) + ('jailfs' in jailspec) != 1:
-            raise RuntimeError('Exactly one of path, image or jailfs must be specified')
+        if 'path' not in jailspec:
+            raise RuntimeError('Path not specified')
 
-        if 'path' in jailspec and not os.path.exists(jailspec['path']):
+        if not os.path.exists(jailspec['path']):
             raise RuntimeError('Specified path does not exist')
-
-    @staticmethod
-    def get_path(focker_spec, rest_spec):
-        if 'path' in focker_spec:
-            path = focker_spec['path']
-            sha256 = hashlib.sha256(path.encode('utf-8')).hexdigest()[:7]
-            name = JAIL_NAME_PREFIX + 'raw_' + sha256
-            hostname = rest_spec.get('host.hostname', sha256)
-            fobj = None
-        elif 'image' in focker_spec:
-            fobj = focker_spec['image']
-            fobj = fobj if isinstance(fobj, Image) \
-                else Image.from_any_id(fobj, strict=True)
-            path = fobj.path
-            _, name = os.path.split(path)
-            hostname = rest_spec.get('host.hostname', name)
-            name = JAIL_NAME_PREFIX + 'img_' + name
-        else:
-            fobj = focker_spec['jailfs']
-            fobj = fobj if isinstance(fobj, JailFs) \
-                else JailFs.from_any_id(fobj, strict=True)
-            path = fobj.path
-            _, name = os.path.split(path)
-            hostname = rest_spec.get('host.hostname', name)
-            name = JAIL_NAME_PREFIX + name
-
-        if 'host.hostname' in rest_spec:
-            del rest_spec['host.hostname']
-
-        return path, name, hostname, fobj
 
     @staticmethod
     def from_dict(jailspec: Dict):
@@ -125,7 +94,9 @@ class JailSpec:
         rest_spec = dict(DEFAULT_PARAMS)
         rest_spec.update(rest_spec_1)
 
-        path, name, hostname, fobj = JailSpec.get_path(focker_spec, rest_spec)
+        path = focker_spec['path']
+        name = JAIL_NAME_PREFIX + focker_spec['name']
+        hostname = focker_spec.get('host.hostname', name)
 
         mounts = focker_spec.get('mounts', [])
         mounts = [ Mount(m[0], m[1]) for m in mounts ]
@@ -139,4 +110,4 @@ class JailSpec:
         return JailSpec(init_key=JailSpec.__init_key, path=path,
             hostname=hostname, mounts=mounts, env=env,
             exec_params=exec_params, rest_params=rest_params,
-            name=name, fobject=fobj)
+            name=name)

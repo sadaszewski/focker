@@ -3,7 +3,7 @@ import argparse
 
 
 def standard_fobject_commands(fobject_class,
-    display_fields=['name', 'tags', 'sha256', 'mountpoint', 'is_protected', 'is_finalized'],
+    display_fields=['name', 'tags', 'sha256', 'mountpoint', 'is_protected', 'is_finalized', 'used'],
     **kwargs):
 
     return dict(
@@ -13,7 +13,7 @@ def standard_fobject_commands(fobject_class,
             output=dict(
                 aliases=['o'],
                 type=str,
-                default=['tags', 'mountpoint'],
+                default=['tags', 'used', 'mountpoint'],
                 nargs='+',
                 choices=display_fields
             ),
