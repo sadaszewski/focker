@@ -40,3 +40,30 @@ def default_jail_run(im, command):
     finally:
         focker_subprocess_check_output(['jail', '-r', ospec.name])
         ospec.remove()
+
+
+def handle_path_spec(spec, mode='attach'):
+    if mode not in ['create', 'attach']:
+        raise RuntimeError('Mode can be "create" or "attach" only')
+
+    if ('path' in spec) + ('image' in spec) + ('jailfs' in spec) != 1:
+        raise RuntimeError('Exactly one of "path", "image" or "jailfs" was expected')
+
+    if (mode == 'create' and 'image' not in spec):
+        raise RuntimeError('Create mode can be used only with an image')
+
+    if 'image' in spec:
+        path = spec['image']
+        if isinstance(path, str):
+            path = Image.from_any_id(path, strict=True)
+        if mode == 'create':
+            path = JailFs.clone_from(path)
+        return path.path
+    elif 'jailfs' in spec:
+        path = spec['jailfs']
+        if isinstance(path, str):
+            path = JailFs.from_any_id(path, strict=True)
+        return path.path
+    else:
+        path = spec['path']
+        return path
