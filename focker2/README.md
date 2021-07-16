@@ -25,5 +25,6 @@ and some smaller fixes:
 - [ ] Configurable prefix for names in /etc/jail.conf,
 - [ ] Configurable location (dataset) for focker objects.
 - [ ] Detect usage of volumes by jails when pruning (maybe)
+- [ ] Mount volumes while building images
 
 Stay tuned.

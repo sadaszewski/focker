@@ -8,6 +8,7 @@ def get_jail_sysctl_params():
     _params = filter(None, _params)
     _params = { a[len('security.jail.param.'):].strip('.') \
         for a in _params }
+    _params.remove('path')
     return _params
 
 
@@ -27,7 +28,7 @@ JAIL_PSEUDO_PARAMS = {'exec.prestart', 'exec.start', 'command',
 JAIL_PARAMS = JAIL_SYSCTL_PARAMS.union(JAIL_PSEUDO_PARAMS)
 
 
-JAIL_FOCKER_PARAMS = { 'image', 'mounts', 'env', 'jailfs' }
+JAIL_FOCKER_PARAMS = { 'image', 'mounts', 'env', 'jailfs', 'path' }
 
 
 JAIL_EXEC_PARAMS = {'exec.prestart', 'exec.start', 'command',
