@@ -14,6 +14,6 @@ setup(
     install_requires=[
         "tabulate",
         "jailconf",
-        "pyyaml"
+        "ruamel-yaml"
     ]
 )

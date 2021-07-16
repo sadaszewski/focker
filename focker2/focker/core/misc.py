@@ -5,7 +5,7 @@ from .osjailspec import OSJailSpec
 from .jailfs import JailFs
 from .image import Image
 import os
-import yaml
+import ruamel.yaml as yaml
 
 
 class PrePostCommandManager:

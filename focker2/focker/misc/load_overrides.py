@@ -1,5 +1,5 @@
 import os
-import yaml
+import ruamel.yaml as yaml
 
 
 def load_overrides(fname, names=[]):

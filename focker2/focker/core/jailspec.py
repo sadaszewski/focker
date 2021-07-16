@@ -9,7 +9,7 @@ from ..misc import merge_dicts, \
 
 from typing import Dict
 import os
-import yaml
+import ruamel.yaml as yaml
 import hashlib
 
 
