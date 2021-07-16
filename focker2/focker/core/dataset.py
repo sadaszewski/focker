@@ -9,6 +9,7 @@ class Dataset:
     _meta_focker_type = 'image'
     _meta_zfs_type = 'filesystem'
     _meta_cloneable_from = None
+    _meta_can_finalize = True
     _init_key = object()
 
     def __init__(self, **kwargs):
@@ -39,6 +40,8 @@ class Dataset:
             mountpoint=mountpoint)
 
     def finalize(self):
+        if not self._meta_can_finalize:
+            raise RuntimeError(f'{self.__class__.__name__} cannot be finalized')
         zfs_set_props(self.name, { 'rdonly': 'on' })
         zfs_snapshot(self.snapshot_name)
 

@@ -22,12 +22,27 @@ def validate_spec(spec):
     if 'base' not in spec:
         raise ValueError('Missing base in specification')
 
-    if 'steps' not in spec:
-        raise ValueError('Missing steps in specification')
+    if ('steps' in spec) + ('facets' in spec) != 1:
+        raise ValueError('Expected exactly one of "steps" or "facets" in the specification')
+
+
+def process_facets(spec, args):
+    spec = dict(spec)
+    spec['steps'] = []
+    for fnam in spec['facets']:
+        fnam = os.path.join(args.focker_dir, fnam)
+        with open(fnam) as f:
+            facet = yaml.safe_load(f)
+        if not isinstance(facet, list):
+            raise RuntimeError('Facets are expected to contain a list of steps')
+        spec['steps'] += facet
+    del spec['facets']
+    return spec
 
 
 def build_squeeze(spec, args):
     validate_spec(spec)
+    spec = process_facets(spec, args)
 
     base = spec['base']
     base, sha256 = zfs_find(base, focker_type='image', zfs_type='snapshot')
@@ -70,6 +85,7 @@ def build_squeeze(spec, args):
 
 def build(spec, args):
     validate_spec(spec)
+    spec = process_facets(spec, args)
 
     base = spec['base']
     base, base_sha256 = zfs_find(base, focker_type='image', zfs_type='snapshot')
