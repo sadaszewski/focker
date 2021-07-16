@@ -27,6 +27,8 @@ def validate_spec(spec):
 
 
 def process_facets(spec, args):
+    if 'facets' not in spec:
+        return spec
     spec = dict(spec)
     spec['steps'] = []
     for fnam in spec['facets']:
