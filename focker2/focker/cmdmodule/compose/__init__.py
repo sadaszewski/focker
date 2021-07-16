@@ -1,0 +1,1 @@
+from .compose import ComposePlugin

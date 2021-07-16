@@ -1,5 +1,8 @@
-from ..plugin import Plugin
-from ..core import Volume
+from ...plugin import Plugin
+from .image import build_images
+from .volume import build_volumes
+from .jail import build_jails
+import ruamel.yaml as yaml
 
 
 class ComposePlugin(Plugin):
@@ -23,4 +26,9 @@ class ComposePlugin(Plugin):
 
 
 def cmd_compose_build(args):
-    raise NotImplementedError
+    with open(args.spec_filename, 'r') as f:
+        spec = yaml.safe_load(f)
+
+    build_volumes(spec.get('volumes', {}))
+    build_images(spec.get('images', {}))
+    build_jails(spec.get('jails', {}))
