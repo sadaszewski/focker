@@ -213,7 +213,7 @@ def test_build_jails():
     backup_file('/etc/jail.conf')
     conf = jailconf.load('/etc/jail.conf')
     for k in list(conf.keys()):
-        if conf[k]['host.hostname'].strip('\'"') in ['test-build-jails-A', 'test-build-jails-B']:
+        if conf[k].get('host.hostname', '').strip('\'"') in ['test-build-jails-A', 'test-build-jails-B']:
             del conf[k]
     conf.write('/etc/jail.conf')
     subprocess.check_output(['focker', 'jail', 'remove', '--force', 'test-build-jails-A'])
@@ -237,7 +237,7 @@ def test_build_jails():
     build_jails(spec)
     conf = jailconf.load('/etc/jail.conf')
     print(conf.values())
-    blocks = list(filter(lambda a: a['host.hostname'].strip('"\'') in [ 'test-build-jails-A',
+    blocks = list(filter(lambda a: a.get('host.hostname', '').strip('"\'') in [ 'test-build-jails-A',
         'test-build-jails-B' ], conf.values()))
     print(blocks)
     assert len(blocks) == 2
@@ -259,7 +259,7 @@ def test_build_jails():
     subprocess.check_output(['focker', 'jail', 'remove', '--force', 'test-build-jails-B'])
     subprocess.check_output(['focker', 'image', 'remove', '--force', 'test-focker-bootstrap'])
     for k in list(conf.keys()):
-        if conf[k]['host.hostname'].strip('\'"') in ['test-build-jails-A', 'test-build-jails-B']:
+        if conf[k].get('host.hostname', '').strip('\'"') in ['test-build-jails-A', 'test-build-jails-B']:
             del conf[k]
     conf.write('/etc/jail.conf')
 
