@@ -35,8 +35,11 @@ def process_facets(spec, args):
         fnam = os.path.join(args.focker_dir, fnam)
         with open(fnam) as f:
             facet = yaml.safe_load(f)
+        if not isinstance(facet, dict) or 'steps' not in facet:
+            raise RuntimeError('Facets are expected to be a dict with "steps" key only')
+        facet = facet['steps']
         if not isinstance(facet, list):
-            raise RuntimeError('Facets are expected to contain a list of steps')
+            raise RuntimeError('Facet\'s "steps" are expected to be a list')
         spec['steps'] += facet
     del spec['facets']
     return spec
