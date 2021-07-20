@@ -13,3 +13,6 @@ __pycache__
 *.egg-info
 /focker.dist
 /focker.build
+/focker2/focker/jailconf/*.c
+/focker2/focker/jailconf/*.h
+

@@ -1,41 +1,104 @@
 %prefix "jailconf"
 
+%header {
+#include <Python.h>
+typedef union value_t_ {
+  PyObject *pyobj;
+  char *str;
+  const char *cstr;
+  void *ptr;
+} value_t;
+}
+
 %source {
 #include <stdio.h>
 #include <stdlib.h>
-#include <apr.h>
-#include <apr_pools.h>
-#include <apr_strings.h>
-
-struct apr_pool_t *g_pool;
 }
 
-%value "char*"
+%value "value_t"
 
-top <- a:assignment EOL { printf("%s", a); }
+# Top
+top <- (key_set / key_value_pair / key_value_append_pair / jail_block)* sp { $$.cstr = $0; }
 
-unquoted_safe_chars <- [^ \t\n{};\"\',=+\\] { $$ = $0; }
+# Jail blocks
+curly_open <- "{"
+curly_close <- "}"
+jail_name <- string
+jail_block <- sp jail_name sp curly_open (key_value_pair / key_value_append_pair / key_set)* sp curly_close
 
-unquoted_string <- unquoted_safe_chars+ { $$ = $0; }
+# Key-value pairs
+equal_sign <- "="
+plusequal_sign <- "+="
+semicolon <- ";"
+coma <- ","
+key <- string
+single_value <- string
+extra_value <- sp coma sp single_value
+list_of_values <- single_value extra_value+
+value <- list_of_values / single_value
+key_value_pair <- sp key sp equal_sign sp value sp semicolon
+key_value_append_pair <- sp key sp plusequal_sign sp value sp semicolon
+key_set <- sp key sp semicolon
 
-string <- u:unquoted_string { $$ = u; }
+# Strings
+sing_quote <- "'"
+dbl_quote <- "\""
+esc_sing_quote <- "\\'" { $$.pyobj = PyUnicode_FromString("'"); }
+esc_dbl_quote <- "\\\"" { $$.pyobj = PyUnicode_FromString("\""); }
+esc_backslash <- "\\\\" { $$.pyobj = PyUnicode_FromString("\\"); }
+esc_newline <- '\\n' { $$.pyobj = PyUnicode_FromString("\n"); }
+esc_tab <- '\\t' { $$.pyobj = PyUnicode_FromString("\t"); }
+sing_quote_safe_char <- [^'] { $$.pyobj = PyUnicode_FromString($0); }
+dbl_quote_safe_char <- [^"] { $$.pyobj = PyUnicode_FromString($0); }
 
-equal_sign <- '='
+dbl_quot_str_content <- a:dbl_quot_str_content b:esc_newline { $$.pyobj = PyUnicode_Concat(a.pyobj, b.pyobj); Py_DECREF(a.pyobj); Py_DECREF(b.pyobj); }
+  / a:dbl_quot_str_content b:esc_tab { $$.pyobj = PyUnicode_Concat(a.pyobj, b.pyobj); Py_DECREF(a.pyobj); Py_DECREF(b.pyobj); }
+  / a:dbl_quot_str_content b:esc_backslash { $$.pyobj = PyUnicode_Concat(a.pyobj, b.pyobj); Py_DECREF(a.pyobj); Py_DECREF(b.pyobj); }
+  / a:dbl_quot_str_content b:esc_dbl_quote { $$.pyobj = PyUnicode_Concat(a.pyobj, b.pyobj); Py_DECREF(a.pyobj); Py_DECREF(b.pyobj); }
+  / a:dbl_quot_str_content b:dbl_quote_safe_char { $$.pyobj = PyUnicode_Concat(a.pyobj, b.pyobj); Py_DECREF(a.pyobj); Py_DECREF(b.pyobj); }
+  / "" { $$.pyobj = PyUnicode_FromString(""); }
+double_quoted_string <- dbl_quote c:dbl_quot_str_content dbl_quote { $$.pyobj = c.pyobj; }
 
-semicolon <- ';'
+sng_quot_str_content <- a:sng_quot_str_content b:esc_newline { $$.pyobj = PyUnicode_Concat(a.pyobj, b.pyobj); Py_DECREF(a.pyobj); Py_DECREF(b.pyobj); }
+  / a:sng_quot_str_content b:esc_tab { $$.pyobj = PyUnicode_Concat(a.pyobj, b.pyobj); Py_DECREF(a.pyobj); Py_DECREF(b.pyobj); }
+  / a:sng_quot_str_content b:esc_backslash { $$.pyobj = PyUnicode_Concat(a.pyobj, b.pyobj); Py_DECREF(a.pyobj); Py_DECREF(b.pyobj); }
+  / a:sng_quot_str_content b:esc_sing_quote { $$.pyobj = PyUnicode_Concat(a.pyobj, b.pyobj); Py_DECREF(a.pyobj); Py_DECREF(b.pyobj); }
+  / a:sng_quot_str_content b:sing_quote_safe_char { $$.pyobj = PyUnicode_Concat(a.pyobj, b.pyobj); Py_DECREF(a.pyobj); Py_DECREF(b.pyobj); }
+  / "" { $$.pyobj = PyUnicode_FromString(""); }
+single_quoted_string <- sing_quote c:sng_quot_str_content sing_quote { $$.pyobj = c.pyobj; }
 
-assignment <- k:string equal_sign v:string semicolon { $$ = apr_pstrcat(g_pool, k, "=", v, ";", NULL); }
+quoted_string <- s:single_quoted_string { $$.pyobj = s.pyobj; }
+  / d:double_quoted_string { $$.pyobj = d.pyobj; }
 
-EOL <- '\n' / '\r\n' / '\r'
+unquoted_safe_char <- [^ \t\n;=+"',{}]
+continue_line <- "\\" real_sp "\n"
+unquoted_string <- a:unquoted_string continue_line { $$.pyobj = a.pyobj; }
+  / a:unquoted_string b:unquoted_safe_char { $$.pyobj = PyUnicode_Concat(a.pyobj, b.pyobj); Py_DECREF(a.pyobj); Py_DECREF(b.pyobj); }
+  / "" { $$.pyobj = PyUnicode_FromString(""); }
+
+string <- q:quoted_string { $$.pyobj = q.pyobj; }
+  / u:unquoted_string { $$.pyobj = u.pyobj; }
+
+# Whitespaces and comments
+real_sp <- [ \t]*
+not_star <- [^*]
+not_slash <- [^/]
+star_not_slash <- "*" not_slash
+multi_line_comment <- "/*" (not_star / star_not_slash)* "*/"
+not_newlines <- [^\n]*
+single_line_comment <- "//" not_newlines
+shell_style_comment <- "#" not_newlines
+comment <- multi_line_comment / single_line_comment / shell_style_comment
+space_or_newline <- [ \t\n]
+sp <- (comment / space_or_newline)* { $$.cstr = $0; }
 
 %%
 int main() {
-    apr_initialize();
-    apr_pool_create(&g_pool, NULL);
     jailconf_context_t *ctx = jailconf_create(NULL);
-    while (jailconf_parse(ctx, NULL));
+    value_t res;
+    printf("Here\n");
+    jailconf_parse(ctx, &res);
+    printf("res: %s\n", res.cstr);
     jailconf_destroy(ctx);
-    apr_pool_destroy(g_pool); g_pool = NULL;
-    apr_terminate();
     return 0;
 }
