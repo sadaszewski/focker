@@ -64,9 +64,9 @@ esc_newline = Literal('\\n')
 
 esc_tab = Literal('\\t')
 
-sing_quote_safe_char = Regex('[^\']')
+sing_quote_safe_char = Regex('[^\']+')
 
-dbl_quote_safe_char = Regex('[^\"]')
+dbl_quote_safe_char = Regex('[^\"]+')
 
 continue_line = Literal("\\") + real_sp + Literal("\n")
 
@@ -80,7 +80,7 @@ single_quoted_string = sing_quote + \
 
 quoted_string = single_quoted_string | double_quoted_string
 
-unquoted_safe_char = Regex('[^ \t\n;=+\"\',{}]')
+unquoted_safe_char = Regex('[^ \t\n;=+\"\',{}]+')
 
 unquoted_string = Group(OneOrMore(continue_line | unquoted_safe_char))
 
