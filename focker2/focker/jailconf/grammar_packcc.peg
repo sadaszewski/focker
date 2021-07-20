@@ -70,11 +70,11 @@ single_quoted_string <- sing_quote c:sng_quot_str_content sing_quote { $$.pyobj 
 quoted_string <- s:single_quoted_string { $$.pyobj = s.pyobj; }
   / d:double_quoted_string { $$.pyobj = d.pyobj; }
 
-unquoted_safe_char <- [^ \t\n;=+"',{}]
+unquoted_safe_char <- [^ \t\n;=+"',{}] { $$.pyobj = PyUnicode_FromString($0); }
 continue_line <- "\\" real_sp "\n"
 unquoted_string <- a:unquoted_string continue_line { $$.pyobj = a.pyobj; }
   / a:unquoted_string b:unquoted_safe_char { $$.pyobj = PyUnicode_Concat(a.pyobj, b.pyobj); Py_DECREF(a.pyobj); Py_DECREF(b.pyobj); }
-  / "" { $$.pyobj = PyUnicode_FromString(""); }
+  / unquoted_safe_char { $$.pyobj = PyUnicode_FromString($0); }
 
 string <- q:quoted_string { $$.pyobj = q.pyobj; }
   / u:unquoted_string { $$.pyobj = u.pyobj; }
