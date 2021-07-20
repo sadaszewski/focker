@@ -62,10 +62,9 @@ class Lexer:
 
 class Parser:
     def __init__(self):
-        pass
-
-    def try_reduce(self, state):
-        if state[-7:0] == ['']
+        patterns = dict(
+            assignment=['NAME', 'EQUAL', '']
+        )
 
     def parse(self, text):
         lexer = Lexer()
