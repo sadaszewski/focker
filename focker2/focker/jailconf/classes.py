@@ -145,8 +145,14 @@ class JailBlock:
 
 class JailConf:
     def __init__(self, toks):
-        self.toks = toks[0].asList()
+        self.toks = toks[0]
+        if not isinstance(self.toks, list):
+            self.toks = self.toks.asList()
         self.trailing_space = toks[1]
+
+    @classmethod
+    def create(cls):
+        return JailConf([ [], '' ])
 
     @property
     def statements(self):
