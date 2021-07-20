@@ -119,6 +119,7 @@ key_value_append_pair = sp + key + sp + plusequal_sign + sp + value + sp + semic
 
 key_set = sp + key + sp + semicolon
 
+single_value.addParseAction(lambda toks: [ int(toks[0]) if toks[0].isnumeric() else toks[0] ])
 extra_value.setParseAction(lambda toks: [ toks[3] ])
 list_of_values.setParseAction(lambda toks: [ [ toks[0] ] + toks[1].asList() ])
 

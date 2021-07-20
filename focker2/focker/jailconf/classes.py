@@ -105,14 +105,29 @@ class JailBlock:
         return self.jail_name
 
     def set_key(self, name, value):
+        if isinstance(value, bool):
+            self.toggle_key(name, value)
+            return
+
         self.statements.append(KeyValuePair(
             [ '\n  ', name, '', '=', '', value, '', ';' ]
         ))
 
     def append_key(self, name, value):
+        if isinstance(value, bool):
+            self.toggle_key(name, value)
+            return
+
         self.statements.append(KeyValueAppendPair(
             [ '\n  ', name, '', '+=', '', value, '', ';' ]
         ))
+
+    def toggle_key(self, name, value):
+        if not value:
+            name = name.split('.')
+            name = '.'.join(name[:-1] + [ 'no' + name[-1] ])
+
+        self.statements.append(KeyValueToggle([ '\n  ', name, '', ';' ]))
 
     def get_key(self, name):
         res = []
