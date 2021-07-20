@@ -1,5 +1,5 @@
 from .misc import flatten
-
+import re
 
 def quote_value(s):
     if isinstance(s, list):
@@ -13,7 +13,8 @@ def quote_value(s):
     except:
         pass
 
-    if '\'' in s or '"' in s or '\\' in s or ' ' in s or '\t' in s or '\r' in s or '\n' in s:
+    # if '\'' in s or '"' in s or '\\' in s or ' ' in s or '\t' in s or '\r' in s or '\n' in s:
+    if not re.match('^[a-zA-Z0-9.\-_]*$', s):
         s = s.replace('\n', '\\n')
         s = s.replace('\r', '\\r')
         s = s.replace('\t', '\\t')
@@ -106,6 +107,11 @@ class JailBlock:
     def set_key(self, name, value):
         self.statements.append(KeyValuePair(
             [ '\n  ', name, '', '=', '', value, '', ';' ]
+        ))
+
+    def append_key(self, name, value):
+        self.statements.append(KeyValueAppendPair(
+            [ '\n  ', name, '', '+=', '', value, '', ';' ]
         ))
 
     def get_key(self, name):
