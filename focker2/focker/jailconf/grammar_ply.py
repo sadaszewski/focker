@@ -174,7 +174,7 @@ class Parser(object):
         lexer = lexer or Lexer()
         self.tokens = lexer.tokens
         self._lexer = lexer
-        self._parser = yacc.yacc(module=self, debug=True, write_tables=0)
+        self._parser = yacc.yacc(module=self, debug=False, write_tables=0)
 
     def parse(self, entry):
         return self._parser.parse(entry, lexer = self._lexer.lexer)
