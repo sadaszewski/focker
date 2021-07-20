@@ -192,7 +192,7 @@ class JailConf:
     def remove_jail_block(self, x):
         if not self.has_jail_block(x):
             raise KeyError
-        self.toks = [ t for t in toks if not isinstance(t, JailBlock) or t.name != x ]
+        self.toks = [ t for t in self.toks if not isinstance(t, JailBlock) or t.name != x ]
 
     def add_statement(self, x):
         self.toks.append(x)
