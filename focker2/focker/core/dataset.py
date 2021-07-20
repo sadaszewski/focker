@@ -97,6 +97,10 @@ class Dataset:
         return cls.exists_predicate(lambda e: e[2] == sha256)
 
     @classmethod
+    def exists_tag(cls, tag: str):
+        return cls.exists_predicate(lambda e: tag in e[3].split(' '))
+
+    @classmethod
     def from_predicate(cls, pred):
         lst = zfs_list(cls._meta_list_columns,
             focker_type=cls._meta_focker_type, zfs_type=cls._meta_zfs_type)
@@ -124,7 +128,7 @@ class Dataset:
         return cls.from_predicate(lambda e: any(t.startswith(tag) for t in e[3].split(' ')))
 
     @classmethod
-    def from_any_id(cls, id_: str, strict=False):
+    def from_any_id(cls, id_: str, strict=True):
         if strict:
             return cls.from_predicate(lambda e: \
                 id_ in e[3].split(' ') or e[2] == id_)
