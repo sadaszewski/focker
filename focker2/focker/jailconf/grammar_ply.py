@@ -99,10 +99,18 @@ class Parser(object):
         " global_scope : "
         p[0] = JailConf.create()
 
+    def p_value_disambig_jailblock(self, p):
+        " value_jailblock : value space_or_comment OPEN_BRACE "
+        p[0] = p[1:]
+
+    def p_value_disambig_manyval(self, p):
+        " value_manyval : value space_or_comment COMMA "
+        p[0] = p[1:]
+
     def p_jail_block(self, p):
-        " jail_definition : space_or_comment value space_or_comment OPEN_BRACE statement_list space_or_comment CLOSE_BRACE "
+        " jail_definition : space_or_comment value_jailblock statement_list space_or_comment CLOSE_BRACE "
         print('p_jail_block:', list(p))
-        p[0] = JailBlock(p[1:])
+        p[0] = JailBlock(p[1:2] + p[2] + p[3:])
 
     def p_statement_list(self, p):
         " statement_list : statement_list statement "
@@ -164,8 +172,8 @@ class Parser(object):
         p[0].append(p[6])
 
     def p_many_values_only_two(self, p):
-        " many_values : space_or_comment value space_or_comment COMMA space_or_comment value "
-        p[0] = [p[1], p[3]]
+        " many_values : space_or_comment value_manyval space_or_comment value "
+        p[0] = [p[1][0], p[3]]
 
     def p_error(self, p):
         raise RuntimeError(repr(p))
