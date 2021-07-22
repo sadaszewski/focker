@@ -5,11 +5,11 @@ def flatten(x):
     try:
         it = iter(x)
     except TypeError:
-        return str(x)
+        return [ x ]
     if isinstance(it, iter([]).__class__):
-        return ''.join([ flatten(y) for y in x ])
+        return reduce(list.__add__, [ flatten(y) for y in x ])
     else:
-        return str(x)
+        return [ x ]
 
 
 def quote_value(s):

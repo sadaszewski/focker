@@ -2,53 +2,71 @@ from .misc import flatten, \
     quote_value
 
 
+class Value:
+    def __init__(self, toks):
+        if isinstance(toks, list):
+            assert len(toks) == 0
+            self.value = self.toks[0]
+        else:
+            self.value = toks
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.value})'
+
+    def __str__(self):
+        return quote_value(self.value)
+
+
+class Key(Value):
+    pass
+
+
 class KeyValuePair:
     def __init__(self, toks):
-        self.toks = toks
+        self.toks = flatten(toks)
 
     @property
     def key(self):
-        return self.toks[1]
+        return [ k for k in self.toks if isinstance(k, Key) ][0].key
 
     @property
     def value(self):
-        return self.toks[5]
+        return [ v for v in self.toks if isinstance(v, Value)][0].value
 
     def __repr__(self):
         return f'KeyValuePair({self.toks})'
 
     def __str__(self):
-        return flatten([ self.toks[0], quote_value(self.key) ] + self.toks[2:5] +
-            [ quote_value(self.value) ] + self.toks[6:])
+        return ''.join(str(t) for t in self.toks)
 
 
 class KeyValueAppendPair:
     def __init__(self, toks):
-        self.toks = toks
+        self.toks = flatten(toks)
 
     @property
     def key(self):
-        return self.toks[1]
+        return [ k for k in self.toks if isinstance(k, Key) ][0].key
 
     @property
     def value(self):
-        return self.toks[5]
+        return [ v for v in self.toks if isinstance(v, Value)][0].value
 
     def __repr__(self):
         return f'KeyValueAppendPair({self.toks})'
 
     def __str__(self):
-        return flatten([ self.toks[0], quote_value(self.key) ] + self.toks[2:5] +
-            [ quote_value(self.value) ] + self.toks[6:])
+        return ''.join(str(t) for t in self.toks)
 
 
 class KeyValueToggle:
     def __init__(self, toks):
-        self.toks = toks
+        self.toks = flatten(toks)
 
     @property
     def key(self):
-        k = self.toks[1].split('.')
+        k = [ k for k in self.toks if isinstance(k, Key) ][0].key
+        k = k.split('.')
         if k[-1].startswith('no'):
             return '.'.join(k[:-1] + [ k[-1][2:] ])
         else:
@@ -56,30 +74,43 @@ class KeyValueToggle:
 
     @property
     def value(self):
-        k = self.toks[1].split('.')
+        k = [ k for k in self.toks if isinstance(k, Key) ][0].key
+        k = k.split('.')
         if k[-1].startswith('no'):
             return False
         else:
             return True
 
+    def __repr__(self):
+        return f'KeyValueToggle({self.toks})'
+
     def __str__(self):
-        return flatten(self.toks)
+        return ''.join(str(t) for t in self.toks)
+
+
+class JailName(Value):
+    pass
+
+
+class Statements(list):
+    pass
 
 
 class JailBlock:
     def __init__(self, toks):
-        self.sp_1, self.jail_name, self.sp_2, self.curly_open, \
-            self.statements, self.sp_3, self.curly_close = toks
-        if not isinstance(self.statements, list):
-            self.statements = self.statements.asList()
+        self.toks = toks
 
     @classmethod
     def create(cls, jail_name):
-        return cls([ '\n', jail_name, ' ', '{', [], '\n', '}' ])
+        return cls([ '\n', JailName(jail_name), ' {', Statements(), '\n}' ])
 
     @property
     def name(self):
-        return self.jail_name
+        return [ n for n in self.toks if isinstance(n, JailName) ][0].value
+
+    @property
+    def statements(self):
+        return [ s for s in self.toks if isinstance(s, Statements)][0]
 
     def set_key(self, name, value):
         if isinstance(value, bool):
@@ -87,7 +118,7 @@ class JailBlock:
             return
 
         self.statements.append(KeyValuePair(
-            [ '\n  ', name, '', '=', '', value, '', ';' ]
+            [ '\n  ', Key(name), '=', Value(value), ';' ]
         ))
 
     def append_key(self, name, value):
@@ -96,7 +127,7 @@ class JailBlock:
             return
 
         self.statements.append(KeyValueAppendPair(
-            [ '\n  ', name, '', '+=', '', value, '', ';' ]
+            [ '\n  ', Key(name), '+=', Value(value), ';' ]
         ))
 
     def toggle_key(self, name, value):
@@ -104,13 +135,13 @@ class JailBlock:
             name = name.split('.')
             name = '.'.join(name[:-1] + [ 'no' + name[-1] ])
 
-        self.statements.append(KeyValueToggle([ '\n  ', name, '', ';' ]))
+        self.statements.append(KeyValueToggle([ '\n  ', Key(name), ';' ]))
 
     def get_key(self, name):
         res = []
         for s in self.statements:
             if isinstance(s, KeyValuePair) and s.key == name:
-                res = [ s.value ]
+                res = s.value if isinstance(s.value, list) else [ s.value ]
             elif isinstance(s, KeyValueAppendPair) and s.key == name:
                 if isinstance(s.value, list):
                     res += s.value
@@ -139,24 +170,17 @@ class JailBlock:
             or s.key != name ]
 
     def __str__(self):
-        return flatten([ self.sp_1, self.jail_name, self.sp_2 + self.curly_open, \
-            self.statements, self.sp_3, self.curly_close ])
+        return ''.join(str(t) for t in self.toks)
 
 
 class JailConf:
-    def __init__(self, toks):
-        self.toks = toks[0]
-        if not isinstance(self.toks, list):
-            self.toks = self.toks.asList()
-        self.trailing_space = toks[1]
-
-    @classmethod
-    def create(cls):
-        return JailConf([ [], '' ])
+    def __init__(self, toks=[]):
+        self.toks = flatten(toks)
 
     @property
     def statements(self):
-        return self.toks
+        return [ t for t in self.tok \
+            if t.__class__ in [ KeyValuePair, KeyValueAppendPair, KeyValueToggle, JailBlock ] ]
 
     def get_jail_block(self, x):
         for s in self.statements:
@@ -181,4 +205,4 @@ class JailConf:
         self.toks.append(x)
 
     def __str__(self):
-        return flatten([ self.toks, self.trailing_space ])
+        return ''.join(str(t) for t in self.toks)
