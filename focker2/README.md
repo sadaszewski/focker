@@ -26,5 +26,6 @@ and some smaller fixes:
 - [ ] Configurable location (dataset) for focker objects.
 - [ ] Detect usage of volumes by jails when pruning (maybe)
 - [ ] Mount volumes while building images
+- [ ] Roundtrip jail.conf parser
 
 Stay tuned.
