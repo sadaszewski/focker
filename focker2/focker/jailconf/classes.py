@@ -302,6 +302,8 @@ class JailConf(Block):
 
     def __setitem__(self, name, value):
         if isinstance(value, JailBlock):
+            if value.name != name:
+                raise ValueError('Name of the JailBlock has to be the same as the key name')
             if self.has_jail_block(name):
                 self.remove_jail_block(name)
             self.append_jail_block(value)
