@@ -257,8 +257,8 @@ class Block:
 
 
 class JailBlock(Block):
-    def __init__(self, toks, indent=2):
-        super().__init__(toks, indent=indent)
+    def __init__(self, toks):
+        super().__init__(toks, indent=2)
 
     @classmethod
     def create(cls, jail_name):
@@ -270,8 +270,8 @@ class JailBlock(Block):
 
 
 class JailConf(Block):
-    def __init__(self, toks=[], indent=0):
-        super().__init__([ Statements(flatten(toks)) ], indent=indent)
+    def __init__(self, toks=[]):
+        super().__init__([ Statements(flatten(toks)) ], indent=0)
 
     def get_jail_block(self, x):
         for s in self.statements:
