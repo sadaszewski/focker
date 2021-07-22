@@ -159,8 +159,9 @@ class Statements:
 
 
 class Block:
-    def __init__(self, toks):
+    def __init__(self, toks, indent=0):
         self.toks = flatten(toks)
+        self.indent = indent
 
     @property
     def statements(self):
@@ -181,7 +182,7 @@ class Block:
             else Value(value)
 
         self.statements.append(KeyValuePair(
-            [ '\n  ', Key(name), ' = ', value, ';' ]
+            [ '\n' + ' ' * self.indent, Key(name), ' = ', value, ';' ]
         ))
 
     def append_append(self, name, value):
@@ -194,7 +195,7 @@ class Block:
             else Value(value)
 
         self.statements.append(KeyValueAppendPair(
-            [ '\n  ', Key(name), ' += ', value, ';' ]
+            [ '\n' + ' ' * self.indent, Key(name), ' += ', value, ';' ]
         ))
 
     def append_toggle(self, name, value):
@@ -202,7 +203,7 @@ class Block:
             name = name.split('.')
             name = '.'.join(name[:-1] + [ 'no' + name[-1] ])
 
-        self.statements.append(KeyValueToggle([ '\n  ', Key(name), ';' ]))
+        self.statements.append(KeyValueToggle([ '\n' + ' ' * self.indent, Key(name), ';' ]))
 
     def get(self, name):
         res = []
@@ -256,6 +257,9 @@ class Block:
 
 
 class JailBlock(Block):
+    def __init__(self, toks, indent=2):
+        super().__init__(toks, indent=indent)
+
     @classmethod
     def create(cls, jail_name):
         return cls([ '\n', JailName(jail_name), ' {', Statements(), '\n}' ])
@@ -266,13 +270,8 @@ class JailBlock(Block):
 
 
 class JailConf(Block):
-    def __init__(self, toks=[]):
-        self.toks = flatten(toks)
-
-    @property
-    def statements(self):
-        return [ t for t in self.tok \
-            if t.__class__ in [ KeyValuePair, KeyValueAppendPair, KeyValueToggle, JailBlock ] ]
+    def __init__(self, toks=[], indent=0):
+        super().__init__([ Statements(flatten(toks)) ], indent=indent)
 
     def get_jail_block(self, x):
         for s in self.statements:
@@ -291,10 +290,10 @@ class JailConf(Block):
     def remove_jail_block(self, x):
         if not self.has_jail_block(x):
             raise KeyError
-        self.toks = [ t for t in self.toks if not isinstance(t, JailBlock) or t.name != x ]
+        self.set_statements([ t for t in self.statements if not isinstance(t, JailBlock) or t.name != x ])
 
     def append_jail_block(self, x):
-        self.toks.append(x)
+        self.statements.append(x)
 
     def __getitem__(self, name):
         if self.has_jail_block(name):

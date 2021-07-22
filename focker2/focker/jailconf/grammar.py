@@ -80,6 +80,7 @@ statements = Group(ZeroOrMore(key_value_pair | key_value_append_pair | key_set))
 jail_name = string.copy()
 jail_block = sp + jail_name + sp + OPEN_BRACE + statements + sp + CLOSE_BRACE
 
+jail_name.addParseAction(JailName)
 statements.setParseAction(Statements)
 jail_block.setParseAction(JailBlock)
 
