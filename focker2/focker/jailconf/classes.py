@@ -181,7 +181,7 @@ class Block:
             else Value(value)
 
         self.statements.append(KeyValuePair(
-            [ '\n  ', Key(name), '=', value, ';' ]
+            [ '\n  ', Key(name), ' = ', value, ';' ]
         ))
 
     def append_append(self, name, value):
@@ -194,7 +194,7 @@ class Block:
             else Value(value)
 
         self.statements.append(KeyValueAppendPair(
-            [ '\n  ', Key(name), '+=', value, ';' ]
+            [ '\n  ', Key(name), ' += ', value, ';' ]
         ))
 
     def append_toggle(self, name, value):
