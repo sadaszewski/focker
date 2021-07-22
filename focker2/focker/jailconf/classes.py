@@ -160,7 +160,7 @@ class Statements:
 
 class Block:
     def __init__(self, toks):
-        self.toks = toks
+        self.toks = flatten(toks)
 
     @property
     def statements(self):
