@@ -50,11 +50,11 @@ def ensure_list(lst):
 
 
 class JailSpec:
-    __init_key = object()
+    _init_key = object()
 
     def __init__(self, **kwargs) -> None:
-        if kwargs.get('init_key') != JailSpec.__init_key:
-            raise RuntimeError('JailSpec must be created using one of the factory methods')
+        if kwargs.get('init_key') != JailSpec._init_key:
+            raise RuntimeError(f'{self.__class__.__name__} must be created using one of the factory methods')
 
         self.path = kwargs['path']
         self.hostname = kwargs['hostname']
@@ -82,8 +82,8 @@ class JailSpec:
         if not os.path.exists(jailspec['path']):
             raise RuntimeError('Specified path does not exist')
 
-    @staticmethod
-    def from_dict(jailspec: Dict):
+    @classmethod
+    def _from_dict(cls, jailspec: Dict):
         JailSpec.validate_dict(jailspec)
 
         focker_spec = { k: v for k, v in jailspec.items()
@@ -107,7 +107,25 @@ class JailSpec:
         rest_params = { k: v for k, v in rest_spec.items()
             if k not in JAIL_EXEC_PARAMS }
 
-        return JailSpec(init_key=JailSpec.__init_key, path=path,
+        return cls(init_key=JailSpec._init_key, path=path,
             hostname=hostname, mounts=mounts, env=env,
             exec_params=exec_params, rest_params=rest_params,
             name=name)
+
+    @classmethod
+    def from_dict(cls, jailspec: Dict):
+        return cls._from_dict(jailspec)
+
+
+class CloneImageJailSpec(JailSpec):
+    @classmethod
+    def from_dict(cls, jailspec: Dict):
+        if 'image' not in jailspec:
+            raise KeyError('image not specified')
+        im = Image.from_any_id(jailspec['image'], strict=True)
+        jfs = JailFs.clone_from(im)
+        jailspec = dict(jailspec)
+        del jailspec['image']
+        jailspec['path'] = jfs.path
+        jailspec['name'] = os.path.split(jfs.path)[-1]
+        return cls._from_dict(jailspec)
