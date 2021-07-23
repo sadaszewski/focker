@@ -1,46 +1,11 @@
-from .image import Image
-from .constant import JAIL_FOCKER_PARAMS, \
+from ..constant import JAIL_FOCKER_PARAMS, \
     JAIL_EXEC_PARAMS, \
     JAIL_PARAMS
-from .mount import Mount
-from .jailfs import JailFs
-from ..misc import merge_dicts, \
-    load_overrides
-
+from ..mount import Mount
+from .constant import DEFAULT_PARAMS, \
+    JAIL_NAME_PREFIX
 from typing import Dict
 import os
-import ruamel.yaml as yaml
-import hashlib
-
-
-DEFAULT_PARAMS = {
-    'persist': True,
-    'interface': 'lo1',
-    'ip4.addr': '127.0.1.0',
-    'mount.devfs': True,
-    'exec.clean': True,
-    'exec.start': '/bin/sh /etc/rc',
-    'exec.stop': '/bin/sh /etc/rc.shutdown'
-}
-
-
-JAIL_NAME_PREFIX = 'focker_'
-
-
-def load_default_jail_param_overrides():
-    global DEFAULT_PARAMS
-    ovr = load_overrides('jail-defaults.conf')
-    DEFAULT_PARAMS = merge_dicts(DEFAULT_PARAMS, ovr)
-
-load_default_jail_param_overrides()
-
-
-def load_jail_name_prefix_override():
-    global JAIL_NAME_PREFIX
-    ovr = load_overrides('focker.conf', [ 'jail_name_prefix' ])
-    JAIL_NAME_PREFIX = ovr.get('jail_name_prefix', JAIL_NAME_PREFIX)
-
-load_jail_name_prefix_override()
 
 
 def ensure_list(lst):
@@ -114,18 +79,4 @@ class JailSpec:
 
     @classmethod
     def from_dict(cls, jailspec: Dict):
-        return cls._from_dict(jailspec)
-
-
-class CloneImageJailSpec(JailSpec):
-    @classmethod
-    def from_dict(cls, jailspec: Dict):
-        if 'image' not in jailspec:
-            raise KeyError('image not specified')
-        im = Image.from_any_id(jailspec['image'], strict=True)
-        jfs = JailFs.clone_from(im)
-        jailspec = dict(jailspec)
-        del jailspec['image']
-        jailspec['path'] = jfs.path
-        jailspec['name'] = os.path.split(jfs.path)[-1]
         return cls._from_dict(jailspec)
