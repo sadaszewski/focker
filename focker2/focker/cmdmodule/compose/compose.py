@@ -2,6 +2,8 @@ from ...plugin import Plugin
 from .image import build_images
 from .volume import build_volumes
 from .jail import build_jails
+from .hook import exec_prebuild, \
+    exec_postbuild
 import ruamel.yaml as yaml
 
 
@@ -29,6 +31,10 @@ def cmd_compose_build(args):
     with open(args.spec_filename, 'r') as f:
         spec = yaml.safe_load(f)
 
-    build_volumes(spec.get('volumes', {}))
+    path, _ = os.path.split(args.spec_filename)
+
+    exec_prebuild(spec.get('exec.prebuild', []), path)
     build_images(spec.get('images', {}))
+    build_volumes(spec.get('volumes', {}))
     build_jails(spec.get('jails', {}))
+    exec_postbuild(spec.get('exec.postbuild', []), path)
