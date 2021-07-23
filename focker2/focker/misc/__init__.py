@@ -4,3 +4,5 @@ from .quote_for_jailconf import *
 from .filehash import filehash
 from .load_jailconf import *
 from .load_overrides import *
+from .lock import FockerLock, \
+    FockerUnlock

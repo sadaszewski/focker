@@ -1,8 +1,10 @@
 from .command import create_parser
 from .plugin import PLUGIN_MANAGER
+from .misc import FockerLock
 import sys
 
 
+@FockerLock()
 def main():
     PLUGIN_MANAGER.load()
     parser = create_parser()

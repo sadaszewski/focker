@@ -34,7 +34,7 @@ class BootstrapPlugin(Plugin):
                     ),
                     pfrule=dict(
                         aliases=['pf'],
-                        func=cmd_add_pfrule,
+                        func=cmd_bootstrap_pfrule,
                         external_interface=dict(
                             aliases=['eif'],
                             type=str
