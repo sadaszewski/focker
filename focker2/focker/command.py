@@ -2,30 +2,8 @@ from argparse import ArgumentParser
 from .plugin import PLUGIN_MANAGER
 import os
 import ruamel.yaml as yaml
-from .misc import merge_dicts
-
-
-def load_overrides():
-    res = {}
-    paths = [ os.path.expanduser('~/.focker/command.conf'), '/usr/local/etc/.focker/command.conf',
-        '/etc/focker/command.conf' ]
-    for p in paths:
-        if not os.path.exists(p):
-            continue
-        with open(p) as f:
-            res = yaml.safe_load(f)
-        break
-    for k, v in os.environ.items():
-        if not k.startswith('FOCKER_'):
-            continue
-        k = k.lower().split('_')[1:]
-        r = res
-        for p in k[:-1]:
-            if not p in r:
-                r[p] = {}
-            r = r[p]
-        r[k[-1]] = v
-    return res
+from .misc import load_overrides, \
+    merge_dicts
 
 
 def materialize_parsers(defs, subp, overrides):
@@ -58,7 +36,7 @@ def create_parser():
     parser = ArgumentParser('focker')
     subp = parser.add_subparsers()
 
-    overrides = load_overrides()
+    overrides = load_overrides('command.conf', env_prefix='FOCKER_CMD_', env_hier=True)
 
     provided_parsers = {}
     for p in PLUGIN_MANAGER.discovered_plugins:

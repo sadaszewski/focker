@@ -39,7 +39,7 @@ ROOT_MOUNTPOINT = None
 def zfs_load_config():
     global ROOT_DATASET
     global ROOT_MOUNTPOINT
-    conf = load_overrides('focker.conf', [ 'root_dataset', 'root_mountpoint' ])
+    conf = load_overrides('focker.conf', env_prefix='FOCKER_CONF_')
     ROOT_DATASET = conf.get('root_dataset', zfs_poolname() + '/focker')
     ROOT_MOUNTPOINT = conf.get('root_mountpoint', '/focker')
 

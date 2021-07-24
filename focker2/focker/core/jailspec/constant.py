@@ -18,7 +18,7 @@ JAIL_NAME_PREFIX = 'focker_'
 
 def _load_default_jail_param_overrides():
     global DEFAULT_PARAMS
-    ovr = load_overrides('jail-defaults.conf')
+    ovr = load_overrides('jail-defaults.conf', env_prefix='FOCKER_JAIL_DEFAULTS_')
     DEFAULT_PARAMS = merge_dicts(DEFAULT_PARAMS, ovr)
 
 _load_default_jail_param_overrides()
@@ -26,7 +26,7 @@ _load_default_jail_param_overrides()
 
 def _load_jail_name_prefix_override():
     global JAIL_NAME_PREFIX
-    ovr = load_overrides('focker.conf', [ 'jail_name_prefix' ])
+    ovr = load_overrides('focker.conf', env_prefix='FOCKER_CONF_')
     JAIL_NAME_PREFIX = ovr.get('jail_name_prefix', JAIL_NAME_PREFIX)
 
 _load_jail_name_prefix_override()
