@@ -1,9 +1,11 @@
 OSJailSpec = 'OSJailSpec'
 import shlex
-from .jailspec import JailSpec
 import os
 from ..misc import load_jailconf, \
     save_jailconf
+
+
+JailSpec = 'JailSpec'
 
 
 def gen_env_command(command, env):
