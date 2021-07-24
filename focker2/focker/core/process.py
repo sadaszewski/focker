@@ -1,4 +1,5 @@
 import subprocess
+from subprocess import CalledProcessError
 
 
 def focker_subprocess_run(command, *args, check=True, **kwargs):

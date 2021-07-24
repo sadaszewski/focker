@@ -6,6 +6,7 @@ from .misc import cmd_bootstrap_filesystem, \
     cmd_bootstrap_finalize
 from .pfrule import cmd_bootstrap_pfrule
 from .iface import cmd_bootstrap_interface
+from .install import cmd_bootstrap_install
 
 
 class BootstrapPlugin(Plugin):
@@ -60,6 +61,22 @@ class BootstrapPlugin(Plugin):
                         reference=dict(
                             positional=True,
                             type=str
+                        )
+                    ),
+                    install=dict(
+                        aliases=['inst', 'ins'],
+                        func=cmd_bootstrap_install,
+                        version=dict(
+                            type=str
+                        ),
+                        tags=dict(
+                            aliases=['t'],
+                            type=str,
+                            nargs='+'
+                        ),
+                        interactive=dict(
+                            aliases=['i'],
+                            action='store_true'
                         )
                     )
                 )
