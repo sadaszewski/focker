@@ -1,16 +1,19 @@
 # Focker 2
 
 ```diff
-- This version is not ready for any kind of use.
-- Best not to touch it before the official
-- availability announcement. It is being developed
-- directly in this branch just for convenience.
+- This version is not ready
+- for any kind of use.
+- Best not to touch it before
+- the official availability
+- announcement. It is kept
+- in this branch for convenience.
 ```
 
 Focker is currently undergoing a slow overhaul which will eventually result
 in version 2.0. The aim of this is to make the code more structured, have
-better abstractions where possible and more reusability. In addition to that, two major things are in focus:
+better abstractions where possible and more reusability. Consequently, three major things are in focus:
 
+- [ ] API - new abstractions constitute a framework which makes Focker as easy to use in custom code as in the command line,
 - [ ] Plugins system - the native Focker command modules (image, jail, compose) will become plugins themselves and the goal will be to implement every new block of functionality as a plugin on top of a slim and robust core,
 - [ ] Configurability - at the same time the way Focker's configuration is passed around will be remade, allowing to pass any and all Focker parameters either on the command line OR via environmental variables OR by system/user-specific configuration files - /etc/focker.conf, ~/focker.conf,
 
