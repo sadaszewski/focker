@@ -2,16 +2,11 @@ from ..constant import JAIL_FOCKER_PARAMS, \
     JAIL_EXEC_PARAMS, \
     JAIL_PARAMS
 from ..mount import Mount
+from ..misc import ensure_list
 from .constant import DEFAULT_PARAMS, \
     JAIL_NAME_PREFIX
 from typing import Dict
 import os
-
-
-def ensure_list(lst):
-    if not isinstance(lst, list):
-        return [ lst ]
-    return lst
 
 
 class JailSpec:

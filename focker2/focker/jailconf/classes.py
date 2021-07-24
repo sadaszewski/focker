@@ -218,10 +218,16 @@ class Block:
             elif isinstance(s, KeyValueToggle) and s.key == name:
                 res = [ s.value ]
         if len(res) == 0:
-            raise KeyError
+            raise KeyError(name)
         if len(res) == 1:
             return res[0]
         return res
+
+    def safe_get(self, name, default=None):
+        try:
+            return self.get(name)
+        except KeyError:
+            return default
 
     def has_key(self, name):
         try:
@@ -239,7 +245,7 @@ class Block:
 
     def __getitem__(self, name):
         if not self.has_key(name):
-            raise KeyError
+            raise KeyError(name)
         return self.get(name)
 
     def __setitem__(self, name, value):
@@ -318,3 +324,7 @@ class JailConf(Block):
 
     def __str__(self):
         return ''.join(str(t) for t in self.toks)
+
+    @property
+    def jail_blocks(self):
+        return { s.name: s for s in self.statements if isinstance(s, JailBlock) }

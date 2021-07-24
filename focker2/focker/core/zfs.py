@@ -95,8 +95,10 @@ def zfs_list(fields=['name'], focker_type='image', zfs_type='filesystem'):
 
 
 def zfs_tag(name, tags, replace=False):
-    if any(map(lambda a: ' ' in a, tags)):
+    if any(' ' in a for a in tags):
         raise ValueError('Tags cannot contain spaces')
+    if any(a == '-' for a in tags):
+        raise ValueError('Tags cannot consist of just the minus sign')
     lst = zfs_parse_output(['zfs', 'list', '-o', 'focker:tags', '-H', name])
     if not replace:
         tags = list(tags)

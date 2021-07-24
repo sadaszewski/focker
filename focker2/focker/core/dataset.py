@@ -21,6 +21,12 @@ class Dataset:
         self.mountpoint = kwargs['mountpoint']
 
     @classmethod
+    def from_name(cls, name):
+        sha256 = zfs_get_property(name, 'focker:sha256')
+        mountpoint = zfs_mountpoint(name)
+        return cls(init_key=cls._init_key, name=name, sha256=sha256, mountpoint=mountpoint)
+
+    @classmethod
     def clone_from(cls, base: Dataset, sha256: str = None) -> Dataset:
         if cls._meta_cloneable_from is None:
             raise RuntimeError(f'{cls.__name__} cannot be created by cloning')
@@ -54,6 +60,7 @@ class Dataset:
     def tags(self):
         res = zfs_get_property(self.name, 'focker:tags')
         res = res.split(' ')
+        res = [ t for t in res if t != '-' ]
         return set(res)
 
     @property
@@ -61,7 +68,7 @@ class Dataset:
         return self.name + '@1'
 
     @property
-    def used(self):
+    def size(self):
         return zfs_get_property(self.name, 'used')
 
     @classmethod
@@ -155,12 +162,13 @@ class Dataset:
         zfs_untag(tags, focker_type=cls._meta_focker_type)
 
     def in_use(self):
-        fields = ['name', 'origin']
-        lst = zfs_list(fields, focker_type='image') + \
-            zfs_list(fields, focker_type='jail')
-        if any(item[1].startswith(f'{self.name}@') for item in lst):
-            return True
-        return False
+        lst = [ ds for ds in self.list_unused() \
+            if ds.name == self.name ]
+        return ( len(lst) == 0 )
+
+    @classmethod
+    def list_unused(cls):
+        raise NotImplementedError
 
     @classmethod
     def create(cls, sha256=None):
@@ -177,7 +185,13 @@ class Dataset:
 
     @classmethod
     def prune(cls):
-        zfs_prune(cls._meta_focker_type)
+        while True:
+            lst = cls.list_unused()
+            lst = [ ds for ds in lst if not ds.tags ]
+            if len(lst) == 0:
+                break
+            for ds in lst:
+                ds.destroy()
 
     @property
     def is_protected(self):

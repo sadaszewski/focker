@@ -3,7 +3,7 @@ import argparse
 
 
 def standard_fobject_commands(fobject_class,
-    display_fields=['name', 'tags', 'sha256', 'mountpoint', 'is_protected', 'is_finalized', 'used'],
+    display_fields=['name', 'tags', 'sha256', 'mountpoint', 'is_protected', 'is_finalized', 'size'],
     **kwargs):
 
     return dict(
@@ -13,7 +13,7 @@ def standard_fobject_commands(fobject_class,
             output=dict(
                 aliases=['o'],
                 type=str,
-                default=['tags', 'used', 'mountpoint'],
+                default=['tags', 'size', 'mountpoint'],
                 nargs='+',
                 choices=display_fields
             ),
@@ -115,7 +115,7 @@ def cmd_taggable_list(args, tcls):
         if isinstance(s, bool):
             return 'on' if s else 'off'
         elif isinstance(s, set):
-            return ', '.join(s)
+            return ', '.join(s) if s else '-'
         else:
             return str(s)
     res = [ [ to_string(getattr(t, o)) for o in args.output  ] for t in lst ]

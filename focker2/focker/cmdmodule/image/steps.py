@@ -11,7 +11,8 @@ import shutil
 import os
 import shlex
 from ...misc import filehash
-from ...core import default_jail_run
+from ...core import ImageBuildJailSpec, \
+    TemporaryOSJail
 
 
 class RunStep(object):
@@ -32,7 +33,9 @@ class RunStep(object):
         spec = self.spec
         if isinstance(spec, list):
             spec = ' && ' .join(self.spec)
-        default_jail_run(im, spec)
+        jspec = ImageBuildJailSpec.from_image_and_dict(im, {})
+        with TemporaryOSJail(jspec) as j:
+            j.run(spec)
 
 
 class CopyStep(object):
