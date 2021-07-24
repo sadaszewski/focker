@@ -14,12 +14,6 @@ class Image(Dataset):
     def from_base(base: Image, sha256: str) -> Image:
         return Image.clone_from(base)
 
-    def apply_spec(self):
-        raise NotImplementedError
-
-    def create(self):
-        raise NotImplementedError
-
     @staticmethod
     def list_unused():
         fields = ['name', 'origin']

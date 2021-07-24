@@ -69,6 +69,10 @@ class BootstrapPlugin(Plugin):
                         version=dict(
                             type=str
                         ),
+                        reldir=dict(
+                            type=str,
+                            default='releases'
+                        ),
                         tags=dict(
                             aliases=['t'],
                             type=str,
@@ -76,6 +80,10 @@ class BootstrapPlugin(Plugin):
                         ),
                         interactive=dict(
                             aliases=['i'],
+                            action='store_true'
+                        ),
+                        cleandist=dict(
+                            aliases=['c'],
                             action='store_true'
                         )
                     )
