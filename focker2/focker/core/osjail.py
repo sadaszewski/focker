@@ -5,8 +5,7 @@ from .process import focker_subprocess_run, \
     focker_subprocess_check_output
 from .image import Image
 from .misc import get_path_and_name
-from ..misc import load_jailconf, \
-    jailconf_unquote
+from ..misc import load_jailconf
 
 import shlex
 import os
@@ -28,7 +27,7 @@ class OSJail:
     def from_name(cls, name):
         conf = load_jailconf()
         for k, blk in conf.items():
-            if jailconf_unquote(k) == name:
+            if k == name:
                 return OSJail(init_key=cls.__init_key, name=name)
         raise RuntimeError('OSJail with the given name not found')
 

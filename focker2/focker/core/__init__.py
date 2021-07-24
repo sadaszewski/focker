@@ -6,4 +6,4 @@ from .jailfs import *
 from .jailspec import *
 from .osjailspec import *
 from .misc import *
-from .jail import *
+from .osjail import *

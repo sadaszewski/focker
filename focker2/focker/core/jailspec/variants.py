@@ -28,8 +28,6 @@ class ImageBuildJailSpec(JailSpec):
         jailspec['name'] = os.path.split(im.path)[-1]
         return cls._from_dict(jailspec)
 
-del ImageBuildJailSpec.from_dict
-
 
 class OneExecJailSpec(JailSpec):
     @classmethod
@@ -41,5 +39,3 @@ class OneExecJailSpec(JailSpec):
         jailspec['path'] = jfs.path
         jailspec['name'] = os.path.split(jfs.path)[-1]
         return cls._from_dict(jailspec)
-
-del OneExecJailSpec.from_dict

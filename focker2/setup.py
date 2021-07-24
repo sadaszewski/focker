@@ -13,7 +13,7 @@ setup(
     scripts=['scripts/focker', 'scripts/focker-bsdinstall', 'scripts/focker-mirrorselect'],
     install_requires=[
         "tabulate",
-        "jailconf",
+        "pyparsing",
         "ruamel-yaml"
     ]
 )

@@ -3,9 +3,7 @@ import shlex
 from .jailspec import JailSpec
 import os
 from ..misc import load_jailconf, \
-    save_jailconf, \
-    quote_for_jailconf
-import jailconf
+    save_jailconf
 
 
 def gen_env_command(command, env):
