@@ -3,6 +3,7 @@ import shlex
 import os
 from ..misc import load_jailconf, \
     save_jailconf
+from ..jailconf import JailBlock
 
 
 JailSpec = 'JailSpec'
@@ -79,9 +80,7 @@ class OSJailSpec:
         return dict(self.params)
 
     def to_jail_block(self):
-        blk = {
-            k: quote_for_jailconf(v) for k, v in self.params.items()
-        }
+        blk = dict(self.params)
 
         blk = { neg_key_name(k) if isinstance(v, bool) \
             and v == False else k: v \
@@ -92,7 +91,7 @@ class OSJailSpec:
 
         print('blk:', blk)
 
-        blk = jailconf.JailBlock(blk)
+        blk = JailBlock.create(self.name, blk)
         return blk
 
     def add(self, fname='/etc/jail.conf'):

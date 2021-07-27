@@ -25,6 +25,9 @@ def quote_value(s):
     if s.isnumeric():
         return s
 
+    if s == '':
+        return "''"
+
     if not re.match('^[a-zA-Z0-9.\-_]*$', s):
         s = s.encode('unicode_escape').decode('utf-8')
         s = s.replace('\'', '\\\'')

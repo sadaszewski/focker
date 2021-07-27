@@ -35,7 +35,7 @@ class RunStep(object):
             spec = ' && ' .join(self.spec)
         jspec = ImageBuildJailSpec.from_image_and_dict(im, {})
         with TemporaryOSJail(jspec) as j:
-            j.run(spec)
+            j.run([ '/bin/sh', '-c', spec ])
 
 
 class CopyStep(object):

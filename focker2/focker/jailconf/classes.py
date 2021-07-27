@@ -243,6 +243,10 @@ class Block:
             if s.__class__ not in [ KeyValuePair, KeyValueAppendPair, KeyValueToggle ] \
             or s.key != name ])
 
+    def update(self, blk):
+        for k, v in blk.items():
+            self[k] = v
+
     def __getitem__(self, name):
         if not self.has_key(name):
             raise KeyError(name)
@@ -267,8 +271,11 @@ class JailBlock(Block):
         super().__init__(toks, indent=2)
 
     @classmethod
-    def create(cls, jail_name):
-        return cls([ '\n', JailName(jail_name), ' {', Statements(), '\n}' ])
+    def create(cls, jail_name, blk=None):
+        res = cls([ '\n', JailName(jail_name), ' {', Statements(), '\n}' ])
+        if blk:
+            res.update(blk)
+        return res
 
     @property
     def name(self):

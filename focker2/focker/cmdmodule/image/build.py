@@ -67,3 +67,5 @@ def cmd_image_build(args):
         im = process_facets(spec)
 
     im.add_tags(args.tags)
+
+    print(f'Created {im.name}, mounted at {im.path}, with tags: {", ".join(args.tags)}')

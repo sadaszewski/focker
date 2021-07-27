@@ -226,3 +226,7 @@ def zfs_prune(focker_type='image'):
 def zfs_set_props(name, props):
     for (k, v) in props.items():
         zfs_run(['zfs', 'set', k + '=' + v, name])
+
+
+def zfs_snapshot(name):
+    zfs_run(['zfs', 'snapshot', name])

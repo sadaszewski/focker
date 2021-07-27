@@ -63,7 +63,7 @@ class OSJail:
 
 class TemporaryOSJail(OSJail):
     def __init__(self, spec, create_started=True, **kwargs):
-        super().__init__(_init_key=OSJail._init_key, name=None)
+        super().__init__(init_key=OSJail._init_key, name=None)
 
         self.spec = spec
         self.create_started = create_started

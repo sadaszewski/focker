@@ -15,4 +15,5 @@ def load_jailconf(fname='/etc/jail.conf'):
 
 def save_jailconf(conf, fname='/etc/jail.conf'):
     backup_file(fname)
-    dump(conf, fname)
+    with open(fname, 'w') as f:
+        dump(conf, f)
