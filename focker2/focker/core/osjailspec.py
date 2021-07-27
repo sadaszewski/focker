@@ -24,12 +24,6 @@ def concat_commands(lst):
     return ' && '.join(lst)
 
 
-def neg_key_name(k):
-    k = k.split('.')
-    k = '.'.join(k[:-1] + [ 'no' + k[-1] ])
-    return k
-
-
 OSJailSpec = 'OSJailSpec'
 
 
@@ -80,18 +74,8 @@ class OSJailSpec:
         return dict(self.params)
 
     def to_jail_block(self):
-        blk = dict(self.params)
-
-        blk = { neg_key_name(k) if isinstance(v, bool) \
-            and v == False else k: v \
-                for k, v in blk.items() }
-
-        blk = { k: v for k, v in blk.items()
-            if v is not None }
-
-        print('blk:', blk)
-
-        blk = JailBlock.create(self.name, blk)
+        print('blk:', self.params)
+        blk = JailBlock.create(self.name, self.params)
         return blk
 
     def add(self, fname='/etc/jail.conf'):
