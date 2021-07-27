@@ -3,11 +3,9 @@ import argparse
 from ..core import JailFs, \
     Image, \
     JailSpec, \
-    OSJailSpec
-from tabulate import tabulate
+    OSJailSpec, \
+    OSJail
 from .common import standard_fobject_commands
-from ..core.process import focker_subprocess_check_output, \
-    focker_subprocess_run
 
 
 class JailPlugin(Plugin):
@@ -26,9 +24,10 @@ class JailPlugin(Plugin):
                             type=str
                         ),
                         command=dict(
-                            aliases=['c'],
+                            positional=True,
+                            nargs='*',
                             type=str,
-                            default='/bin/sh'
+                            default=[ '/bin/sh' ]
                         )
                     ),
                     fromimage=dict(
@@ -56,7 +55,8 @@ class JailPlugin(Plugin):
 
 def cmd_jail_exec(args):
     jfs = JailFs.from_any_id(args.identifier)
-    focker_subprocess_run([ 'jexec', str(jfs.jid), args.command ])
+    j = OSJail.from_mountpoint(jfs.path)
+    j.run(args.command)
 
 
 def cmd_jail_fromimage(args):

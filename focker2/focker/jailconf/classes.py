@@ -262,6 +262,9 @@ class Block:
             raise KeyError
         self.remove_key(name)
 
+    def __contains__(self, name):
+        return self.has_key(name)
+
     def __str__(self):
         return ''.join(str(t) for t in self.toks)
 
