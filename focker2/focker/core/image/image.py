@@ -1,5 +1,5 @@
-from .dataset import Dataset
-from .zfs import zfs_list
+from ..dataset import Dataset
+from ..zfs import zfs_list
 
 
 Image='Image'

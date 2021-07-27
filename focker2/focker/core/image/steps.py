@@ -11,8 +11,8 @@ import shutil
 import os
 import shlex
 from ...misc import filehash
-from ...core import ImageBuildJailSpec, \
-    TemporaryOSJail
+from ..jailspec import ImageBuildJailSpec
+from ..osjail import TemporaryOSJail
 
 
 class RunStep(object):
@@ -45,7 +45,7 @@ class CopyStep(object):
         self.spec = spec
         self.src_dir = src_dir
 
-    def hash(self, base, args, **kwargs):
+    def hash(self, base, **kwargs):
         if len(self.spec) == 0:
             fh = []
         elif isinstance(self.spec[0], list):
@@ -57,7 +57,7 @@ class CopyStep(object):
             .encode('utf-8')).hexdigest()
         return res
 
-    def execute(self, im, args, **kwargs):
+    def execute(self, im, **kwargs):
         lst = [ self.spec ] \
             if not isinstance(self.spec[0], list) \
             else self.spec

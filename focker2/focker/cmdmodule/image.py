@@ -1,9 +1,7 @@
-from ...plugin import Plugin
-from argparse import ArgumentParser
-from ...core import Image
-from tabulate import tabulate
-from ..common import standard_fobject_commands
-from .build import cmd_image_build
+from ..plugin import Plugin
+from ..core import Image, \
+    ImageBuilder
+from .common import standard_fobject_commands
 
 
 class ImagePlugin(Plugin):
@@ -35,3 +33,10 @@ class ImagePlugin(Plugin):
                 )
             )
         )
+
+
+def cmd_image_build(args):
+    bld = ImageBuilder(args.focker_dir, squeeze=args.squeeze)
+    im = bld.build()
+    im.add_tags(args.tags)
+    print(f'Created {im.name}, mounted at {im.path}, with tags: {", ".join(args.tags)}')
