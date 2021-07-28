@@ -1,5 +1,5 @@
 import os
-import ruamel.yaml as yaml
+from ... import yaml
 from functools import reduce
 from .steps import create_step
 from .image import Image

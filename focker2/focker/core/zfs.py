@@ -5,7 +5,6 @@ from typing import Dict, \
 import subprocess
 import io
 import csv
-import ruamel.yaml as yaml
 import os
 from functools import reduce
 import random

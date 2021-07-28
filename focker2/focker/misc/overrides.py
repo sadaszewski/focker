@@ -1,5 +1,5 @@
 import os
-import ruamel.yaml as yaml
+from .. import yaml
 
 
 def load_overrides(fname, env_prefix='FOCKER_', env_hier=False):

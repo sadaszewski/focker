@@ -4,7 +4,7 @@ from .volume import build_volumes
 from .jail import build_jails
 from .hook import exec_prebuild, \
     exec_postbuild
-import ruamel.yaml as yaml
+from ... import yaml
 
 
 class ComposePlugin(Plugin):

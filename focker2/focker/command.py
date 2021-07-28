@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 from .plugin import PLUGIN_MANAGER
 import os
-import ruamel.yaml as yaml
 from .misc import load_overrides, \
     merge_dicts
 
