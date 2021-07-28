@@ -20,6 +20,9 @@ class ComposePlugin(Plugin):
                         spec_filename=dict(
                             positional=True,
                             type=str
+                        ),
+                        squeeze=dict(
+                            action='store_true'
                         )
                     )
                 )
@@ -34,7 +37,7 @@ def cmd_compose_build(args):
     path, _ = os.path.split(args.spec_filename)
 
     exec_prebuild(spec.get('exec.prebuild', []), path)
-    build_images(spec.get('images', {}))
+    build_images(spec.get('images', {}), args.squeeze)
     build_volumes(spec.get('volumes', {}))
     build_jails(spec.get('jails', {}))
     exec_postbuild(spec.get('exec.postbuild', []), path)
