@@ -31,9 +31,26 @@ class DatasetTestBase:
         finally:
             ds.destroy()
 
-    @pytest.mark.skip
     def test03_prune(self):
-        pass
+        ds = self._meta_class.create()
+        name = ds.name
+        try:
+            assert zfs_exists(name)
+            self._meta_class.prune()
+            assert not zfs_exists(name)
+        except:
+            ds.destroy()
+            raise
+
+        t = 'focker-unit-test-dataset'
+        ds = self._meta_class.create()
+        try:
+            assert zfs_exists(ds.name)
+            ds.add_tags([ t ])
+            self._meta_class.prune()
+            assert zfs_exists(ds.name)
+        finally:
+            ds.destroy()
 
     def test04_tag(self):
         ds = self._meta_class.create()
