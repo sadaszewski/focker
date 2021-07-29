@@ -25,7 +25,7 @@ class JailFs(Dataset):
 
     def destroy(self):
         jconf = load_jailconf()
-        for k, blk in list(jconf.items()):
+        for k, blk in list(jconf.jail_blocks.items()):
             if blk['path'] == self.path:
                 del jconf[k]
         save_jailconf(jconf)
