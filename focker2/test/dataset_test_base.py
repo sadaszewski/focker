@@ -1,4 +1,7 @@
 import pytest
+import os
+from focker.core import zfs_exists
+
 
 class DatasetTestBase:
     _meta_class = None
@@ -19,18 +22,29 @@ class DatasetTestBase:
         finally:
             obj.destroy()
 
+    def test02_create(self):
+        ds = self._meta_class.create()
+        try:
+            assert os.path.exists(ds.path)
+            assert zfs_exists(ds.name)
+            assert self._meta_class.exists_sha256(ds.sha256)
+        finally:
+            ds.destroy()
 
     @pytest.mark.skip
-    def test_create(self):
+    def test03_prune(self):
         pass
 
-    @pytest.mark.skip
-    def test_prune(self):
-        pass
-
-    @pytest.mark.skip
-    def test_tag(self):
-        pass
+    def test04_tag(self):
+        ds = self._meta_class.create()
+        t = 'focker-unit-test-a'
+        try:
+            ds.add_tags([ t ])
+            assert self._meta_class.exists_tag(t)
+            assert self._meta_class.from_tag(t).sha256 == ds.sha256
+        finally:
+            ds.destroy()
+        assert not self._meta_class.exists_tag(t)
 
     @pytest.mark.skip
     def test_untag(self):
