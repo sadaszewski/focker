@@ -37,7 +37,7 @@ class DatasetTestBase:
 
     def test04_tag(self):
         ds = self._meta_class.create()
-        t = 'focker-unit-test-a'
+        t = 'focker-unit-test-dataset'
         try:
             ds.add_tags([ t ])
             assert self._meta_class.exists_tag(t)
@@ -46,13 +46,28 @@ class DatasetTestBase:
             ds.destroy()
         assert not self._meta_class.exists_tag(t)
 
-    @pytest.mark.skip
-    def test_untag(self):
-        pass
+    def test05_untag(self):
+        ds = self._meta_class.create()
+        t = 'focker-unit-test-dataset'
+        try:
+            ds.add_tags([ t ])
+            assert self._meta_class.exists_tag(t)
+            assert self._meta_class.from_tag(t).sha256 == ds.sha256
+            ds.remove_tags([ t ])
+            assert not self._meta_class.exists_tag(t)
+        finally:
+            ds.destroy()
 
-    @pytest.mark.skip
-    def test_remove(self):
-        pass
+    def test06_remove(self):
+        ds = self._meta_class.create()
+        try:
+            assert os.path.exists(ds.path)
+            assert zfs_exists(ds.name)
+            sha256 = ds.sha256
+            assert self._meta_class.exists_sha256(sha256)
+        finally:
+            ds.destroy()
+        assert not self._meta_class.exists_sha256(sha256)
 
     @pytest.mark.skip
     def test_set(self):
