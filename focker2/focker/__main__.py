@@ -5,10 +5,10 @@ import sys
 
 
 @FockerLock()
-def main():
+def main(args=None):
     PLUGIN_MANAGER.load()
     parser = create_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     if not hasattr(args, 'func'):
         parser.print_usage()
         sys.exit('You must choose an action')
