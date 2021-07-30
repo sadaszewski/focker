@@ -5,6 +5,7 @@ from .jail import build_jails
 from .hook import exec_prebuild, \
     exec_postbuild
 from ... import yaml
+import os
 
 
 class ComposePlugin(Plugin):
@@ -39,5 +40,6 @@ def cmd_compose_build(args):
     exec_prebuild(spec.get('exec.prebuild', []), path)
     build_images(spec.get('images', {}), args.squeeze)
     build_volumes(spec.get('volumes', {}))
-    build_jails(spec.get('jails', {}))
+    if 'jails' in spec:
+        build_jails(spec['jails'])
     exec_postbuild(spec.get('exec.postbuild', []), path)
