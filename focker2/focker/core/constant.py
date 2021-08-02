@@ -23,14 +23,14 @@ JAIL_PSEUDO_PARAMS = {'exec.prestart', 'exec.start', 'command',
     'exec.system_user', 'exec.timeout', 'exec.consolelog',
     'exec.fib', 'stop.timeout', 'interface', 'ip4.addr',
     'ip6.addr', 'vnet.interface', 'ip_hostname', 'mount',
-    'mount.fstab', 'mount.fdescfs', 'mount.procfs', 'allow.dying',
-    'depend'}
+    'mount.fstab', 'mount.fdescfs', 'mount.procfs', 'allow.dying'}
 
 
 JAIL_PARAMS = JAIL_SYSCTL_PARAMS.union(JAIL_PSEUDO_PARAMS)
 
 
-JAIL_FOCKER_PARAMS = { 'image', 'mounts', 'env', 'jailfs', 'path', 'name', 'host.hostname' }
+JAIL_FOCKER_PARAMS = { 'image', 'mounts', 'env', 'jailfs', 'path',
+    'name', 'host.hostname', 'depend' }
 
 
 JAIL_EXEC_PARAMS = {'exec.prestart', 'exec.start', 'command',

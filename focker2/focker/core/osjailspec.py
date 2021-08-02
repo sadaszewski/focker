@@ -4,6 +4,7 @@ import os
 from ..misc import load_jailconf, \
     save_jailconf
 from ..jailconf import JailBlock
+from .osjail.osjail import OSJail
 
 
 JailSpec = 'JailSpec'
@@ -67,6 +68,7 @@ class OSJailSpec:
 
         params['path'] = path
         params['host.hostname'] = jailspec.hostname
+        params['depend'] = [ OSJail.from_any_id(dep, strict=True).name for dep in jailspec.depend ]
         # mounts
         return OSJailSpec(init_key=OSJailSpec.__init_key, params=params, name=name)
 

@@ -24,11 +24,9 @@ class JailFs(Dataset):
         return JailFs.clone_from(image, sha256)
 
     def destroy(self):
-        jconf = load_jailconf()
-        for k, blk in list(jconf.jail_blocks.items()):
-            if blk['path'] == self.path:
-                del jconf[k]
-        save_jailconf(jconf)
+        jail = OSJail.from_mountpoint(self.path, raise_exc=False)
+        if jail is not None:
+            jail.remove()
         super().destroy()
 
     @property

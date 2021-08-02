@@ -6,6 +6,11 @@ import os
 
 
 class CloneImageJailSpec(JailSpec):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.jfs = None
+
     @classmethod
     def from_dict(cls, jailspec: Dict = {}):
         if 'image' not in jailspec:
@@ -16,9 +21,13 @@ class CloneImageJailSpec(JailSpec):
         del jailspec['image']
         jailspec['path'] = jfs.path
         name = os.path.split(jfs.path)[-1]
-        jailspec['name'] = name
-        jailspec['host.hostname'] = name
-        return cls._from_dict(jailspec)
+        if 'name' not in jailspec:
+            jailspec['name'] = name
+        if 'host.hostname' not in jailspec:
+            jailspec['host.hostname'] = name
+        res = cls._from_dict(jailspec)
+        res.jfs = jfs
+        return res
 
 
 class ImageBuildJailSpec(JailSpec):

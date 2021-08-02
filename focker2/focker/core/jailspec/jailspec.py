@@ -23,6 +23,7 @@ class JailSpec:
         self.exec_params = kwargs['exec_params']
         self.rest_params = kwargs['rest_params']
         self.name = kwargs['name']
+        self.depend = ensure_list(kwargs['depend'])
 
     @staticmethod
     def validate_dict(jailspec: Dict):
@@ -57,6 +58,7 @@ class JailSpec:
         path = focker_spec['path']
         name = JAIL_NAME_PREFIX + focker_spec['name']
         hostname = focker_spec.get('host.hostname', name)
+        depend = focker_spec.get('depend', [])
 
         mounts = focker_spec.get('mounts', [])
         mounts = [ Mount(m[0], m[1]) for m in mounts ]
@@ -70,7 +72,7 @@ class JailSpec:
         return cls(init_key=JailSpec._init_key, path=path,
             hostname=hostname, mounts=mounts, env=env,
             exec_params=exec_params, rest_params=rest_params,
-            name=name)
+            name=name, depend=depend)
 
     @classmethod
     def from_dict(cls, jailspec: Dict):

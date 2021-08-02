@@ -81,11 +81,18 @@ class Dataset:
         return res
 
     @classmethod
-    def from_predicate_handle_corner_cases(cls, lst):
+    def from_predicate_handle_corner_cases(cls, lst, raise_exc=True):
         if len(lst) == 0:
-            raise RuntimeError(f'{cls.__name__} not found')
+            if raise_exc:
+                raise RuntimeError(f'{cls.__name__} not found')
+            else:
+                return None
         if len(lst) > 1:
-            raise RuntimeError(f'Ambiguous {cls.__name__.lower()} reference')
+            if raise_exc:
+                raise RuntimeError(f'Ambiguous {cls.__name__.lower()} reference')
+            else:
+                return None
+        return lst
 
     @classmethod
     def exists_predicate(cls, pred):
@@ -108,12 +115,14 @@ class Dataset:
         return cls.exists_predicate(lambda e: tag in e[3].split(' '))
 
     @classmethod
-    def from_predicate(cls, pred):
+    def from_predicate(cls, pred, raise_exc=True):
         lst = zfs_list(cls._meta_list_columns,
             focker_type=cls._meta_focker_type, zfs_type=cls._meta_zfs_type)
         lst = [ e for e in lst if pred(e) ]
         # print(lst)
-        cls.from_predicate_handle_corner_cases(lst)
+        lst = cls.from_predicate_handle_corner_cases(lst, raise_exc=raise_exc)
+        if lst is None:
+            return None
         name, mountpoint, sha256, *_ = lst[0]
         return cls._meta_class(init_key=cls._init_key, name=name, sha256=sha256,
             mountpoint=mountpoint)
@@ -123,8 +132,8 @@ class Dataset:
         return cls.from_predicate(lambda e: e[2] == sha256)
 
     @classmethod
-    def from_tag(cls, tag: str):
-        return cls.from_predicate(lambda e: tag in e[3].split(' '))
+    def from_tag(cls, tag: str, raise_exc=True):
+        return cls.from_predicate(lambda e: tag in e[3].split(' '), raise_exc=raise_exc)
 
     @classmethod
     def from_partial_sha256(cls, sha256: str):
@@ -135,14 +144,14 @@ class Dataset:
         return cls.from_predicate(lambda e: any(t.startswith(tag) for t in e[3].split(' ')))
 
     @classmethod
-    def from_any_id(cls, id_: str, strict=True):
+    def from_any_id(cls, id_: str, strict=True, raise_exc=True):
         if strict:
             return cls.from_predicate(lambda e: \
-                id_ in e[3].split(' ') or e[2] == id_)
+                id_ in e[3].split(' ') or e[2] == id_, raise_exc=raise_exc)
         else:
             return cls.from_predicate(lambda e: \
                 any(t.startswith(id_) for t in e[3].split(' ')) or \
-                e[2].startswith(id_))
+                e[2].startswith(id_), raise_exc=raise_exc)
 
     def add_tags(self, tags):
         if tags is None:

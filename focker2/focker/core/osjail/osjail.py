@@ -1,9 +1,8 @@
-from .osjailspec import OSJailSpec
-from .process import focker_subprocess_run, \
+from ..process import focker_subprocess_run, \
     focker_subprocess_check_output, \
     CalledProcessError
-from ..misc import load_jailconf
-
+from ...misc import load_jailconf, \
+    save_jailconf
 import shlex
 import os
 import json
@@ -30,12 +29,31 @@ class OSJail:
         raise RuntimeError('OSJail with the given name not found')
 
     @classmethod
-    def from_mountpoint(cls, path):
+    def from_mountpoint(cls, path, raise_exc=True):
         conf = load_jailconf()
         for k, blk in conf.jail_blocks.items():
             if blk['path'] == path:
                 return OSJail(init_key=cls._init_key, name=k)
-        raise RuntimeError('OSJail with the given mountpoint not found')
+        if raise_exc:
+            raise RuntimeError('OSJail with the given mountpoint not found')
+        else:
+            return None
+
+    @classmethod
+    def from_tag(cls, tag, raise_exc=True):
+        from ..jailfs import JailFs
+        jfs = JailFs.from_tag(tag, raise_exc=raise_exc)
+        if jfs is not None:
+            return cls.from_mountpoint(jfs.mountpoint, raise_exc=raise_exc)
+        return None
+
+    @classmethod
+    def from_any_id(cls, reference, strict=True, raise_exc=True):
+        from ..jailfs import JailFs
+        jfs = JailFs.from_any_id(reference, strict=strict, raise_exc=raise_exc)
+        if jfs is not None:
+            return cls.from_mountpoint(jfs.mountpoint, raise_exc=raise_exc)
+        return None
 
     def start(self):
         focker_subprocess_run([ 'jail', '-c', self.name ])
@@ -61,7 +79,7 @@ class OSJail:
     def is_running(self):
         try:
             focker_subprocess_check_output([ 'jls', '-j', self.name ])
-        except subprocess.CalledProcessError:
+        except CalledProcessError:
             return False
         return True
 
@@ -99,26 +117,14 @@ class OSJail:
         else:
             return None
 
-
-class TemporaryOSJail(OSJail):
-    def __init__(self, spec, create_started=True, **kwargs):
-        super().__init__(init_key=OSJail._init_key, name=None)
-
-        self.spec = spec
-        self.create_started = create_started
-
-        self.ospec = None
-        self.osjail = None
-
-    def __enter__(self):
-        self.ospec = OSJailSpec.from_jailspec(self.spec)
-        self.ospec.add()
-        self.name = self.ospec.name
-        if self.create_started:
-            self.start()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.create_started:
+    def remove(self):
+        if self.is_running:
             self.stop()
-        self.ospec.remove()
+        conf = load_jailconf()
+        del conf[self.name]
+        save_jailconf(conf)
+
+    @property
+    def conf(self):
+        conf = load_jailconf()
+        return conf[self.name]

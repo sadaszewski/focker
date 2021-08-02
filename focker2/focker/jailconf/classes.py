@@ -58,6 +58,8 @@ class ListOfValues:
         return [ t.value for t in self.toks if isinstance(t, Value) ]
 
     def __str__(self):
+        if len(self) == 0:
+            return "''"
         return ''.join(str(t) for t in self.toks)
 
 

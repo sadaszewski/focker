@@ -1,5 +1,7 @@
 from focker.__main__ import main
-from focker.core import Volume
+from focker.core import Volume, \
+    JailFs, \
+    OSJail
 from focker import yaml
 import os
 import tempfile
@@ -51,5 +53,29 @@ class TestCompose:
             finally:
                 v.unprotect()
                 v.destroy()
+        finally:
+            os.unlink(f.name)
+
+    def test03_jail_simple(self):
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            yaml.safe_dump(dict(
+                jails=dict(
+                    focker_unit_test_jail=dict(
+                        image='freebsd-latest'
+                    )
+                )
+            ), f)
+        try:
+            cmd = [ 'compose', 'build', f.name ]
+            main(cmd)
+            jfs = JailFs.from_tag('focker_unit_test_jail', raise_exc=False)
+            assert jfs is not None
+            try:
+                jail = OSJail.from_tag('focker_unit_test_jail', raise_exc=False)
+                assert jail is not None
+                assert jail.conf['path'] == jfs.path
+            finally:
+                jfs.destroy()
+            assert not JailFs.exists_tag('focker_unit_test_jail')
         finally:
             os.unlink(f.name)
