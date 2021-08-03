@@ -99,10 +99,19 @@ class DatasetCmdTestBase:
         finally:
             ds.destroy()
 
-
-    @pytest.mark.skip
-    def test_get(self):
-        pass
+    def test11_get(self):
+        ds = self._meta_class.create()
+        try:
+            ds.set_props({ 'quota': '5G' })
+            cmd = [ self._meta_class._meta_focker_type, 'get', ds.sha256, 'quota' ]
+            buf = StringIO()
+            with redirect_stdout(buf):
+                main(cmd)
+            buf = buf.getvalue().split('\n')
+            buf = [ ln for ln in buf if 'quota' in ln and '5G' in ln ]
+            assert len(buf) == 1
+        finally:
+            ds.destroy()
 
     @pytest.mark.skip
     def test_protect(self):
