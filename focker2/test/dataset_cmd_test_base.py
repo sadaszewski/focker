@@ -71,17 +71,34 @@ class DatasetCmdTestBase:
         finally:
             ds.destroy()
 
-    @pytest.mark.skip
-    def test05_untag(self):
-        pass
+    def test08_untag(self):
+        name = self._create()
+        ds = self._meta_class.from_name(name)
+        ds.add_tags([ 'focker-unit-test-tag' ])
+        try:
+            cmd = [ self._meta_class._meta_focker_type, 'untag', ds.sha256, 'focker-unit-test-tag' ]
+            main(cmd)
+            assert 'focker-unit-test-tag' not in ds.tags
+        finally:
+            ds.destroy()
 
-    @pytest.mark.skip
-    def test06_remove(self):
-        pass
+    def test09_remove(self):
+        name = self._create()
+        ds = self._meta_class.from_name(name)
+        cmd = [ self._meta_class._meta_focker_type, 'remove', ds.sha256 ]
+        main(cmd)
+        assert not zfs_exists(name)
 
-    @pytest.mark.skip
-    def test_set(self):
-        pass
+    def test10_set(self):
+        name = self._create()
+        ds = self._meta_class.from_name(name)
+        try:
+            cmd = [ self._meta_class._meta_focker_type, 'set', ds.sha256, 'quota=5G' ]
+            main(cmd)
+            assert ds.get_props([ 'quota' ])['quota'] == '5G'
+        finally:
+            ds.destroy()
+
 
     @pytest.mark.skip
     def test_get(self):
