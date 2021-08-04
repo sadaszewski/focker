@@ -113,10 +113,24 @@ class DatasetCmdTestBase:
         finally:
             ds.destroy()
 
-    @pytest.mark.skip
-    def test_protect(self):
-        pass
+    def test12_protect(self):
+        ds = self._meta_class.create()
+        try:
+            cmd = [ self._meta_class._meta_focker_type, 'protect', ds.sha256 ]
+            main(cmd)
+            assert ds.is_protected
+        finally:
+            ds.unprotect()
+            ds.destroy()
 
-    @pytest.mark.skip
-    def test_unprotect(self):
-        pass
+    def test13_unprotect(self):
+        ds = self._meta_class.create()
+        try:
+            ds.protect()
+            assert ds.is_protected
+            cmd = [ self._meta_class._meta_focker_type, 'unprotect', ds.sha256 ]
+            main(cmd)
+            assert not ds.is_protected
+        finally:
+            ds.unprotect()
+            ds.destroy()
