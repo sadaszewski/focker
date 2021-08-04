@@ -80,10 +80,11 @@ class OSJailSpec:
         blk = JailBlock.create(self.name, self.params)
         return blk
 
-    def add(self, fname='/etc/jail.conf'):
+    def add(self, fname='/etc/jail.conf') -> OSJail:
         conf = load_jailconf(fname)
         conf[self.name] = self.to_jail_block()
         save_jailconf(conf, fname)
+        return OSJail.from_name(self.name)
 
     def remove(self, fname='/etc/jail.conf'):
         conf = load_jailconf(fname)

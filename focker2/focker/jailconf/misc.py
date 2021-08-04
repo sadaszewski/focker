@@ -16,7 +16,7 @@ def flatten(x):
 def quote_value(s):
     if isinstance(s, list):
         if len(s) == 0:
-            return "''"
+            return None
         else:
             return ','.join(quote_value(x) for x in s)
 

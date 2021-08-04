@@ -28,6 +28,10 @@ class Value:
     def __str__(self):
         return quote_value(self.value)
 
+    @property
+    def need_skip(self):
+        return False
+
 
 class ListOfValues:
     def __init__(self, toks):
@@ -58,9 +62,11 @@ class ListOfValues:
         return [ t.value for t in self.toks if isinstance(t, Value) ]
 
     def __str__(self):
-        if len(self) == 0:
-            return "''"
         return ''.join(str(t) for t in self.toks)
+
+    @property
+    def need_skip(self):
+        return (len(self) == 0)
 
 
 class Key(Value):
@@ -76,13 +82,19 @@ class KeyValuePair:
         return [ k for k in self.toks if k.__class__ == Key ][0].value
 
     @property
+    def wrapped_value(self):
+        return [ v for v in self.toks if v.__class__ in [ Value, ListOfValues ]][0]
+
+    @property
     def value(self):
-        return [ v for v in self.toks if v.__class__ in [ Value, ListOfValues ]][0].value
+        return self.wrapped_value.value
 
     def __repr__(self):
         return f'KeyValuePair({self.toks})'
 
     def __str__(self):
+        if self.wrapped_value.need_skip:
+            return ''
         return ''.join(str(t) for t in self.toks)
 
 
@@ -95,13 +107,19 @@ class KeyValueAppendPair:
         return [ k for k in self.toks if k.__class__ == Key ][0].value
 
     @property
+    def wrapped_value(self):
+        return [ v for v in self.toks if v.__class__ in [ Value, ListOfValues ]][0]
+
+    @property
     def value(self):
-        return [ v for v in self.toks if v.__class__ in [ Value, ListOfValues ]][0].value
+        return self.wrapped_value.value
 
     def __repr__(self):
         return f'KeyValueAppendPair({self.toks})'
 
     def __str__(self):
+        if self.wrapped_value.need_skip:
+            return ''
         return ''.join(str(t) for t in self.toks)
 
 
