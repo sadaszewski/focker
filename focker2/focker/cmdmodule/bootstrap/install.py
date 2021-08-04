@@ -4,6 +4,7 @@ from ...core import focker_subprocess_run, \
     Image
 import os
 import shutil
+import hashlib
 
 
 def cmd_bootstrap_install(args):
@@ -22,7 +23,7 @@ def cmd_bootstrap_install(args):
         env['BSDINSTALL_DISTDIR'] = distdir
         env['BSDINSTALL_DISTSITE'] = distsite
     else:
-        version = focker_subprocess_check_output('freebsd-version').split().decode('utf-8')
+        version = focker_subprocess_check_output('freebsd-version').decode('utf-8')
         distdir = env.get('BSDINSTALL_DISTDIR', '/usr/freebsd-dist')
 
     if args.interactive:

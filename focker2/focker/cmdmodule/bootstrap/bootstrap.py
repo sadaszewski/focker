@@ -67,9 +67,11 @@ class BootstrapPlugin(Plugin):
                         aliases=['inst', 'ins'],
                         func=cmd_bootstrap_install,
                         version=dict(
+                            aliases=['v'],
                             type=str
                         ),
                         reldir=dict(
+                            aliases=['d'],
                             type=str,
                             default='releases'
                         ),

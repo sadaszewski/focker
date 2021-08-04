@@ -119,7 +119,7 @@ MIRROR115=ftp://ftp15.us.freebsd.org
 x=`jot -r 1 1 115`
 # echo $x
 x=MIRROR${x}
-eval MIRROR=\$${x}
+eval : \$\{MIRROR=\$${x}\}
 
 _UNAME_R=`uname -r`
 _UNAME_R=${_UNAME_R%-p*}

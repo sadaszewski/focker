@@ -1,22 +1,7 @@
 from focker.__main__ import main
 import os
+from focker.core import Image
 
-"""
-
-def cmd_bootstrap_interface(args):
-    print('Creating interface', args.interface, '...')
-    focker_subprocess_check_output(['sysrc', 'cloned_interfaces+=' + args.interface])
-    if args.rename_interface:
-        print('Renaming interface', args.interface, '->', args.rename_interface)
-        focker_subprocess_check_output(['sysrc', 'ifconfig_%s_name=%s' % \
-            (args.interface, args.rename_interface)])
-    else:
-        focker_subprocess_check_output(['sysrc', 'ifconfig_%s_name=%s' % \
-            (args.interface, args.interface)])
-    focker_subprocess_check_output(['service', 'netif', 'cloneup'])
-    print('Interface ready')
-
-"""
 
 def _read_file_if_exists(fname, default=None):
     if os.path.exists(fname):
@@ -24,6 +9,7 @@ def _read_file_if_exists(fname, default=None):
             return f.read()
 
     return default
+
 
 class TestBootstrap:
     def test01_pfrule(self):
@@ -50,3 +36,25 @@ class TestBootstrap:
         finally:
             with open('/etc/rc.conf', 'w') as f:
                 f.write(old)
+
+    def test03_install(self):
+        cmd = [ 'bootstrap', 'install', '-t', 'focker-unit-test-install' ]
+        main(cmd)
+        assert Image.exists_tag('focker-unit-test-install')
+        im = Image.from_tag('focker-unit-test-install')
+        im.destroy()
+
+    def test04_install_version(self):
+        cmd = [ 'bootstrap', 'install', '-t', 'focker-unit-test-install', '-v', '13.0-RELEASE' ]
+        main(cmd)
+        assert Image.exists_tag('focker-unit-test-install')
+        im = Image.from_tag('focker-unit-test-install')
+        im.destroy()
+
+    def test05_install_version_cleandist(self):
+        cmd = [ 'bootstrap', 'install', '-t', 'focker-unit-test-install', '-v', '13.0-RELEASE', '-c' ]
+        main(cmd)
+        assert Image.exists_tag('focker-unit-test-install')
+        im = Image.from_tag('focker-unit-test-install')
+        im.destroy()
+        assert not os.path.exists('/usr/freebsd-dist-13.0-RELEASE')
