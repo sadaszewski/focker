@@ -60,7 +60,7 @@ def zfs_create(name, props={}, exist_ok=False):
         else:
             raise RuntimeError('Specified ZFS dataset already exists')
     props = [ [ '-o', f'{k}={v}' ] for k, v in props.items() ]
-    props = reduce(list.__add__, props)
+    props = reduce(list.__add__, props, [])
     cmd = [ 'zfs', 'create', *props, name ]
     # print('cmd:', cmd)
     focker_subprocess_run(cmd)
