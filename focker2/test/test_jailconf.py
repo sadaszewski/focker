@@ -1,4 +1,5 @@
 import focker.jailconf as jc
+from focker.jailconf.classes import *
 import pytest
 
 
@@ -72,3 +73,41 @@ class TestJailconf:
         conf = jc.JailConf()
         conf.update(_NATIVE)
         _ = repr(conf)
+
+    def test06_test_repr_simple(self):
+        assert isinstance(repr(Value(5)), str)
+        assert isinstance(repr(ListOfValues([ Value(3), Value(4) ])), str)
+        assert isinstance(repr(KeyValuePair( [ Key('a.b'), '=', Value(5), ';' ] )), str)
+        assert isinstance(repr(KeyValueAppendPair([ Key('a.b'), '+=', Value(5), ';' ])), str)
+        assert isinstance(repr(KeyValueToggle([ Key('a.b'), ';' ])), str)
+        assert isinstance(repr(Statements()), str)
+        assert isinstance(repr(JailBlock.create('test')), str)
+        assert isinstance(repr(JailConf()), str)
+
+    def test07_append_append(self):
+        conf = jc.JailConf()
+        conf.append_append('a.b', True)
+        conf.append_append('a.c', [ 1, 2, 3 ])
+        assert '+=' in str(conf)
+
+    def test08_getitem(self):
+        lst = ListOfValues([ Value(3), Value(4), Value(5) ])
+        _ = lst[0]
+        with pytest.raises(IndexError):
+            _ = lst[-1]
+        with pytest.raises(IndexError):
+            _ = lst[3]
+
+    def test09_kvp(self):
+        kvp = KeyValuePair([ Key('a.b'), '=', Value(5), ';' ])
+        assert kvp.key == 'a.b'
+        assert kvp.value == 5
+
+    def test10_kvp_needskip(self):
+        kvp = KeyValuePair([ Key('a.b'), '=', ListOfValues([]) ])
+        assert str(kvp) == ''
+
+    def test11_kvt(self):
+        kvt = KeyValueToggle([ Key('a.nob'), ';' ])
+        assert kvt.key == 'a.b'
+        assert kvt.value == False
