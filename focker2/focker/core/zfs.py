@@ -175,7 +175,8 @@ def zfs_exists_props(props: Dict[str, str], focker_type: str, zfs_type: str) -> 
 
 
 def zfs_find_prefix(head, tail):
-    for pre in range(7, len(tail)):
+    assert len(tail) > 7
+    for pre in range(7, len(tail) + 1):
         name = head + tail[:pre]
         if not zfs_exists(name):
             break

@@ -183,6 +183,8 @@ class Dataset:
     def create(cls, sha256=None):
         if sha256 is None:
             sha256 = random_sha256_hexdigest()
+        if cls.exists_sha256(sha256):
+            raise RuntimeError(f'{cls.__name__} with the given SHA256 already exists')
         name = zfs_shortest_unique_name(sha256, cls._meta_focker_type)
         zfs_create(name, { 'focker:sha256': sha256 })
         return cls.from_sha256(sha256)
