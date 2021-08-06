@@ -108,6 +108,50 @@ class TestJailconf:
         assert str(kvp) == ''
 
     def test11_kvt(self):
+        kvt = KeyValueToggle([ Key('a.b'), ';' ])
+        assert kvt.key == 'a.b'
+        assert kvt.value == True
+
         kvt = KeyValueToggle([ Key('a.nob'), ';' ])
         assert kvt.key == 'a.b'
         assert kvt.value == False
+
+    def test12_kvap(self):
+        kvap = KeyValueAppendPair([ Key('a.b'), '+=', Value(5), ';' ])
+        assert kvap.key == 'a.b'
+        assert kvap.value == 5
+
+    def test13_kvap_needskip(self):
+        kvp = KeyValueAppendPair([ Key('a.b'), '+=', ListOfValues([]) ])
+        assert str(kvp) == ''
+
+    def test14_append_toggle(self):
+        conf = JailConf()
+        conf.append_toggle('a.b', False)
+        assert isinstance(conf.statements[0], KeyValueToggle)
+        assert conf.statements[0].key == 'a.b'
+        assert conf.statements[0].value == False
+
+    def test15_get_with_append(self):
+        conf = JailConf()
+        conf.append_append('a.b', 1)
+        conf.append_append('a.b', 2)
+        assert conf.get('a.b') == [1, 2]
+
+    def test16_get_kvt(self):
+        conf = JailConf()
+        conf.append_toggle('a.b', False)
+        assert isinstance(conf.get('a.b'), bool)
+        assert conf.get('a.b') == False
+
+    def test17_remove_key(self):
+        conf = JailConf()
+        conf['a.b'] = 1
+        assert 'a.b' in conf
+        conf.remove_key('a.b')
+        assert 'a.b' not in conf
+
+    def test18_keyerror(self):
+        conf = JailConf()
+        with pytest.raises(KeyError):
+            _ = conf['a.b']
