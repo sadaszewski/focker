@@ -2,9 +2,12 @@ from ..plugin import Plugin
 import argparse
 from ..core import JailFs, \
     Image, \
-    JailSpec, \
     OSJailSpec, \
-    OSJail
+    OSJail, \
+    OneExecJailSpec, \
+    TemporaryOSJail, \
+    CloneImageJailSpec
+from ..core.jailspec import JailSpec
 from .common import standard_fobject_commands
 
 
@@ -19,6 +22,28 @@ class JailPlugin(Plugin):
                     exec=dict(
                         aliases=['exe', 'ex', 'e'],
                         func=cmd_jail_exec,
+                        chkout=dict(
+                            aliases=['c'],
+                            action='store_true'
+                        ),
+                        identifier=dict(
+                            positional=True,
+                            type=str
+                        ),
+                        command=dict(
+                            positional=True,
+                            nargs='*',
+                            type=str,
+                            default=[ '/bin/sh' ]
+                        )
+                    ),
+                    oneexec=dict(
+                        aliases=['one', 'oe', 'o'],
+                        func=cmd_jail_oneexec,
+                        chkout=dict(
+                            aliases=['c'],
+                            action='store_true'
+                        ),
                         identifier=dict(
                             positional=True,
                             type=str
@@ -45,7 +70,8 @@ class JailPlugin(Plugin):
                         params=dict(
                             positional=True,
                             type=str,
-                            nargs=argparse.REMAINDER
+                            nargs='*',
+                            default=[]
                         )
                     )
                 )
@@ -56,15 +82,26 @@ class JailPlugin(Plugin):
 def cmd_jail_exec(args):
     jfs = JailFs.from_any_id(args.identifier)
     j = OSJail.from_mountpoint(jfs.path)
-    j.run(args.command)
+    if args.chkout:
+        print(j.check_output(args.command))
+    else:
+        j.run(args.command)
+
+
+def cmd_jail_oneexec(args):
+    im = Image.from_any_id(args.identifier)
+    spec = OneExecJailSpec.from_image_and_dict(im, {})
+    with TemporaryOSJail(spec) as jail:
+        if args.chkout:
+            print(jail.check_output(args.command))
+        else:
+            jail.run(args.command)
 
 
 def cmd_jail_fromimage(args):
-    im = Image.from_any_id(args.image_reference)
-    jfs = JailFs.clone_from(im)
-    jfs.add_tags(args.tags)
     params = { p.split('=')[0]: '='.join(p.split('=')[1:]) for p in args.params }
-    spec = JailSpec.from_dict(dict(jailfs=jfs, **params))
+    spec = CloneImageJailSpec.from_dict({ 'image': args.image_reference, **params })
+    spec.jfs.add_tags(args.tags)
     ospec = OSJailSpec.from_jailspec(spec)
     ospec.add()
-    print('Added jail', ospec.name, 'with path', jfs.path)
+    print('Added jail', ospec.name, 'with path', spec.jfs.path)
