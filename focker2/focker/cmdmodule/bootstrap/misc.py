@@ -1,4 +1,5 @@
-from ...core import Image
+from ...core import Image, \
+    zfs_init
 
 
 def cmd_bootstrap_filesystem(args):

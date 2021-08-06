@@ -155,3 +155,61 @@ class TestJailconf:
         conf = JailConf()
         with pytest.raises(KeyError):
             _ = conf['a.b']
+
+    def test19_get_with_append_list(self):
+        conf = JailConf()
+        conf.append_append('a.b', 1)
+        conf.append_append('a.b', [1, 2, 3])
+        assert conf.get('a.b') == [1, 1, 2, 3]
+
+    def test20_remove_keyerror(self):
+        conf = JailConf()
+        with pytest.raises(KeyError):
+            conf.remove_key('a.b')
+
+    def test21_set_twice(self):
+        conf = JailConf()
+        conf['a.b'] = 1
+        conf['a.b'] = 2
+        assert len(conf.statements) == 1
+        assert conf['a.b'] == 2
+
+    def test22_remove(self):
+        conf = JailConf()
+        conf['a.b'] = 1
+        del conf['a.b']
+        assert 'a.b' not in conf
+
+    def test23_remove_jail_block_keyerror(self):
+        conf = JailConf()
+        with pytest.raises(KeyError):
+            conf.remove_jail_block('a.b')
+
+    def test24_jail_block_name_conflict(self):
+        conf = JailConf()
+        jblk = JailBlock.create('dummy-jailblock')
+        with pytest.raises(ValueError):
+            conf['smart-jailblock'] = jblk
+
+    def test25_set_jail_block_twice(self):
+        conf = JailConf()
+        jblk = JailBlock.create('dummy-jailblock')
+        conf['dummy-jailblock'] = jblk
+        conf['dummy-jailblock'] = jblk
+        assert len(conf.statements) == 1
+        assert conf.has_jail_block('dummy-jailblock')
+        assert conf.get_jail_block('dummy-jailblock') == jblk
+        assert conf.__getitem__('dummy-jailblock') == jblk
+        print(conf.statements)
+        assert 'dummy-jailblock' in conf
+
+    def test26_conf_del_stmt(self):
+        conf = JailConf()
+        conf['a.b'] = 1
+        del conf['a.b']
+        assert 'a.b' not in conf
+
+    def test27_del_keyerror(self):
+        conf = JailConf()
+        with pytest.raises(KeyError):
+            del conf['a.b']

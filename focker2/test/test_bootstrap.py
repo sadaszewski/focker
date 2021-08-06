@@ -1,6 +1,8 @@
 from focker.__main__ import main
 import os
-from focker.core import Image
+from focker.core import Image, \
+    zfs_exists, \
+    zfs_poolname
 
 
 def _read_file_if_exists(fname, default=None):
@@ -58,3 +60,27 @@ class TestBootstrap:
         im = Image.from_tag('focker-unit-test-install')
         im.destroy()
         assert not os.path.exists('/usr/freebsd-dist-13.0-RELEASE')
+
+    def test06_fs(self):
+        cmd = [ 'bootstrap', 'fs' ]
+        main(cmd)
+        assert zfs_exists(zfs_poolname() + '/focker')
+
+    def test07_empty(self):
+        cmd = [ 'bootstrap', 'empty', '-t', 'focker-unit-test-bootstrap' ]
+        main(cmd)
+        im = Image.from_tag('focker-unit-test-bootstrap')
+        try:
+            assert len(os.listdir(im.path)) == 0
+            assert not im.is_finalized
+        finally:
+            im.destroy()
+
+    def test08_finalize(self):
+        im = Image.create()
+        try:
+            cmd = [ 'bootstrap', 'finalize', im.sha256 ]
+            main(cmd)
+            assert im.is_finalized
+        finally:
+            im.destroy()

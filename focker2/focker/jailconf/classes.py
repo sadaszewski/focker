@@ -352,6 +352,11 @@ class JailConf(Block):
         else:
             Block.__delitem__(self, name)
 
+    def __contains__(self, name):
+        if self.has_jail_block(name):
+            return True
+        return Block.__contains__(self, name)
+
     def __str__(self):
         return ''.join(str(t) for t in self.toks)
 
