@@ -6,6 +6,8 @@ from focker import yaml
 import os
 import tempfile
 import stat
+import pytest
+from subprocess import CalledProcessError
 
 
 class TestCompose:
@@ -79,3 +81,51 @@ class TestCompose:
             assert not JailFs.exists_tag('focker_unit_test_jail')
         finally:
             os.unlink(f.name)
+
+    def _test_hook(self, hook_name='exec.prebuild'):
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
+                yaml.safe_dump({
+                    hook_name: f'touch {os.path.join(d, f"focker-unit-test-{hook_name}.txt")}'
+                }, f)
+            cmd = [ 'compose', 'build', os.path.join(d, 'focker-compose.yml') ]
+            main(cmd)
+            assert os.path.exists(os.path.join(d, f'focker-unit-test-{hook_name}.txt'))
+
+    def test04_prebuild(self):
+        self._test_hook('exec.prebuild')
+
+    def test05_postbuild(self):
+        self._test_hook('exec.postbuild')
+
+    def _test_hook_fail(self, hook_name='exec.prebuild'):
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
+                yaml.safe_dump({
+                    hook_name: f'rm {os.path.join(d, f"focker-unit-test-{hook_name}.txt")}'
+                }, f)
+            cmd = [ 'compose', 'build', os.path.join(d, 'focker-compose.yml') ]
+            with pytest.raises(RuntimeError, match='failed'):
+                main(cmd)
+
+    def test06_prebuild_fail(self):
+        self._test_hook_fail('exec.prebuild')
+
+    def test07_postbuild_fail(self):
+        self._test_hook_fail('exec.postbuild')
+
+    def _test_hook_type_error(self, hook_name):
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
+                yaml.safe_dump({
+                    hook_name: 1234567
+                }, f)
+            cmd = [ 'compose', 'build', os.path.join(d, 'focker-compose.yml') ]
+            with pytest.raises(TypeError, match='string or a list of strings'):
+                main(cmd)
+
+    def test08_prebuild_type_error(self):
+        self._test_hook_type_error('exec.prebuild')
+
+    def test09_prebuild_type_error(self):
+        self._test_hook_type_error('exec.postbuild')
