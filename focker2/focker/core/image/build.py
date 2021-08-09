@@ -42,6 +42,9 @@ class ImageBuilder:
         else:
             steps = [ steps[k] for k in sorted(steps.keys()) ]
 
+        if not all(isinstance(st, list) for st in steps):
+            raise TypeError('Expected list/s of steps, not single step/s')
+
         if self.squeeze:
             steps = [ reduce(list.__add__, steps) ]
 

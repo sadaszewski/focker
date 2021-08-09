@@ -19,7 +19,7 @@ class RunStep(object):
     def __init__(self, spec, src_dir):
         if not isinstance(spec, list) and \
             not isinstance(spec, str):
-            raise ValueError('Run spec must be a list or a string')
+            raise TypeError('Run spec must be a list or a string')
         self.spec = spec
         self.src_dir = src_dir
 
@@ -41,7 +41,7 @@ class RunStep(object):
 class CopyStep(object):
     def __init__(self, spec, src_dir):
         if not isinstance(spec, list):
-            raise ValueError('CopyStep spec should be a list')
+            raise TypeError('CopyStep spec should be a list')
         self.spec = spec
         self.src_dir = src_dir
 
@@ -77,7 +77,7 @@ class CopyStep(object):
 
 def create_step(spec, src_dir):
     if not isinstance(spec, dict):
-        raise ValueError('Step specification must be a dictionary')
+        raise TypeError(f'Step specification must be a dictionary, got: {spec.__class__.__name__} ({spec})')
     if 'copy' in spec:
         return CopyStep(spec['copy'], src_dir=src_dir)
     elif 'run' in spec:
