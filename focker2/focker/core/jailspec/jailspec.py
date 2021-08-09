@@ -60,8 +60,8 @@ class JailSpec:
         hostname = focker_spec.get('host.hostname', name)
         depend = focker_spec.get('depend', [])
 
-        mounts = focker_spec.get('mounts', [])
-        mounts = [ Mount(m[0], m[1]) for m in mounts ]
+        mounts = focker_spec.get('mounts', {})
+        mounts = [ Mount(k, v) for k, v in mounts.items() ]
         env = focker_spec.get('env', {})
 
         exec_params = { k: ensure_list(v) for k, v in rest_spec.items()

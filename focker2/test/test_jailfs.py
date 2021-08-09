@@ -7,6 +7,8 @@ from focker.core import JailFs, \
 from focker.__main__ import main
 from contextlib import redirect_stdout
 import io
+from tempfile import TemporaryDirectory
+import os
 
 
 class TestJailFs(DatasetTestBase):
@@ -53,3 +55,22 @@ class TestJailCmd:
             assert conf['exec.fib'] == 1234
         finally:
             jfs.destroy()
+
+    def test04_with_mounts(self):
+        with TemporaryDirectory() as d:
+            # print('d:', d)
+            with open(os.path.join(d, '.focker-unit-test-jail'), 'w') as f:
+                f.write('foobar\n')
+            spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest', 'mounts': { d: '/mnt' } })
+            try:
+                ospec = OSJailSpec.from_jailspec(spec)
+                jail = ospec.add()
+                jail.start()
+                fname = os.path.join(spec.jfs.path, 'mnt/.focker-unit-test-jail')
+                # print('fname:', fname)
+                assert os.path.exists(fname)
+                with open(fname) as f:
+                    data = f.read()
+                assert data.strip() == 'foobar'
+            finally:
+                spec.jfs.destroy()
