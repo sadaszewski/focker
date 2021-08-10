@@ -3,14 +3,7 @@ import os
 from focker.core import Image, \
     zfs_exists, \
     zfs_poolname
-
-
-def _read_file_if_exists(fname, default=None):
-    if os.path.exists(fname):
-        with open(fname, 'r') as f:
-            return f.read()
-
-    return default
+from common import _read_file_if_exists
 
 
 class TestBootstrap:

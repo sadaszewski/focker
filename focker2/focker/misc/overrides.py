@@ -3,7 +3,7 @@ from .. import yaml
 
 
 def load_overrides(fname, env_prefix='FOCKER_', env_hier=False):
-    res = {}
+    res = None
     for p in [ os.path.expanduser('~/.focker'), '/usr/local/etc/focker',
         '/etc/focker' ]:
         p = os.path.join(p, fname)
@@ -12,6 +12,8 @@ def load_overrides(fname, env_prefix='FOCKER_', env_hier=False):
         with open(p) as f:
             res = yaml.safe_load(f)
         break
+    if res is None:
+        res = {}
     for k, v in os.environ.items():
         if not k.startswith(env_prefix):
             continue
@@ -23,7 +25,9 @@ def load_overrides(fname, env_prefix='FOCKER_', env_hier=False):
                 if not p in r:
                     r[p] = {}
                 r = r[p]
+                if not isinstance(r, dict):
+                    raise TypeError(f'Expected dictionary, found {r.__class__.__name__} while traversing keys {k}')
             r[k[-1]] = v
         else:
-            r[k] = v
+            res[k] = v
     return res
