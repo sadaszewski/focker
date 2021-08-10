@@ -177,7 +177,7 @@ class Dataset:
 
     @classmethod
     def list_unused(cls):
-        raise NotImplementedError
+        raise NotImplementedError # pragma: no cover
 
     @classmethod
     def create(cls, sha256=None):
