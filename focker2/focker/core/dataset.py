@@ -171,6 +171,8 @@ class Dataset:
         zfs_untag(tags, focker_type=cls._meta_focker_type)
 
     def in_use(self):
+        if not zfs_exists(self.name):
+            return False
         lst = [ ds for ds in self.list_unused() \
             if ds.name == self.name ]
         return ( len(lst) == 0 )
