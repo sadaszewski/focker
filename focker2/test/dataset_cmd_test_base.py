@@ -134,3 +134,22 @@ class DatasetCmdTestBase:
         finally:
             ds.unprotect()
             ds.destroy()
+
+    def test14_set_nothing_raise(self):
+        name = self._create()
+        ds = self._meta_class.from_name(name)
+        try:
+            cmd = [ self._meta_class._meta_focker_type, 'set', ds.sha256 ]
+            with pytest.raises(ValueError, match='some properties'):
+                main(cmd)
+        finally:
+            ds.destroy()
+
+    def test15_get_nothing_raise(self):
+        ds = self._meta_class.create()
+        try:
+            cmd = [ self._meta_class._meta_focker_type, 'get', ds.sha256 ]
+            with pytest.raises(ValueError, match='some properties'):
+                main(cmd)
+        finally:
+            ds.destroy()

@@ -20,13 +20,13 @@ class TestBootstrap:
                 f.write(old)
 
     def test02_iface(self):
-        cmd = [ 'bootstrap', 'iface' ]
+        cmd = [ 'bootstrap', 'iface', '--interface', 'lo999' ]
         old = _read_file_if_exists('/etc/rc.conf', '')
         try:
             main(cmd)
             new = _read_file_if_exists('/etc/rc.conf', '')
             new = new.split('\n')
-            new = [ ln for ln in new if ln.startswith('cloned_interfaces=') and 'tun0' in ln ]
+            new = [ ln for ln in new if ln.startswith('cloned_interfaces=') and 'lo999' in ln ]
             assert len(new) == 1
         finally:
             with open('/etc/rc.conf', 'w') as f:
@@ -77,3 +77,17 @@ class TestBootstrap:
             assert im.is_finalized
         finally:
             im.destroy()
+
+    def test09_iface_rename(self):
+        cmd = [ 'bootstrap', 'iface', '--interface', 'lo999', '--rename-interface', 'fockerunittest' ]
+        old = _read_file_if_exists('/etc/rc.conf', '')
+        try:
+            main(cmd)
+            new = _read_file_if_exists('/etc/rc.conf', '')
+            # print(new)
+            new = new.split('\n')
+            new = [ ln for ln in new if ln.startswith('ifconfig_lo999_name="fockerunittest"') ]
+            assert len(new) == 1
+        finally:
+            with open('/etc/rc.conf', 'w') as f:
+                f.write(old)

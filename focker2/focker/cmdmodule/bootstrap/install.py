@@ -27,17 +27,17 @@ def cmd_bootstrap_install(args):
         distdir = env.get('BSDINSTALL_DISTDIR', '/usr/freebsd-dist')
 
     if args.interactive:
-        sha256 = None
+        sha256 = None # pragma: no cover
     else:
         sha256 = hashlib.sha256(('FreeBSD ' + version).encode('utf-8')).hexdigest()
     im = Image.create(sha256=sha256)
 
     try:
         if args.interactive:
-            focker_subprocess_run(['bsdinstall', 'jail', im.mountpoint], env=env)
+            focker_subprocess_run(['bsdinstall', 'jail', im.mountpoint], env=env) # pragma: no cover
         else:
             focker_subprocess_run(['focker-bsdinstall', im.mountpoint], env=env)
-    except CalledProcessError:
+    except CalledProcessError: # pragma: no cover
         im.destroy()
         raise
 
@@ -45,7 +45,7 @@ def cmd_bootstrap_install(args):
         shutil.rmtree(distdir)
 
     tags = args.tags
-    if tags is None:
+    if tags is None: # pragma: no cover
         tags = [ 'freebsd-latest', f'freebsd-{version.split("-")[0]}']
     im.add_tags(tags)
 

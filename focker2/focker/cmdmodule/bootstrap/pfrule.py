@@ -8,7 +8,7 @@ def cmd_bootstrap_pfrule(args):
         iface = iface.decode('utf-8').split(' ')
         iface = [ i for i in iface if not i.startswith('lo') ]
         iface = iface[0]
-    else:
+    else: # pragma: no cover
         iface = args.external_interface
     jail_iface = args.jail_interface
     rule = f'nat on {iface} from ({jail_iface}:network) -> ({iface})'

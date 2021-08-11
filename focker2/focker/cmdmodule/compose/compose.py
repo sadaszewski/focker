@@ -35,11 +35,11 @@ def cmd_compose_build(args):
     with open(args.spec_filename, 'r') as f:
         spec = yaml.safe_load(f)
 
-    path, _ = os.path.split(args.spec_filename)
+    spec_dir, _ = os.path.split(args.spec_filename)
 
-    exec_prebuild(spec.get('exec.prebuild', []), path)
-    build_images(spec.get('images', {}), args.squeeze)
+    exec_prebuild(spec.get('exec.prebuild', []), spec_dir)
+    build_images(spec.get('images', {}), spec_dir, squeeze=args.squeeze)
     build_volumes(spec.get('volumes', {}))
     if 'jails' in spec:
         build_jails(spec['jails'])
-    exec_postbuild(spec.get('exec.postbuild', []), path)
+    exec_postbuild(spec.get('exec.postbuild', []), spec_dir)

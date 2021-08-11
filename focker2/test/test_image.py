@@ -17,7 +17,7 @@ class TestImage(DatasetTestBase):
 class TestImageCmd(DatasetCmdTestBase):
     _meta_class = Image
 
-    def test14_build(self):
+    def test16_build(self):
         with TemporaryDirectory() as d:
             with open(os.path.join(d, 'Fockerfile'), 'w') as f:
                 yaml.safe_dump(dict(
@@ -37,7 +37,7 @@ class TestImageCmd(DatasetCmdTestBase):
             finally:
                 im.destroy()
 
-    def test15_build_with_copy(self):
+    def test17_build_with_copy(self):
         with TemporaryDirectory() as d:
             with open(os.path.join(d, 'dummyfile'), 'w') as f:
                 f.write('focker-unit-test-image-build\n')
@@ -66,7 +66,7 @@ class TestImageCmd(DatasetCmdTestBase):
             finally:
                 im.destroy()
 
-    def test16_build_validate(self):
+    def test18_build_validate(self):
         with TemporaryDirectory() as d:
             with open(os.path.join(d, 'Fockerfile'), 'w') as f:
                 yaml.safe_dump({}, f)
@@ -82,13 +82,13 @@ class TestImageCmd(DatasetCmdTestBase):
             with pytest.raises(RuntimeError, match='Exactly one'):
                 main(cmd)
 
-    def test17_build_no_fockerfile(self):
+    def test19_build_no_fockerfile(self):
         with TemporaryDirectory() as d:
             cmd = [ 'image', 'build', d ]
             with pytest.raises(RuntimeError, match='Fockerfile not found'):
                 main(cmd)
 
-    def test18_build_dict_steps(self):
+    def test20_build_dict_steps(self):
         with TemporaryDirectory() as d:
             with open(os.path.join(d, 'Fockerfile'), 'w') as f:
                 yaml.safe_dump({
@@ -111,7 +111,7 @@ class TestImageCmd(DatasetCmdTestBase):
             finally:
                 im.destroy()
 
-    def test19_build_list_expected(self):
+    def test21_build_list_expected(self):
         with TemporaryDirectory() as d:
             with open(os.path.join(d, 'Fockerfile'), 'w') as f:
                 yaml.safe_dump({
@@ -123,7 +123,7 @@ class TestImageCmd(DatasetCmdTestBase):
             with pytest.raises(TypeError, match='Expected list/s'):
                 main(cmd)
 
-    def test20_build_squeeze(self):
+    def test22_build_squeeze(self):
         with TemporaryDirectory() as d:
             with open(os.path.join(d, 'Fockerfile'), 'w') as f:
                 yaml.safe_dump({
@@ -147,7 +147,7 @@ class TestImageCmd(DatasetCmdTestBase):
             finally:
                 im.destroy()
 
-    def test21_build_exists(self):
+    def test23_build_exists(self):
         with TemporaryDirectory() as d:
             with open(os.path.join(d, 'Fockerfile'), 'w') as f:
                 yaml.safe_dump({
@@ -171,7 +171,7 @@ class TestImageCmd(DatasetCmdTestBase):
             finally:
                 im.destroy()
 
-    def test22_build_fail(self):
+    def test24_build_fail(self):
         with TemporaryDirectory() as d:
             with open(os.path.join(d, 'Fockerfile'), 'w') as f:
                 yaml.safe_dump({

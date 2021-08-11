@@ -1,7 +1,8 @@
 from focker.__main__ import main
 from focker.core import Volume, \
     JailFs, \
-    OSJail
+    OSJail, \
+    Image
 from focker import yaml
 import os
 import tempfile
@@ -129,3 +130,20 @@ class TestCompose:
 
     def test09_prebuild_type_error(self):
         self._test_hook_type_error('exec.postbuild')
+
+    def test10_build_image(self):
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'images': { 'focker-unit-test-compose': '.' }
+                }, f)
+            with open(os.path.join(d, 'Fockerfile'), 'w') as f:
+                yaml.safe_dump({
+                    'base': 'freebsd-latest',
+                    'steps': [ { 'run': 'touch /.focker-unit-test-compose' } ]
+                }, f)
+            cmd = [ 'compose', 'build', os.path.join(d, 'focker-compose.yml') ]
+            main(cmd)
+            assert Image.exists_tag('focker-unit-test-compose')
+            im = Image.from_tag('focker-unit-test-compose')
+            im.destroy()
