@@ -2,13 +2,15 @@ from focker.__main__ import main
 from focker.core import Volume, \
     JailFs, \
     OSJail, \
-    Image
+    Image, \
+    zfs_exists
 from focker import yaml
 import os
 import tempfile
 import stat
 import pytest
 from subprocess import CalledProcessError
+from contextlib import ExitStack
 
 
 class TestCompose:
@@ -147,3 +149,34 @@ class TestCompose:
             assert Image.exists_tag('focker-unit-test-compose')
             im = Image.from_tag('focker-unit-test-compose')
             im.destroy()
+
+    def test11_build_jail_existing(self):
+        with tempfile.TemporaryDirectory() as d, \
+            ExitStack() as stack:
+            with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'images': {
+                        'focker-unit-test-compose-jail': '.'
+                    },
+                    'jails': {
+                        'focker-unit-test-compose-jail': {
+                            'image': 'focker-unit-test-compose-jail'
+                        }
+                    }
+                }, f)
+            with open(os.path.join(d, 'Fockerfile'), 'w') as f:
+                yaml.safe_dump({
+                    'base': 'freebsd-latest',
+                    'steps': [ { 'run': 'touch /.focker-unit-test-compose-jail' } ]
+                }, f)
+            cmd = [ 'compose', 'build', os.path.join(d, 'focker-compose.yml') ]
+            main(cmd)
+            jfs_1 = JailFs.from_tag('focker-unit-test-compose-jail')
+            stack.callback(lambda: jfs_1.destroy() if zfs_exists(jfs_1.name) else None)
+            main(cmd)
+            jfs_2 = JailFs.from_tag('focker-unit-test-compose-jail')
+            stack.callback(jfs_2.destroy)
+            assert jfs_1.path != jfs_2.path
+            assert jfs_1.sha256 != jfs_2.sha256
+            assert not zfs_exists(jfs_1.name)
+            assert zfs_exists(jfs_2.name)
