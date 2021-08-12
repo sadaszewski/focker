@@ -5,7 +5,8 @@ from focker.core import JailFs, \
     OSJailSpec, \
     OSJail
 from focker.__main__ import main
-from contextlib import redirect_stdout
+from contextlib import redirect_stdout, \
+    ExitStack
 import io
 from tempfile import TemporaryDirectory
 import os
@@ -74,3 +75,15 @@ class TestJailCmd:
                 assert data.strip() == 'foobar'
             finally:
                 spec.jfs.destroy()
+
+    def test05_exec_no_chkout(self):
+        with ExitStack() as stack:
+            spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest' })
+            stack.callback(spec.jfs.destroy)
+            spec.jfs.add_tags([ 'focker-unit-test-jail' ])
+            ospec = OSJailSpec.from_jailspec(spec)
+            jail = ospec.add()
+            jail.start()
+            cmd = [ 'jail', 'exec', 'focker-unit-test-jail', '--', '/bin/sh', '-c', 'touch /.focker-unit-test-jail' ]
+            main(cmd)
+            assert os.path.exists(os.path.join(spec.jfs.path, '.focker-unit-test-jail'))

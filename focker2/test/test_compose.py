@@ -180,3 +180,48 @@ class TestCompose:
             assert jfs_1.sha256 != jfs_2.sha256
             assert not zfs_exists(jfs_1.name)
             assert zfs_exists(jfs_2.name)
+
+    def test12_build_volume_existing(self):
+        with tempfile.TemporaryDirectory() as d, \
+            ExitStack() as stack:
+            with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'volumes': {
+                        'focker-unit-test-compose-volume': {}
+                    }
+                }, f)
+            cmd = [ 'compose', 'build', os.path.join(d, 'focker-compose.yml') ]
+            main(cmd)
+            vol_1 = Volume.from_tag('focker-unit-test-compose-volume')
+            stack.callback(lambda: vol_1.destroy() if zfs_exists(vol_1.name) else None)
+            main(cmd)
+            vol_2 = Volume.from_tag('focker-unit-test-compose-volume')
+            stack.callback(lambda: vol_2.destroy() if zfs_exists(vol_2.name) else None)
+            assert vol_1.name == vol_2.name
+            assert vol_1.path == vol_2.path
+            assert vol_1.sha256 == vol_2.sha256
+            assert zfs_exists(vol_1.name)
+            assert os.path.exists(vol_1.path)
+
+    def test13_build_volume_prot_unprot(self):
+        with tempfile.TemporaryDirectory() as d, \
+            ExitStack() as stack:
+            with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'volumes': {
+                        'focker-unit-test-compose-volume': { 'protect': True }
+                    }
+                }, f)
+            cmd = [ 'compose', 'build', os.path.join(d, 'focker-compose.yml') ]
+            main(cmd)
+            vol = Volume.from_tag('focker-unit-test-compose-volume')
+            stack.callback(vol.destroy)
+            assert vol.is_protected
+            with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'volumes': {
+                        'focker-unit-test-compose-volume': { 'protect': False }
+                    }
+                }, f)
+            main(cmd)
+            assert not vol.is_protected

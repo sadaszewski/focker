@@ -95,7 +95,7 @@ def cmd_jail_oneexec(args):
         if args.chkout:
             print(jail.check_output(args.command))
         else:
-            jail.run(args.command)
+            jail.run(args.command) # pragma: no cover
 
 
 def cmd_jail_fromimage(args):
