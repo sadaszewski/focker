@@ -11,6 +11,7 @@ from tempfile import TemporaryDirectory
 import os
 import stat
 import pytest
+from contextlib import ExitStack
 
 
 class TestImage(DatasetTestBase):
@@ -185,6 +186,35 @@ class TestImageCmd(DatasetCmdTestBase):
             cmd = [ 'image', 'build', d ]
             with pytest.raises(CalledProcessError):
                 main(cmd)
+
+    def test25_facets(self):
+        with TemporaryDirectory() as d, \
+            ExitStack() as stack:
+            with open(os.path.join(d, 'Fockerfile'), 'w') as f:
+                yaml.safe_dump({
+                    'base': 'freebsd-latest',
+                    'facets': [ './facet_01.yml', './facet_02.yml' ]
+                }, f)
+            with open(os.path.join(d, 'facet_01.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'steps': {
+                        12: [ { 'run': 'touch /.focker-unit-test-image-facet-01' } ]
+                    }
+                }, f)
+            with open(os.path.join(d, 'facet_02.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'steps': {
+                        10: [ { 'run': 'touch /.focker-unit-test-image-facet-02' } ]
+                    }
+                }, f)
+
+            cmd = [ 'image', 'build', d, '-t', 'focker-unit-test-image-facets' ]
+            main(cmd)
+            im = Image.from_tag('focker-unit-test-image-facets')
+            stack.callback(im.destroy)
+            st_1 = os.stat(os.path.join(im.path, '.focker-unit-test-image-facet-01'))
+            st_2 = os.stat(os.path.join(im.path, '.focker-unit-test-image-facet-02'))
+            assert st_2.st_mtime < st_1.st_mtime
 
 
 class TestBuildSteps:

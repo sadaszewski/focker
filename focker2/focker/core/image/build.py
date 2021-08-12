@@ -72,4 +72,29 @@ class ImageBuilder:
         return im
 
     def process_facets(self, spec) -> Image:
-        raise NotImplementedError
+        steps = []
+
+        for fname in spec['facets']:
+            with open(os.path.join(self.focker_dir, fname)) as f:
+                data = yaml.safe_load(f)
+
+            if 'steps' not in data:
+                raise KeyError(f'One of the facets ({fname}) is missing the "steps" key')
+
+            steps.append(data['steps'])
+
+        if not all(isinstance(fa, steps[0].__class__) for fa in steps):
+            raise TypeError('Steps in all facets must be specified using the same convention (list or dict)')
+
+        if isinstance(steps[0], list):
+            steps = reduce(list.__add__, steps, [])
+        elif isinstance(steps[0], dict):
+            steps = reduce(lambda a, b: { **a, **b }, steps, {})
+        else:
+            raise TypeError(f'Unsupported steps convention ({steps[0].__class__.__name__})')
+
+        spec = dict(spec)
+        del spec['facets']
+        spec['steps'] = steps
+
+        return self.process_steps(spec)
