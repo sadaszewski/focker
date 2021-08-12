@@ -1,12 +1,14 @@
 from focker.core import OSJail, \
     OSJailSpec, \
     JailFs, \
-    CloneImageJailSpec
+    CloneImageJailSpec, \
+    Volume
 from focker.core.jailspec import JailSpec
 import pytest
 import os
 import focker.core.osjail as osjail
 import json
+from contextlib import ExitStack
 
 
 class TestOSJail:
@@ -181,3 +183,16 @@ class TestOSJail:
             assert conf['persist'] == True
         finally:
             jfs.destroy()
+
+    def test19_mount_dest_not_exist(self):
+        with ExitStack() as stack:
+            v = Volume.create()
+            stack.callback(v.destroy)
+            spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest',
+                'mounts': { v.path: '/a/nested/mount/path/that/wont/exist' } })
+            stack.callback(spec.jfs.destroy)
+            ospec = OSJailSpec.from_jailspec(spec)
+            jail = ospec.add()
+            jail.start()
+            jail.run([ 'touch', '/a/nested/mount/path/that/wont/exist/.focker-unit-test-osjail' ])
+            assert os.path.exists(os.path.join(v.path, '.focker-unit-test-osjail'))

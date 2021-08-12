@@ -9,7 +9,7 @@ class TestJailSpec:
 
     def test02_unknown_parameter(self):
         with pytest.raises(KeyError, match='Unknown parameter'):
-            JailSpec.validate_dict({ 'this paremeter you surely cannot know': 1 })
+            JailSpec.validate_dict({ 'this parameter you surely cannot know': 1 })
 
     def test03_exec_start_command_exclusive(self):
         with pytest.raises(KeyError, match='exclusive'):

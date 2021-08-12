@@ -26,7 +26,7 @@ and some smaller fixes:
 - [X] Configurable location (dataset) for focker objects.
 - [X] Detect usage of volumes by jails when pruning (maybe)
 - [X] Roundtrip jail.conf parser
-- [ ] Automatically create mount destinations if they don't exist
+- [X] Automatically create mount destinations if they don't exist
 - [ ] Allow to include other Fockerfiles inside of a Fockerfile, as an alternative to the scheme of base images,
 - [ ] Make a few more settings configurable, e.g. whether to copy /etc/resolv.conf or not, possibility of static resolv.conf, etc.,
 - [ ] Mount volumes while building images

@@ -55,6 +55,7 @@ class OSJailSpec:
             source = m.source
             mountpoint = os.path.join(path, m.mountpoint.strip('/'))
 
+            prestart.append(f'mkdir -p {shlex.quote(mountpoint)}')
             prestart.append(f'mount -t {shlex.quote(m.fs_type)} {shlex.quote(source)} {shlex.quote(mountpoint)}')
 
             poststop.insert(0, f'umount -f {shlex.quote(mountpoint)}')
