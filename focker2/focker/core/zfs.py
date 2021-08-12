@@ -26,7 +26,7 @@ def zfs_parse_output(command):
 def zfs_poolname():
     poolname = zfs_parse_output(['zfs', 'list', '-H', '/'])
     if len(poolname) == 0:
-        raise ValueError('Not a ZFS root')
+        raise RuntimeError('The root filesystem is not ZFS')
     poolname = poolname[0][0].split('/')[0]
     return poolname
 
@@ -188,16 +188,12 @@ def zfs_shortest_unique_name(name: str, focker_type: str) -> str:
     return zfs_find_prefix(head, name)
 
 
-def zfs_random_name(focker_type: str) -> str:
-    return zfs_shortest_unique_name(random_sha256_hexdigest(), focker_type)
-
-
 def random_sha256_hexdigest():
     for _ in range(10**6):
         res = bytes([ random.randint(0, 255) for _ in range(32) ]).hex()
         if not res[:7].isnumeric():
             return res
-    raise ValueError('Couldn\'t find random SHA256 hash with non-numeric 7-character prefix in 10^6 trials o_O')
+    raise ValueError('Couldn\'t find random SHA256 hash with non-numeric 7-character prefix in 10^6 trials o_O') # pragma: no cover
 
 
 def zfs_set_props(name, props):

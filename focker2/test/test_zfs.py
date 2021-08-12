@@ -1,5 +1,8 @@
 from focker.core.zfs import *
+import focker.core.zfs as zfs
 import pytest
+from focker.core import Volume
+from contextlib import ExitStack
 
 
 class TestZfs:
@@ -32,3 +35,21 @@ class TestZfs:
                 zfs_tag(name, ['-'])
         finally:
             zfs_destroy(name)
+
+    def test04_missing_poolname(self, monkeypatch):
+        with monkeypatch.context() as c:
+            c.setattr(zfs, 'zfs_parse_output', lambda *_: [])
+            with pytest.raises(RuntimeError, match='not ZFS'):
+                _ = zfs_poolname()
+
+    def test05_untag_with_spaces(self):
+        with pytest.raises(ValueError, match='spaces'):
+            zfs_untag(['a tag with spaces'])
+
+    def test06_destroy_protected(self):
+        with ExitStack() as stack:
+            v = Volume.create()
+            stack.callback(lambda: v.unprotect() and v.destroy())
+            v.protect()
+            with pytest.raises(RuntimeError, match='protected'):
+                zfs_destroy(v.name)

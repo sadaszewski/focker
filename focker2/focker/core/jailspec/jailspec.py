@@ -29,7 +29,7 @@ class JailSpec:
     def validate_dict(jailspec: Dict):
         for k in jailspec.keys():
             if k not in JAIL_PARAMS and k not in JAIL_FOCKER_PARAMS:
-                raise ValueError('Unknown parameter in jail spec: ' + k)
+                raise KeyError('Unknown parameter in jail spec: ' + k)
 
         if 'exec.start' in jailspec and 'command' in jailspec:
             raise KeyError('exec.start and command are mutually exclusive')
@@ -38,7 +38,7 @@ class JailSpec:
             raise KeyError('exec.jail_user and exec.system_jail_user are mutually exclusive')
 
         if 'path' not in jailspec:
-            raise RuntimeError('Path not specified')
+            raise KeyError('Path not specified')
 
         if not os.path.exists(jailspec['path']):
             raise RuntimeError('Specified path does not exist')
