@@ -23,7 +23,8 @@ JAIL_PSEUDO_PARAMS = {'exec.prestart', 'exec.start', 'command',
     'exec.system_user', 'exec.timeout', 'exec.consolelog',
     'exec.fib', 'stop.timeout', 'interface', 'ip4.addr',
     'ip6.addr', 'vnet.interface', 'ip_hostname', 'mount',
-    'mount.fstab', 'mount.fdescfs', 'mount.procfs', 'allow.dying'}
+    'mount.fstab', 'mount.devfs', 'mount.fdescfs', 'mount.procfs',
+    'allow.dying'}
 
 
 JAIL_PARAMS = JAIL_SYSCTL_PARAMS.union(JAIL_PSEUDO_PARAMS)

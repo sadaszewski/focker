@@ -213,3 +213,8 @@ class TestJailconf:
         conf = JailConf()
         with pytest.raises(KeyError):
             del conf['a.b']
+
+    def test28_dumps(self):
+        conf = jc.loads(_TXT)
+        res = jc.dumps(conf)
+        assert isinstance(res, str)

@@ -48,3 +48,11 @@ class TestOSJailSpec:
             'path': '/tmp', 'resolv_conf': 'image' })
         ospec = OSJailSpec.from_jailspec(spec)
         assert ospec.to_dict() == ospec.params
+
+    def test09_command(self):
+        spec = JailSpec.from_dict({ 'name': 'focker_unit_test_osjailspec',
+            'path': '/tmp', 'command': 'ls -al', 'exec.start': { '__delete__': True } })
+        ospec = OSJailSpec.from_jailspec(spec)
+        assert 'command' not in ospec.params
+        assert 'exec.start' in ospec.params
+        assert ospec.params['exec.start'] == 'ls -al'

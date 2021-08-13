@@ -3,6 +3,7 @@ from ..constant import JAIL_FOCKER_PARAMS, \
     JAIL_PARAMS
 from ..mount import Mount
 from ..misc import ensure_list
+from ...misc import merge_dicts
 from .constant import DEFAULT_PARAMS, \
     JAIL_NAME_PREFIX
 from typing import Dict
@@ -54,15 +55,16 @@ class JailSpec:
 
     @classmethod
     def _from_dict(cls, jailspec: Dict):
+        jailspec = merge_dicts(DEFAULT_PARAMS, jailspec)
         JailSpec.validate_dict(jailspec)
 
         focker_spec = { k: v for k, v in jailspec.items()
             if k in JAIL_FOCKER_PARAMS }
-        rest_spec_1 = { k: v for k, v in jailspec.items()
+        rest_spec = { k: v for k, v in jailspec.items()
             if k not in JAIL_FOCKER_PARAMS }
 
-        rest_spec = dict(DEFAULT_PARAMS)
-        rest_spec.update(rest_spec_1)
+        # rest_spec = dict(DEFAULT_PARAMS)
+        # rest_spec.update(rest_spec_1)
 
         path = focker_spec['path']
         name = JAIL_NAME_PREFIX + focker_spec['name']
