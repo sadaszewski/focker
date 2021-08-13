@@ -20,7 +20,7 @@ class TestOSJailSpec:
         spec = JailSpec.from_dict({ 'name': 'focker_unit_test_osjailspec',
             'path': '/tmp', 'resolv_conf': { 'file': '/some/dummy/resolv.conf' } })
         ospec = OSJailSpec.from_jailspec(spec)
-        assert 'ln -s /some/dummy/resolv.conf /etc/resolv.conf' in ospec.params['exec.poststart']
+        assert 'ln -s /some/dummy/resolv.conf /etc/resolv.conf' in ospec.params['exec.start']
         # print(ospec.params)
 
     def test05_resolv_conf_system_file(self):
@@ -34,7 +34,7 @@ class TestOSJailSpec:
             'path': '/tmp', 'resolv_conf': 'image' })
         ospec = OSJailSpec.from_jailspec(spec)
         assert '/etc/resolv.conf' not in ospec.params['exec.prestart']
-        assert '/etc/resolv.conf' not in ospec.params['exec.poststart']
+        assert '/etc/resolv.conf' not in ospec.params['exec.start']
 
     def test07_wrong_resolv_conf(self):
         spec = JailSpec.from_dict({ 'name': 'focker_unit_test_osjailspec',

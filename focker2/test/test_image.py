@@ -306,7 +306,6 @@ class TestImageCmd(DatasetCmdTestBase):
                 main(cmd)
 
 
-
 class TestBuildSteps:
     def test01_run_step_spec_type(self):
         with pytest.raises(TypeError):
