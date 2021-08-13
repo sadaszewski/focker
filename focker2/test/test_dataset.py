@@ -1,7 +1,9 @@
 from focker.core import Image, \
     Volume, \
     zfs_destroy, \
-    zfs_exists
+    zfs_exists, \
+    zfs_get_property, \
+    zfs_set_props
 import pytest
 from contextlib import ExitStack
 

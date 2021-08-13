@@ -1,6 +1,9 @@
 import pytest
 import os
-from focker.core import zfs_exists
+from focker.core import zfs_exists, \
+    zfs_set_props, \
+    zfs_get_property, \
+    zfs_destroy
 from contextlib import ExitStack
 
 
@@ -87,28 +90,31 @@ class DatasetTestBase:
             ds.destroy()
         assert not self._meta_class.exists_sha256(sha256)
 
-    def test_set(self):
+    def test07_set(self):
         with ExitStack() as stack:
             ds = self._meta_class.create()
             stack.callback(ds.destroy)
             ds.set_props({ 'focker:foo': 'bar' })
             assert ds.get_props([ 'focker:foo' ])['focker:foo'] == 'bar'
 
-    def test_get(self):
+    def test08_get(self):
         with ExitStack() as stack:
             ds = self._meta_class.create()
             stack.callback(ds.destroy)
             zfs_set_props(ds.name, { 'focker:foo': 'bar' })
             assert ds.get_props([ 'focker:foo' ])['focker:foo'] == 'bar'
 
-    def test_protect(self):
+    def test09_protect(self):
         with ExitStack() as stack:
             ds = self._meta_class.create()
             stack.callback(ds.destroy)
             ds.protect()
-            assert zfs_get_property(ds.name, 'focker:protect') == 'on'
+            stack.callback(ds.unprotect)
+            val = zfs_get_property(ds.name, 'focker:protect')
+            print(f'val: {val}.')
+            assert val == 'on'
 
-    def test_unprotect(self):
+    def test10_unprotect(self):
         with ExitStack() as stack:
             ds = self._meta_class.create()
             stack.callback(ds.destroy)
