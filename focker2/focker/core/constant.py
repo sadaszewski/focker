@@ -39,4 +39,4 @@ JAIL_EXEC_PARAMS = {'exec.prestart', 'exec.start', 'command',
 
 
 if JAIL_FOCKER_PARAMS.intersection(JAIL_PARAMS):
-    print('WARNING !!! Legal jail params collide with Focker params. Jail params will take precedence.')
+    print('WARNING !!! Legal jail params collide with Focker params. Jail params will take precedence.') # pragma: no cover

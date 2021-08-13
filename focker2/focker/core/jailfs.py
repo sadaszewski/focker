@@ -19,10 +19,6 @@ class JailFs(Dataset):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    @staticmethod
-    def from_image(image: Image, sha256: str) -> JailFs:
-        return JailFs.clone_from(image, sha256)
-
     def destroy(self):
         jail = OSJail.from_mountpoint(self.path, raise_exc=False)
         if jail is not None:

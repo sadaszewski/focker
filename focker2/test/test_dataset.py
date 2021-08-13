@@ -1,5 +1,7 @@
 from focker.core import Image, \
-    Volume
+    Volume, \
+    zfs_destroy, \
+    zfs_exists
 import pytest
 from contextlib import ExitStack
 
@@ -133,3 +135,9 @@ class TestDataset:
             stack.callback(im_2.destroy)
             with pytest.raises(RuntimeError, match='is in use'):
                 im_1.destroy()
+
+    def test17_in_use_non_existing(self):
+        v = Volume.create()
+        zfs_destroy(v.name)
+        assert not zfs_exists(v.name)
+        assert not v.in_use()

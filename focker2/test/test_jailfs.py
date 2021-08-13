@@ -87,3 +87,12 @@ class TestJailCmd:
             cmd = [ 'jail', 'exec', 'focker-unit-test-jail', '--', '/bin/sh', '-c', 'touch /.focker-unit-test-jail' ]
             main(cmd)
             assert os.path.exists(os.path.join(spec.jfs.path, '.focker-unit-test-jail'))
+
+    def test06_jid(self):
+        with ExitStack() as stack:
+            spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest' })
+            stack.callback(spec.jfs.destroy)
+            ospec = OSJailSpec.from_jailspec(spec)
+            jail = ospec.add()
+            jail.start()
+            assert jail.jid is not None
