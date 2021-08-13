@@ -46,10 +46,20 @@ class OSJailSpec:
         params = dict(jailspec.rest_params)
 
         prestart = []
+        poststart = []
         poststop = []
 
-        prestart.append('cp /etc/resolv.conf ' +
-            shlex.quote(os.path.join(path, 'etc/resolv.conf')))
+        if jailspec.resolv_conf == 'system':
+            prestart.append('cp /etc/resolv.conf ' +
+                shlex.quote(os.path.join(path, 'etc/resolv.conf')))
+        elif jailspec.resolv_conf == 'image':
+            pass # leave as is
+        elif 'file' in jailspec.resolv_conf:
+            poststart.append(f'rm -vf /etc/resolv.conf && ln -s {shlex.quote(jailspec.resolv_conf["file"])} /etc/resolv.conf')
+        elif 'system_file' in jailspec.resolv_conf:
+            prestart.append(f'cp {shlex.quote(jailspec.resolv_conf["system_file"])} {shlex.quote(os.path.join(path, "etc/resolv.conf"))}')
+        else:
+            raise ValueError('Unsupported resolv_conf specification')
 
         for m in jailspec.mounts:
             source = m.source
@@ -62,6 +72,7 @@ class OSJailSpec:
 
         exec_params = dict(jailspec.exec_params)
         exec_params['exec.prestart'] = prestart + exec_params.get('exec.prestart', [])
+        exec_params['exec.poststart'] = poststart + exec_params.get('exec.poststart', [])
         exec_params['exec.poststop'] = exec_params.get('exec.poststop', []) + poststop
 
         for k, v in exec_params.items():

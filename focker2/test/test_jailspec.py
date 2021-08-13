@@ -26,3 +26,11 @@ class TestJailSpec:
     def test05_path_not_exist(self):
         with pytest.raises(RuntimeError, match='does not exist'):
             JailSpec.validate_dict({ 'path': 'there is no chance that this path exists' })
+
+    def test06_resolv_conf_wrong(self):
+        with pytest.raises(RuntimeError, match='resolv_conf'):
+            JailSpec.validate_dict({ 'path': '/', 'resolv_conf': 'foo' })
+        with pytest.raises(RuntimeError, match='resolv_conf'):
+            JailSpec.validate_dict({ 'path': '/', 'resolv_conf': { 'file': 'foo', 'system_file': 'bar' } })
+        with pytest.raises(RuntimeError, match='resolv_conf'):
+            JailSpec.validate_dict({ 'path': '/', 'resolv_conf': { 'foo': 'bar' } })
