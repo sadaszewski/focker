@@ -216,6 +216,96 @@ class TestImageCmd(DatasetCmdTestBase):
             st_2 = os.stat(os.path.join(im.path, '.focker-unit-test-image-facet-02'))
             assert st_2.st_mtime < st_1.st_mtime
 
+    def test26_facets_missing_steps(self):
+        with TemporaryDirectory() as d:
+            with open(os.path.join(d, 'Fockerfile'), 'w') as f:
+                yaml.safe_dump({
+                    'base': 'freebsd-latest',
+                    'facets': [ './facet_01.yml', './facet_02.yml' ]
+                }, f)
+            with open(os.path.join(d, 'facet_01.yml'), 'w') as f:
+                yaml.safe_dump({}, f)
+            with open(os.path.join(d, 'facet_02.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'steps': {
+                        10: [ { 'run': 'touch /.focker-unit-test-image-facet-02' } ]
+                    }
+                }, f)
+
+            cmd = [ 'image', 'build', d, '-t', 'focker-unit-test-image-facets' ]
+            with pytest.raises(KeyError, match='steps'):
+                main(cmd)
+
+    def test27_facets_not_same_convention(self):
+        with TemporaryDirectory() as d:
+            with open(os.path.join(d, 'Fockerfile'), 'w') as f:
+                yaml.safe_dump({
+                    'base': 'freebsd-latest',
+                    'facets': [ './facet_01.yml', './facet_02.yml' ]
+                }, f)
+            with open(os.path.join(d, 'facet_01.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'steps': [
+                        { 'run': 'touch /.focker-unit-test-image-facet-01' }
+                    ]
+                }, f)
+            with open(os.path.join(d, 'facet_02.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'steps': {
+                        10: [ { 'run': 'touch /.focker-unit-test-image-facet-02' } ]
+                    }
+                }, f)
+
+            cmd = [ 'image', 'build', d, '-t', 'focker-unit-test-image-facets' ]
+            with pytest.raises(TypeError, match='same convention'):
+                main(cmd)
+
+    def test28_facets_list(self):
+        with TemporaryDirectory() as d, \
+            ExitStack() as stack:
+            with open(os.path.join(d, 'Fockerfile'), 'w') as f:
+                yaml.safe_dump({
+                    'base': 'freebsd-latest',
+                    'facets': [ './facet_01.yml', './facet_02.yml' ]
+                }, f)
+            with open(os.path.join(d, 'facet_01.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'steps': [
+                        { 'run': 'touch /.focker-unit-test-image-facet-01' }
+                    ]
+                }, f)
+            with open(os.path.join(d, 'facet_02.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'steps': [
+                        { 'run': 'touch /.focker-unit-test-image-facet-02' }
+                    ]
+                }, f)
+
+            cmd = [ 'image', 'build', d, '-t', 'focker-unit-test-image-facets' ]
+            main(cmd)
+            im = Image.from_tag('focker-unit-test-image-facets')
+            stack.callback(im.destroy)
+            st_1 = os.stat(os.path.join(im.path, '.focker-unit-test-image-facet-01'))
+            st_2 = os.stat(os.path.join(im.path, '.focker-unit-test-image-facet-02'))
+            assert st_2.st_mtime > st_1.st_mtime
+
+    def test29_facets_wrong_convention(self):
+        with TemporaryDirectory() as d:
+            with open(os.path.join(d, 'Fockerfile'), 'w') as f:
+                yaml.safe_dump({
+                    'base': 'freebsd-latest',
+                    'facets': [ './facet_01.yml' ]
+                }, f)
+            with open(os.path.join(d, 'facet_01.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'steps': { 'touch /.focker-unit-test-image-facet-01' }
+                }, f)
+
+            cmd = [ 'image', 'build', d, '-t', 'focker-unit-test-image-facets' ]
+            with pytest.raises(TypeError, match='Unsupported'):
+                main(cmd)
+
+
 
 class TestBuildSteps:
     def test01_run_step_spec_type(self):

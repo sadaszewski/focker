@@ -36,4 +36,6 @@ def merge_dicts(a, b):
     #        raise ValueError
     #    return a + b
     else:
+        if isinstance(b, dict) and '__delete__' in b and b['__delete__']:
+            return DeleteMe
         return b

@@ -11,10 +11,6 @@ class Image(Dataset):
         super().__init__(**kwargs)
 
     @staticmethod
-    def from_base(base: Image, sha256: str) -> Image:
-        return Image.clone_from(base)
-
-    @staticmethod
     def list_unused():
         fields = ['name', 'origin']
         lst = zfs_list(fields, focker_type='image') + \
