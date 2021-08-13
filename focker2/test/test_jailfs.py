@@ -96,3 +96,5 @@ class TestJailCmd:
             jail = ospec.add()
             jail.start()
             assert jail.jid is not None
+            assert spec.jfs.jid is not None
+            assert jail.jid == spec.jfs.jid
