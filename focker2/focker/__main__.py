@@ -12,7 +12,9 @@ def main(args=None):
     if not hasattr(args, 'func'): # pragma: no cover
         parser.print_usage()
         sys.exit('You must choose an action')
+    PLUGIN_MANAGER.execute_pre_hooks(args.hook_name, args)
     args.func(args)
+    PLUGIN_MANAGER.execute_post_hooks(args.hook_name, args)
 
 
 if __name__ == '__main__':

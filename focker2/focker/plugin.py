@@ -41,5 +41,19 @@ class PluginManager:
                 if k.endswith('Plugin') and issubclass(v, Plugin):
                     self.discovered_plugins.append(v)
 
+    def execute_pre_hooks(self, hook_name, args):
+        for p in self.discovered_plugins:
+            for hn, hf in p.install_pre_hooks().items():
+                if hn != hook_name:
+                    continue
+                hf(args)
+
+    def execute_post_hooks(self, hook_name, args):
+        for p in self.discovered_plugins:
+            for hn, hf in p.install_post_hooks().items():
+                if hn != hook_name:
+                    continue
+                hf(args)
+
 
 PLUGIN_MANAGER = PluginManager()

@@ -5,16 +5,16 @@ from .misc import load_overrides, \
     merge_dicts
 
 
-def materialize_parsers(defs, subp, overrides):
+def materialize_parsers(defs, subp, overrides, hook_name=[]):
     for k, v in defs.items():
         o = overrides.get(k, {})
         parser = subp.add_parser(k, aliases=v.get('aliases', []))
         if ('subparsers' in v) + ('func' in v) != 1:
             raise KeyError('Exactly one of "subparsers" or "func" must be specified')
         if 'subparsers' in v:
-            materialize_parsers(v['subparsers'], parser.add_subparsers(), o)
+            materialize_parsers(v['subparsers'], parser.add_subparsers(), o, hook_name + [ k ])
         elif 'func' in v:
-            parser.set_defaults(func=v['func'])
+            parser.set_defaults(func=v['func'], hook_name='.'.join(hook_name + [ k ]))
             for k_1, v_1 in v.items():
                 if k_1 in ['func', 'aliases']:
                     continue
