@@ -1,6 +1,8 @@
 # API
 
-A couple of examples follow.
+Focker 2 has been redesigned from the ground up to be more modular, better structured and create a solid foundation for future development. At the top level, the code is grouped into 4 major categories - **cmdmodule**, **core**, **jailconf** and **misc**, which bring together the business logic responsible for respectively: CLI functionality delivered as plugins, image/volume/jail management, roundtrip /etc/jail.conf parser and miscellaneous/helper functions.
+
+The most fundamental part of the API to understand is the **focker.core** module. It is very likely that regardless of the functionality you are trying to achieve, you will be compelled to reach out to **focker.core** on one or more occassions. A couple of examples follow.
 
 ## Build an image
 
