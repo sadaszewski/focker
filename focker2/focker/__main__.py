@@ -7,6 +7,7 @@ import sys
 @FockerLock()
 def main(args=None):
     PLUGIN_MANAGER.load()
+    PLUGIN_MANAGER.change_defaults()
     parser = create_parser()
     args = parser.parse_args(args)
     if not hasattr(args, 'func'): # pragma: no cover
