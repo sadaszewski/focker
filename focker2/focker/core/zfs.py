@@ -8,7 +8,6 @@ import csv
 import os
 from functools import reduce
 import random
-from ..misc import load_overrides
 
 
 def zfs_run(command):
@@ -29,20 +28,6 @@ def zfs_poolname():
         raise RuntimeError('The root filesystem is not ZFS')
     poolname = poolname[0][0].split('/')[0]
     return poolname
-
-
-ROOT_DATASET = None
-ROOT_MOUNTPOINT = None
-
-
-def zfs_load_config():
-    global ROOT_DATASET
-    global ROOT_MOUNTPOINT
-    conf = load_overrides('focker.conf', env_prefix='FOCKER_CONF_')
-    ROOT_DATASET = conf.get('root_dataset', zfs_poolname() + '/focker')
-    ROOT_MOUNTPOINT = conf.get('root_mountpoint', '/focker')
-
-zfs_load_config()
 
 
 def zfs_exists(name):
@@ -67,28 +52,21 @@ def zfs_create(name, props={}, exist_ok=False):
 
 
 def zfs_init():
+    from .config import FOCKER_CONFIG
     for path in ['images', 'volumes', 'jails']:
-        os.makedirs(os.path.join(ROOT_MOUNTPOINT, path), exist_ok=True)
-    os.chmod(ROOT_MOUNTPOINT, 0o600)
-    zfs_create(ROOT_DATASET, dict(canmount='off', mountpoint=ROOT_MOUNTPOINT), exist_ok=True)
-    zfs_create(ROOT_DATASET + '/images', dict(canmount='off'), exist_ok=True)
-    zfs_create(ROOT_DATASET + '/volumes', dict(canmount='off'), exist_ok=True)
-    zfs_create(ROOT_DATASET + '/jails', dict(canmount='off'), exist_ok=True)
-
-    #if not zfs_exists(poolname + '/focker'):
-    #    zfs_run(['zfs', 'create', '-o', 'canmount=off', '-o', 'mountpoint=/focker', poolname + '/focker'])
-    #if not zfs_exists(poolname + '/focker/images'):
-    #    zfs_run(['zfs', 'create', '-o', 'canmount=off', poolname + '/focker/images'])
-    #if not zfs_exists(poolname + '/focker/volumes'):
-    #    zfs_run(['zfs', 'create', '-o', 'canmount=off', poolname + '/focker/volumes'])
-    #if not zfs_exists(poolname + '/focker/jails'):
-    #    zfs_run(['zfs', 'create', '-o', 'canmount=off', poolname + '/focker/jails'])
+        os.makedirs(os.path.join(FOCKER_CONFIG.zfs.root_mountpoint, path), exist_ok=True)
+    os.chmod(FOCKER_CONFIG.zfs.root_mountpoint, 0o600)
+    zfs_create(FOCKER_CONFIG.zfs.root_dataset, dict(canmount='off', mountpoint=FOCKER_CONFIG.zfs.root_mountpoint), exist_ok=True)
+    zfs_create(FOCKER_CONFIG.zfs.root_dataset + '/images', dict(canmount='off'), exist_ok=True)
+    zfs_create(FOCKER_CONFIG.zfs.root_dataset + '/volumes', dict(canmount='off'), exist_ok=True)
+    zfs_create(FOCKER_CONFIG.zfs.root_dataset + '/jails', dict(canmount='off'), exist_ok=True)
 
 
 def zfs_list(fields=['name'], focker_type='image', zfs_type='filesystem'):
+    from .config import FOCKER_CONFIG
     fields.append('focker:sha256')
     lst = zfs_parse_output(['zfs', 'list', '-o', ','.join(fields),
-        '-H', '-t', zfs_type, '-r', ROOT_DATASET + '/' + focker_type + 's'])
+        '-H', '-t', zfs_type, '-r', FOCKER_CONFIG.zfs.root_dataset + '/' + focker_type + 's'])
     lst = list(filter(lambda a: a[-1] != '-', lst))
     return lst
 
@@ -111,10 +89,12 @@ def zfs_tag(name, tags, replace=False):
 
 
 def zfs_untag(tags, focker_type='image'):
+    from .config import FOCKER_CONFIG
     if any(map(lambda a: ' ' in a, tags)):
         raise ValueError('Tags cannot contain spaces')
     # print('zfs_untag(), tags:', tags)
-    lst = zfs_parse_output(['zfs', 'list', '-o', 'name,focker:tags', '-H', '-r', ROOT_DATASET + '/' + focker_type + 's'])
+    lst = zfs_parse_output(['zfs', 'list', '-o', 'name,focker:tags', '-H', '-r',
+        FOCKER_CONFIG.zfs.root_dataset + '/' + focker_type + 's'])
     lst = filter(lambda a: any([b in a[1].split(' ') for b in tags]), lst)
     for row in lst:
         cur_tags = row[1].split(' ')
@@ -184,7 +164,8 @@ def zfs_find_prefix(head, tail):
 
 
 def zfs_shortest_unique_name(name: str, focker_type: str) -> str:
-    head = f'{ROOT_DATASET}/{focker_type}s/'
+    from .config import FOCKER_CONFIG
+    head = f'{FOCKER_CONFIG.zfs.root_dataset}/{focker_type}s/'
     return zfs_find_prefix(head, name)
 
 

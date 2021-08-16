@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
 from .plugin import PLUGIN_MANAGER
 import os
-from .misc import load_overrides, \
-    merge_dicts
+from .misc import merge_dicts
+from .core import FOCKER_CONFIG
 
 
 def materialize_parsers(defs, subp, overrides, hook_name=[]):
@@ -35,8 +35,6 @@ def create_parser():
     parser = ArgumentParser('focker')
     subp = parser.add_subparsers()
 
-    overrides = load_overrides('command.conf', env_prefix='FOCKER_CMD_', env_hier=True)
-
     provided_parsers = {}
     for p in PLUGIN_MANAGER.discovered_plugins:
         provided_parsers.update(p.provide_parsers())
@@ -47,6 +45,6 @@ def create_parser():
 
     # print('provided_parsers:', provided_parsers)
 
-    materialize_parsers(provided_parsers, subp, overrides)
+    materialize_parsers(provided_parsers, subp, FOCKER_CONFIG.command.overrides)
 
     return parser

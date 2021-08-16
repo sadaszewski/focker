@@ -1,11 +1,10 @@
-from ..constant import JAIL_FOCKER_PARAMS, \
+from .constant import JAIL_FOCKER_PARAMS, \
     JAIL_EXEC_PARAMS, \
     JAIL_PARAMS
 from ..mount import Mount
 from ..misc import ensure_list
 from ...misc import merge_dicts
-from .constant import DEFAULT_PARAMS, \
-    JAIL_NAME_PREFIX
+from ..config import FOCKER_CONFIG
 from typing import Dict
 import os
 
@@ -55,7 +54,7 @@ class JailSpec:
 
     @classmethod
     def _from_dict(cls, jailspec: Dict):
-        jailspec = merge_dicts(DEFAULT_PARAMS, jailspec)
+        jailspec = merge_dicts(FOCKER_CONFIG.jail.default_params, jailspec)
         JailSpec.validate_dict(jailspec)
 
         focker_spec = { k: v for k, v in jailspec.items()
@@ -63,11 +62,11 @@ class JailSpec:
         rest_spec = { k: v for k, v in jailspec.items()
             if k not in JAIL_FOCKER_PARAMS }
 
-        # rest_spec = dict(DEFAULT_PARAMS)
+        # rest_spec = dict(FOCKER_CONFIG.jail.default_params)
         # rest_spec.update(rest_spec_1)
 
         path = focker_spec['path']
-        name = JAIL_NAME_PREFIX + focker_spec['name']
+        name = FOCKER_CONFIG.jail.name_prefix + focker_spec['name']
         hostname = focker_spec.get('host.hostname', name)
         depend = focker_spec.get('depend', [])
 

@@ -9,3 +9,4 @@ from .misc import *
 from .osjail import *
 from .process import *
 from .zfs import *
+from .config import FOCKER_CONFIG
