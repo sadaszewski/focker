@@ -42,7 +42,7 @@ spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest' })
 ospec = OSJailSpec.from_jailspec(spec)
 jail_1 = ospec.add()
 spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest',
-  'depend': [ jail_1.name ], 'mounts': [ [ v, '/mnt' ] ]  })
+  'depend': [ jail_1.name ], 'mounts': { v: '/mnt' } })
 ospec = OSJailSpec.from_jailspec(spec)
 jail_2 = ospec.add()
 jail_2.add_tags([ 'jail-2' ])
