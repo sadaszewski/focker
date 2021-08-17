@@ -7,7 +7,7 @@ Focker underwent a not-so-slow overhaul in the period of June-August 2021 which 
 - [X] [API](./docs/v2/00_api.md) - new abstractions constitute a framework which makes Focker as easy to use in custom code as in the command line,
 - [X] [Configurability](./docs/v2/01_config.md) - at the same time the way Focker's configuration is passed around has been remade, allowing to pass any and all Focker parameters either on the command line OR via environment variables OR by system/user-specific configuration files - /etc/focker.conf, /usr/local/etc/focker.conf and ~/focker.conf,
 - [X] [Plugins](./docs/v2/02_plugins.md) system - the native Focker command modules (image, jail, compose) have become plugins themselves and the rule now is to implement every new block of functionality as a plugin on top of the slim and robust core,
-- [X] [Facets](./docs/v2/04_facets.md) - _facets_ and _dictionary-based_ steps are innovations that vastly improve the image recipe writing experiencem
+- [X] [Facets](./docs/v2/04_facets.md) - _facets_ and _dictionary-based steps_ are innovations that vastly improve the image recipe writing experiencem
 
 and many smaller [Improvements](./docs/v2/03_improvements.md):
 
