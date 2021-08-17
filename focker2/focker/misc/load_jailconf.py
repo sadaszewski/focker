@@ -1,3 +1,11 @@
+#
+# Copyright (C) Stanislaw Adaszewski, 2020-2021
+# License: GNU General Public License v3.0
+# URL: https://github.com/sadaszewski/focker
+# URL: https://adared.ch/focker
+#
+
+
 from .backup_file import backup_file
 import os
 from ..jailconf import load, \
