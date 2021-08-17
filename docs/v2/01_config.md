@@ -20,7 +20,13 @@ Configuration files are searched always in the same order in the following locat
 
 ## Environment Variables
 
-### WiP
+Environment variables take priority over parameters specified in the configuration files. Each config file has a specific environment variable prefix associated with it. These are:
+
+- _FOCKER_CONF&lowbar;_ for the **focker.conf** file
+- _FOCKER_JAIL_DEFAULTS&lowbar;_ for the **jail-defaults.conf** file
+- _FOCKER_CMD&lowbar;_ for the **command.conf** file
+
+In the case of _FOCKER_CMD&lowbar;_ the underscores are also used to indicate the separation in levels of hierarchy, so that the example above would be denoted as `setenv FOCKER_CMD_JAIL_LIST_SORT tags ; focker jail list`.
 
 ## Command-line parameters
 
