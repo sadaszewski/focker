@@ -33,7 +33,7 @@ v = Volume.create()
 v.add_tags([ 'my-fancy-volume-tag' ])
 ```
 
-## Create an image, volume and two dependent jails
+## Create an image, a volume and two dependent jails
 ```python
 from focker.core import ( Volume, CloneImageJailSpec, OSJailSpec )
 im = Image.clone_from(Image.from_tag('freebsd-latest'))

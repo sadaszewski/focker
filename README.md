@@ -15,7 +15,7 @@ and many smaller [Improvements](./docs/v2/03_improvements.md):
 - [X] Sorting of listing results,
 - [X] Configurable prefix for names in /etc/jail.conf,
 - [X] Configurable location (dataset) for focker objects.
-- [X] Detect usage of volumes by jails when pruning (maybe)
+- [X] Detect usage of volumes by jails when pruning
 - [X] Roundtrip jail.conf parser
 - [X] Automatically create mount destinations if they don't exist
 - [X] Allow to include other Fockerfiles inside of a Fockerfile, as an alternative to the scheme of base images,
