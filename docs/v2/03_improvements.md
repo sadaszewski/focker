@@ -2,11 +2,13 @@
 
 ## Taking into account the exec.fib setting when running focker jail exec
 
-Certain use cases as described e.g. [here](https://forums.freebsd.org/threads/example-setup-for-email-behind-vps-vpn-dsl-originally-a-nat-loopback-problem.81087/) require usage of FreeBSD's alternative forwarding information base (FIB) mechanism. For processes executed via a jail's _exec.*_ family parameters it suffices to specify the _exec.fib_ parameter. However _jexec_ does not honor this setting automatically and requires to be wrapped in a call to [_setfib_](https://www.freebsd.org/cgi/man.cgi?query=setfib&sektion=2&format=html). Invocations of `focker jail exec` and similar will now take this into account. 
+Certain use cases as described e.g. [here](https://forums.freebsd.org/threads/example-setup-for-email-behind-vps-vpn-dsl-originally-a-nat-loopback-problem.81087/) require the usage of FreeBSD's alternative forwarding information base (FIB) mechanism. For processes executed through a jail's _exec.*_ family parameters, it suffices to specify the _exec.fib_ parameter. However, _jexec_ does not honor this setting automatically and requires to be wrapped in a call to [_setfib_](https://www.freebsd.org/cgi/man.cgi?query=setfib&sektion=2&format=html). Invocations of `focker jail exec` and similar now take this into account. 
 
-## Allow for bootstrapping images using different versions of FreeBSD not only the current one,
+## Support bootstrapping of images using different versions of FreeBSD than the host one
 
-## Sorting of listing results,
+Certain images might be based on a set of packages with frozen versions (e.g. for reproducibility of scientific experiments). To this end, in case such images need to be rebuilt, it is useful to have the ability to bootstrap base images using an earlier version of FreeBSD. Using the new functionality by invoking e.g. `focker bootstrap install -v 11.4-RELEASE` one would create a base image using FreeBSD 11.4.
+
+## Sorting of listing results
 
 ## Configurable prefix for names in /etc/jail.conf,
 
