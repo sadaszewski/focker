@@ -24,4 +24,14 @@ All methods share the same signature. They do not accept arguments and must retu
 
 The _provide_parsers()_ method should return definitions of one or more new parsers for the CLI provided by the plugin. Care must be taken not to cause collision with the built-in commands or other plugins. The content of the dictionary from the _provide_parsers()_ method will shallowly overwrite existing keys in the parser definition dictionary. For an example, please take a look at any of the built-in plugins, e.g. [_BootstrapPlugin_](../../focker/cmdmodule/bootstrap/bootstrap/bootstrap.py). The order in which the plugins are loaded is not defined, therefore it is not possible to make the overwriting behavior controlled - collisions must be currently avoided.
 
-WiP
+The _extend_parsers_() method can be used to extend existing (sub)parsers with new subcommands and parameters. It should as well return a dictionary. The difference compared to _provide_parsers()_ is such that the _extend_parsers()_ methods are executed after all the "new" parsers have been provided and the definitions from _extend_parsers()_ are merged with the existing ones rather than overwrite them.
+
+The _change_defaults()_ method provides a formalism for changing the default values of parameters in a dynamic way. The dictionary returned is merged with the _FockerConfig_ singleton. Valid keys are currently: _jail.default_params_, _jail.name_prefix_, _zfs.root_dataset_, _zfs.root_mountpoint_, _command.overrides_.
+
+The _install_pre_hooks()_ method is supposed to provide hooks which are executed **before** the given CLI action. Keys should specify the first and second subcommand using the dot-notation, e.g. `"jail.list"`. The hook function will be called with one argument - _args_ - coming from _ArgumentParser.parse()_.
+
+The _install_post_hooks()_ method provides hooks which are executed **after** the given CLI action. Keys should specify the first and second subcommand using the dot-notation, e.g. `"jail.list"`. The hook function will be called with one argument - _args_ - coming from _ArgumentParser.parse()_.
+
+## Examples
+
+For examples, one can study the [cmdmodule](../../focker/cmdmodule) module, as well as the [unit tests](../../test/test_plugin.py).
