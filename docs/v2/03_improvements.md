@@ -8,18 +8,26 @@ Certain use cases as described e.g. [here](https://forums.freebsd.org/threads/ex
 
 Certain images might be based on a set of packages with frozen versions (e.g. for reproducibility of scientific experiments). To this end, in case such images need to be rebuilt, it is useful to have the ability to bootstrap base images using an earlier version of FreeBSD. Using the new functionality by invoking e.g. `focker bootstrap install -v 11.4-RELEASE` one would create a base image using FreeBSD 11.4.
 
-## Sorting of listing results
+## Sorting of listing results and customizable listing columns
 
-## Configurable prefix for names in /etc/jail.conf,
-
-## Configurable location (dataset) for focker objects.
+The `list` command for images, volumes and jails is now standardized and features a `--sort` parameter which can take one of the following values: `name`, `tags`, `sha256`, `mountpoint`, `is_protected`, `is_finalized` or `size`. The same values can be used to specify the columns in the listing using the `--output` parameter.
 
 ## Detect usage of volumes by jails when pruning
 
+When running `focker volume prune` untagged volumes will not be removed if they are in use by a jail.
+
 ## Roundtrip jail.conf parser
+
+Usage of leforestier's [jailconf](https://github.com/leforestier/jailconf) has been dropped in favor of my [custom](../../focker/jailconf) jail.conf parser. It is a round-trip parser which means that it preserves almost everything as-is when loading and saving back the file. This is in contrast to the prior situation when comments were stripped from **/etc/jail.conf** every time Focker rewrote it. The new parser is also easier to use and automatically manages quoting of values. It is the best jail.conf parser I know of, apart from the original thing in FreeBSD.
 
 ## Automatically create mount destinations if they don't exist
 
-## Allow to include other Fockerfiles inside of a Fockerfile, as an alternative to the scheme of base images,
+This is useful to avoid all the mkdirs in the Fockerfile. It will also save you from rebuilding an image if you forget them.
 
-## Make a few more settings configurable, e.g. whether to copy /etc/resolv.conf or not, possibility of static resolv.conf, etc.,
+## Allow to include other Fockerfiles inside of a Fockerfile, as an alternative to the scheme of base images
+
+Focker 2.0 introduces a mechanism which I call "facets". It allows to group different aspects of an image in separate files and combine them in the `Fockerfile` under the `facets` key. To learn more about this and other improvements in image building, see [Facets](./04_facets.md).
+
+## Make it a setting whether to copy /etc/resolv.conf or not and/or specify a predefined resolv.conf
+
+Focker jails now support a new parameter - _resolv_conf_ which can take the following values: _system_, _image_, _file_ or _system_file_. The _system_ setting corresponds to the Focker 1 behavior of copying the host resolv.conf file. _image_ instructs Focker to use the **/etc/resolv.conf** as provided by the image. The _file_ setting copies a file from a defined location **in the jail** to the jail's **/etc/resolv.conf**, whereas _system_file_ does the same using a location **on the host**.
