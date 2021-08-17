@@ -1,10 +1,10 @@
 from .command import create_parser
 from .plugin import PLUGIN_MANAGER
-from .misc import FockerLock
+from .misc import focker_lock
 import sys
 
 
-@FockerLock()
+@focker_lock()
 def main(args=None):
     PLUGIN_MANAGER.load()
     PLUGIN_MANAGER.change_defaults()

@@ -3,5 +3,5 @@ from .backup_file import backup_file
 from .filehash import filehash
 from .load_jailconf import *
 from .overrides import *
-from .lock import FockerLock, \
-    FockerUnlock
+from .lock import focker_lock, \
+    focker_unlock

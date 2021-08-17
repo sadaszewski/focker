@@ -1,5 +1,5 @@
 import os
-from ...misc import FockerUnlock
+from ...misc import focker_unlock
 from ...core import focker_subprocess_run, \
     CalledProcessError
 
@@ -14,7 +14,7 @@ def exec_hook(spec, path, hook_name='exec.prebuild'):
     spec = ' && '.join(spec)
     print('Running %s command:' % hook_name, spec)
     spec = [ '/bin/sh', '-c', spec ]
-    with FockerUnlock():
+    with focker_unlock():
         try:
             res = focker_subprocess_run(spec, cwd=path)
         except CalledProcessError:

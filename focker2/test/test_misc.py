@@ -18,7 +18,8 @@ class TestMisc:
             focker_lock.fd.close()
             focker_lock.fd = None
         assert focker_lock.fd is None
-        focker_unlock()
+        with focker_unlock():
+            pass
         assert focker_lock.fd is None
 
     def test02_load_jailconf_missing(self):
@@ -73,3 +74,9 @@ class TestMisc:
             print('bak_fnam:', bak_fnam)
             assert os.path.exists(bak_fnam)
             os.unlink(bak_fnam)
+
+    def test08_nested_lock(self):
+        with focker_lock():
+            with pytest.raises(RuntimeError, match='expected to be None'):
+                with focker_lock():
+                    pass

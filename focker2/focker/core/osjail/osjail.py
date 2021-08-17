@@ -2,7 +2,8 @@ from ..process import focker_subprocess_run, \
     focker_subprocess_check_output, \
     CalledProcessError
 from ...misc import load_jailconf, \
-    save_jailconf
+    save_jailconf, \
+    focker_unlock
 import shlex
 import os
 import json
@@ -67,7 +68,8 @@ class OSJail:
         if fib is not None:
             final_cmd.extend([ 'setfib', str(fib) ])
         final_cmd.extend([ 'jexec', self.name, '/bin/sh', '-c', ' '.join([ shlex.quote(c) for c in cmd ]) ])
-        return wrapper(final_cmd, *args, **kwargs)
+        with focker_unlock():
+            return wrapper(final_cmd, *args, **kwargs)
 
     def run(self, cmd, *args, **kwargs):
         return self.jexec(cmd, focker_subprocess_run, *args, **kwargs)
