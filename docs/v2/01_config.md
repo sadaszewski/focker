@@ -28,6 +28,8 @@ Environment variables take priority over parameters specified in the configurati
 
 In the case of _FOCKER_CMD&lowbar;_ the underscores are also used to indicate the separation in levels of hierarchy, so that the example above would be denoted as `setenv FOCKER_CMD_JAIL_LIST_SORT tags ; focker jail list`.
 
+Two more examples: `setenv FOCKER_CONF_ROOT_DATASET zroot/myfockerroot`, `setenv FOCKER_JAIL_DEFAULTS_IP4.ADDR 127.0.5.5`.
+
 ## Command-line parameters
 
 ### WiP
