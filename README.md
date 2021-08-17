@@ -1,13 +1,8 @@
 # Focker 2
 
-For introduction, see [Basic Usage Guide](./docs/Basic_Usage_Guide.md) or
-[Detailed Intro](./docs/Detailed_Intro.md).
+For introduction, see [Basic Usage Guide](./docs/Basic_Usage_Guide.md) or [Detailed Intro](./docs/Detailed_Intro.md). For an end-to-end example with description, see the [scm-manager](./example/scm-manager/README.md) example.
 
-Focker underwent a not-so-slow overhaul in the period of June-August 2021
-which was concluded by the release of version 2.0. The aim was to make the
-code more structured, have better abstractions/more reusability and to lay
-foundations for the future development. Consequently, three major objectives
-have been achieved:
+Focker underwent a not-so-slow overhaul in the period of June-August 2021 which was concluded by the release of version 2.0. The aim was to make the code more structured, have better abstractions/more reusability and to lay foundations for the future development. Consequently, three major objectives have been achieved:
 
 - [X] [API](./docs/v2/00_api.md) - new abstractions constitute a framework which makes Focker as easy to use in custom code as in the command line,
 - [X] [Configurability](./docs/v2/01_config.md) - at the same time the way Focker's configuration is passed around has been remade, allowing to pass any and all Focker parameters either on the command line OR via environment variables OR by system/user-specific configuration files - /etc/focker.conf, /usr/local/etc/focker.conf and ~/focker.conf,

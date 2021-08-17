@@ -1,5 +1,10 @@
 # scm-manager setup using Focker
 
+```diff
+- This document is partly deprecated.
+- Please expect an updated version soon.
+```
+
 ## Quickstart
 
 From a fresh FreeBSD install to running scm-manager in a jail, you just need
