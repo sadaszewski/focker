@@ -20,7 +20,7 @@ Configuration files are searched always in the same order in the following locat
 
 ## Environment Variables
 
-Environment variables take priority over parameters specified in the configuration files. Each config file has a specific environment variable prefix associated with it. These are:
+Environment variables take precedence over parameters specified in the configuration files. Each config file has a specific environment variable prefix associated with it. These are:
 
 - _FOCKER_CONF&lowbar;_ for the **focker.conf** file
 - _FOCKER_JAIL_DEFAULTS&lowbar;_ for the **jail-defaults.conf** file
@@ -32,4 +32,4 @@ Two more examples: `setenv FOCKER_CONF_ROOT_DATASET zroot/myfockerroot`, `setenv
 
 ## Command-line parameters
 
-### WiP
+Parameters provided on the command line always have the last word and override any values specified in the configuration files and environment variables. On the other hand, only parameters corresponding to the **command.conf** file can be specified on the command line. For the remaining ones, only the configuration files and environment variables are viable methods.
