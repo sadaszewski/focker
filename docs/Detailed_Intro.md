@@ -1,5 +1,10 @@
 # Focker
 
+```diff
+- This document is partly deprecated.
+- Please expect an updated version soon.
+```
+
 ## Introduction
 
 Focker is a FreeBSD image orchestration tool in the vein of Docker. This

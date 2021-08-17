@@ -1,5 +1,10 @@
 # Focker Basic Usage Guide
 
+```diff
+- This document is partly deprecated.
+- Please expect an updated version soon.
+```
+
 ## Prerequisites
 
 In order to get started, you have to prepare a base image for usage with Focker.
