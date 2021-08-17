@@ -15,6 +15,6 @@ focker bootstrap install [-i]
 focker bootstrap finalize freebsd-latest
 ```
 
-This will create the necessary ZFS datasets under zroot/focker mounted at /focker, create a lo1 interface for jails, add the corrsponding pf rule, create a base image with the FreeBSD version of the host and finalize the image so that it can be used by other images and jails.
+This will create the necessary ZFS datasets under zroot/focker mounted at /focker, create a lo1 interface for jails, add the corresponding pf rule, create a base image with the FreeBSD version of the host and finalize the image so that it can be used by other images and jails.
 
 Optionally, one can run the `focker bootstrap install` with the `-i` switch which will run the installer in interactive mode. Furthermore, the image can be manually customized before calling `focker bootstrap finalize`.
