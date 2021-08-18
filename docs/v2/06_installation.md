@@ -3,26 +3,26 @@
 First of all, you need to install Python, pip and git, e.g. like below:
 
 ```console
-pkg install python3 py38-pip git
+$ pkg install python3 py38-pip git
 ```
 
 Then, you can use pip to install Focker directly from the Git repository like so:
 
 ```console
-pip install git+https://github.com/sadaszewski/focker.git
+$ pip install git+https://github.com/sadaszewski/focker.git
 ```
 
 Finally, if you are installing on a fresh FreeBSD system, you need to bootstrap Focker by invoking the following commands:
 
 ```console
-focker bootstrap filesystem
-focker bootstrap interface
-focker bootstrap pfrule
-service pf enable
-service pf start
-setenv MIRROR ftp://ftp.ch.freebsd.org
-focker bootstrap install
-focker bootstrap finalize freebsd-latest
+$ focker bootstrap filesystem
+$ focker bootstrap interface
+$ focker bootstrap pfrule
+$ service pf enable
+$ service pf start
+$ setenv MIRROR ftp://ftp.ch.freebsd.org
+$ focker bootstrap install
+$ focker bootstrap finalize freebsd-latest
 ```
 
 The line containing `setenv MIRROR` should specify your FreeBSD mirror of choice. If you do not specify a mirror, a random one will be selected using the `focker-mirrorselect` script. Mirrors seem to come and go from release to release and the script is rarely updated, therefore if you do not manually specify a reliable mirror, the installation procedure might fail. In that case, `rm -rvf /usr/freebsd-dist` and try again with a different mirror.
