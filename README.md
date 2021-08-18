@@ -1,5 +1,7 @@
 # Focker 2
 
+To install Focker 2, please read the [Installation](./docs/v2/06_installation.md) manual.
+
 For introduction, see [Basic Usage Guide](./docs/Basic_Usage_Guide.md) or [Detailed Intro](./docs/Detailed_Intro.md). For an end-to-end example with description, see the [scm-manager](./example/scm-manager/README.md) example.
 
 Focker underwent a not-so-slow overhaul in the period of June-August 2021 which was concluded by the release of version 2.0. The aim was to make the code more structured, have better abstractions/more reusability and to lay foundations for the future development. Consequently, three major objectives have been achieved:
