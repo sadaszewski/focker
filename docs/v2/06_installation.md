@@ -2,19 +2,19 @@
 
 First of all, you need to install Python, pip and git, e.g. like below:
 
-```console
+```sh
 pkg install python3 py38-pip git
 ```
 
 Then, you can use pip to install Focker directly from the Git repository like so:
 
-```console
+```sh
 pip install git+https://github.com/sadaszewski/focker.git
 ```
 
 Finally, if you are installing on a fresh FreeBSD system, you need to bootstrap Focker by invoking the following commands:
 
-```console
+```sh
 focker bootstrap filesystem
 focker bootstrap interface
 focker bootstrap pfrule
