@@ -17,6 +17,7 @@ from ..core import JailFs, \
     CloneImageJailSpec
 from ..core.jailspec import JailSpec
 from .common import standard_fobject_commands
+from contextlib import ExitStack
 
 
 class JailPlugin(Plugin):
@@ -99,7 +100,9 @@ def cmd_jail_exec(args):
 def cmd_jail_oneexec(args):
     im = Image.from_any_id(args.identifier)
     spec = OneExecJailSpec.from_image_and_dict(im, {})
-    with TemporaryOSJail(spec) as jail:
+    with ExitStack() as stack, \
+        TemporaryOSJail(spec) as jail:
+        stack.callback(spec.jfs.destroy)
         if args.chkout:
             print(jail.check_output(args.command))
         else:

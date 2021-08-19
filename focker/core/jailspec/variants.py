@@ -64,4 +64,6 @@ class OneExecJailSpec(JailSpec):
         name = os.path.split(jfs.path)[-1]
         jailspec['name'] = 'one_' + name
         jailspec['host.hostname'] = name
-        return cls._from_dict(jailspec)
+        res = cls._from_dict(jailspec)
+        res.jfs = jfs
+        return res
