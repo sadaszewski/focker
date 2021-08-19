@@ -100,13 +100,13 @@ def cmd_jail_exec(args):
 def cmd_jail_oneexec(args):
     im = Image.from_any_id(args.identifier)
     spec = OneExecJailSpec.from_image_and_dict(im, {})
-    with ExitStack() as stack, \
-        TemporaryOSJail(spec) as jail:
+    with ExitStack() as stack:
         stack.callback(spec.jfs.destroy)
-        if args.chkout:
-            print(jail.check_output(args.command))
-        else:
-            jail.run(args.command) # pragma: no cover
+        with TemporaryOSJail(spec) as jail:
+            if args.chkout:
+                print(jail.check_output(args.command))
+            else:
+                jail.run(args.command) # pragma: no cover
 
 
 def cmd_jail_fromimage(args):
