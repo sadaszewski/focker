@@ -17,12 +17,13 @@ im.add_tags([ 'my-fancy-image-tag' ])
 ## Create and start a jail
 
 ```python
-from focker.core import ( CloneImageJailSpec, OSJailSpec )
+from focker.core import ( clone_image_jailspec, OSJailSpec )
 
-spec = CloneImageJailSpec.from_dict({ 'image': 'my-fancy-image-tag' })
-ospec = OSJailSpec.from_jailspec(spec)
-jail = ospec.add()
-jail.start()
+with clone_image_jailspec({ 'image': 'my-fancy-image-tag' }) as (spec, _, jfs_take_ownership):
+  _ = jfs_take_ownership()
+  ospec = OSJailSpec.from_jailspec(spec)
+  jail = ospec.add()
+  jail.start()
 ```
 
 ## Create a volume
@@ -35,15 +36,17 @@ v.add_tags([ 'my-fancy-volume-tag' ])
 
 ## Create an image, a volume and two dependent jails
 ```python
-from focker.core import ( Volume, CloneImageJailSpec, OSJailSpec )
+from focker.core import ( Volume, clone_image_jailspec, OSJailSpec )
 im = Image.clone_from(Image.from_tag('freebsd-latest'))
 v = Volume.create()
-spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest' })
-ospec = OSJailSpec.from_jailspec(spec)
-jail_1 = ospec.add()
-spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest',
-  'depend': [ jail_1.name ], 'mounts': { v: '/mnt' } })
-ospec = OSJailSpec.from_jailspec(spec)
-jail_2 = ospec.add()
-jail_2.add_tags([ 'jail-2' ])
+with clone_image_jailspec.from_dict({ 'image': 'freebsd-latest' }) as (spec, _, jfs_take_ownership):
+  _ = jfs_take_ownership()
+  ospec = OSJailSpec.from_jailspec(spec)
+  jail_1 = ospec.add()
+with clone_image_jailspec({ 'image': 'freebsd-latest',
+  'depend': [ jail_1.name ], 'mounts': { v: '/mnt' } }) as (spec, _, jfs_take_ownership):
+  _ = jfs_take_ownership()
+  ospec = OSJailSpec.from_jailspec(spec)
+  jail_2 = ospec.add()
+  jail_2.add_tags([ 'jail-2' ])
 ```

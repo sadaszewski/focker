@@ -13,29 +13,35 @@ from typing import Dict
 import os
 
 
-class CloneImageJailSpec(JailSpec):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
+class clone_image_jailspec():
+    def __init__(self, jailspec: Dict):
+        self.jailspec = jailspec
         self.jfs = None
 
-    @classmethod
-    def from_dict(cls, jailspec: Dict = {}):
-        if 'image' not in jailspec:
+    def __enter__(self):
+        if 'image' not in self.jailspec:
             raise KeyError('Image not specified')
-        im = Image.from_any_id(jailspec['image'], strict=True)
-        jfs = JailFs.clone_from(im)
-        jailspec = dict(jailspec)
+        im = Image.from_any_id(self.jailspec['image'], strict=True)
+        self.jfs = JailFs.clone_from(im)
+        jailspec = dict(self.jailspec)
         del jailspec['image']
-        jailspec['path'] = jfs.path
-        name = os.path.split(jfs.path)[-1]
+        jailspec['path'] = self.jfs.path
+        name = os.path.split(self.jfs.path)[-1]
         if 'name' not in jailspec:
             jailspec['name'] = name
         if 'host.hostname' not in jailspec:
             jailspec['host.hostname'] = name
-        res = cls._from_dict(jailspec)
-        res.jfs = jfs
-        return res
+        return JailSpec.from_dict(jailspec), self.jfs, self.jfs_take_ownership
+
+    def __exit__(self, *_):
+        if self.jfs is not None:
+            self.jfs.destroy()
+            self.jfs = None
+
+    def jfs_take_ownership(self):
+        jfs = self.jfs
+        self.jfs = None
+        return jfs
 
 
 class ImageBuildJailSpec(JailSpec):

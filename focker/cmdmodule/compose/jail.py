@@ -6,7 +6,7 @@
 #
 
 
-from ...core import CloneImageJailSpec, \
+from ...core import clone_image_jailspec, \
     OSJailSpec, \
     JailFs, \
     OSJail
@@ -21,7 +21,8 @@ def build_jails(spec):
 
     print('Building new jails...')
     for tag, jspec in spec.items():
-        jspec = CloneImageJailSpec.from_dict(jspec)
-        jspec.jfs.add_tags([ tag ])
-        ospec = OSJailSpec.from_jailspec(jspec)
-        ospec.add()
+        with clone_image_jailspec(jspec) as (jspec, _, jfs_take_ownership):
+            jfs = jfs_take_ownership()
+            jfs.add_tags([ tag ])
+            ospec = OSJailSpec.from_jailspec(jspec)
+            ospec.add()

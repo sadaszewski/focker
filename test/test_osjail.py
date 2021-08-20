@@ -1,7 +1,7 @@
 from focker.core import OSJail, \
     OSJailSpec, \
     JailFs, \
-    CloneImageJailSpec, \
+    clone_image_jailspec, \
     Volume
 from focker.core.jailspec import JailSpec
 import pytest
@@ -39,8 +39,7 @@ class TestOSJail:
             jfs.destroy()
 
     def test03_check_output(self):
-        spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest' })
-        try:
+        with clone_image_jailspec({ 'image': 'freebsd-latest' }) as (spec, jfs, _):
             ospec = OSJailSpec.from_jailspec(spec)
             jail = ospec.add()
             jail.start()
@@ -49,20 +48,15 @@ class TestOSJail:
             res = res.split('\n')
             res = [ ln for ln in res if 'bin' in ln or 'var' in ln or 'usr' in ln ]
             assert len(res) == 5
-        finally:
-            spec.jfs.destroy()
 
     def test04_jls(self):
-        spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest' })
-        try:
+        with clone_image_jailspec({ 'image': 'freebsd-latest' }) as (spec, jfs, _):
             ospec = OSJailSpec.from_jailspec(spec)
             jail = ospec.add()
             jail.start()
             res = jail.jls()
             assert res['name'] == jail.name
             jail.stop()
-        finally:
-            spec.jfs.destroy()
 
     def test05_factory_methods(self):
         with pytest.raises(RuntimeError, match='factory methods'):
@@ -85,8 +79,7 @@ class TestOSJail:
         assert res is None
 
     def test10_exec_fib(self):
-        spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest', 'exec.fib': 0 })
-        try:
+        with clone_image_jailspec({ 'image': 'freebsd-latest', 'exec.fib': 0 }) as (spec, jfs, _):
             ospec = OSJailSpec.from_jailspec(spec)
             jail = ospec.add()
             jail.start()
@@ -96,8 +89,6 @@ class TestOSJail:
                 cmd = cmd_in
             jail.jexec(['ls', '-al'], dummywrapper)
             assert 'setfib' in cmd
-        finally:
-            spec.jfs.destroy()
 
     def test11_mountpoint_not_found_noraise(self):
         res = OSJail.from_mountpoint('focker-unit-test-impossible-jail-mountpoint', raise_exc=False)
@@ -113,15 +104,12 @@ class TestOSJail:
             jfs.destroy()
 
     def test13_run(self):
-        spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest' })
-        try:
+        with clone_image_jailspec({ 'image': 'freebsd-latest' }) as (spec, jfs, _):
             ospec = OSJailSpec.from_jailspec(spec)
             jail = ospec.add()
             jail.start()
             jail.run([ 'touch', '/.focker-unit-test-jail-run' ])
-            assert os.path.exists(os.path.join(spec.jfs.path, '.focker-unit-test-jail-run'))
-        finally:
-            spec.jfs.destroy()
+            assert os.path.exists(os.path.join(jfs.path, '.focker-unit-test-jail-run'))
 
     def test14_jls_not_running(self):
         jail, jfs = self._create()
@@ -153,19 +141,15 @@ class TestOSJail:
             jfs.destroy()
 
     def test16_runtime_property(self):
-        spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest' })
-        try:
+        with clone_image_jailspec({ 'image': 'freebsd-latest' }) as (spec, jfs, _):
             ospec = OSJailSpec.from_jailspec(spec)
             jail = ospec.add()
             jail.start()
             assert jail.has_runtime_property('persist')
             assert jail.get_runtime_property('persist') == True
-        finally:
-            spec.jfs.destroy()
 
     def test17_jid(self):
-        spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest' })
-        try:
+        with clone_image_jailspec({ 'image': 'freebsd-latest' }) as (spec, jfs, _):
             ospec = OSJailSpec.from_jailspec(spec)
             jail = ospec.add()
             assert jail.jid is None
@@ -173,8 +157,6 @@ class TestOSJail:
             assert jail.jid is not None
             jail.stop()
             assert jail.jid is None
-        finally:
-            spec.jfs.destroy()
 
     def test18_conf(self):
         jail, jfs = self._create()
@@ -188,9 +170,8 @@ class TestOSJail:
         with ExitStack() as stack:
             v = Volume.create()
             stack.callback(v.destroy)
-            spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest',
-                'mounts': { v.path: '/a/nested/mount/path/that/wont/exist' } })
-            stack.callback(spec.jfs.destroy)
+            spec, jfs, _ = stack.enter_context(clone_image_jailspec({ 'image': 'freebsd-latest',
+                'mounts': { v.path: '/a/nested/mount/path/that/wont/exist' } }))
             ospec = OSJailSpec.from_jailspec(spec)
             jail = ospec.add()
             jail.start()

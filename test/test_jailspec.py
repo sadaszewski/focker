@@ -38,7 +38,8 @@ class TestJailSpec:
 
     def test07_variants_no_image_spec(self):
         with pytest.raises(KeyError, match='Image'):
-            CloneImageJailSpec.from_dict({})
+            with clone_image_jailspec({}):
+                pass
 
     def test07_variants_image_in_spec_raise(self):
         with pytest.raises(KeyError, match='separately'):

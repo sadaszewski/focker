@@ -1,7 +1,7 @@
 from dataset_test_base import DatasetTestBase
 from dataset_cmd_test_base import DatasetCmdTestBase
 from focker.core import JailFs, \
-    CloneImageJailSpec, \
+    clone_image_jailspec, \
     OSJailSpec, \
     OSJail
 from focker.__main__ import main
@@ -22,9 +22,8 @@ class TestJailFsCmd(DatasetCmdTestBase):
 
 class TestJailCmd:
     def test01_exec(self):
-        spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest' })
-        try:
-            spec.jfs.add_tags([ 'focker-unit-test-jail' ])
+        with clone_image_jailspec({ 'image': 'freebsd-latest' }) as (spec, jfs, _):
+            jfs.add_tags([ 'focker-unit-test-jail' ])
             ospec = OSJailSpec.from_jailspec(spec)
             jail = ospec.add()
             jail.start()
@@ -33,8 +32,6 @@ class TestJailCmd:
             with redirect_stdout(buf):
                 main(cmd)
             assert 'foo bar baf' in buf.getvalue()
-        finally:
-            spec.jfs.destroy()
 
     def test02_oneexec(self):
         cmd = [ 'jail', 'oneexec', '-c', 'freebsd-latest', '--', '/bin/sh', '-c', 'echo "foo bar baf"' ]
@@ -62,39 +59,31 @@ class TestJailCmd:
             # print('d:', d)
             with open(os.path.join(d, '.focker-unit-test-jail'), 'w') as f:
                 f.write('foobar\n')
-            spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest', 'mounts': { d: '/mnt' } })
-            try:
+            with clone_image_jailspec({ 'image': 'freebsd-latest', 'mounts': { d: '/mnt' } }) as (spec, jfs, _):
                 ospec = OSJailSpec.from_jailspec(spec)
                 jail = ospec.add()
                 jail.start()
-                fname = os.path.join(spec.jfs.path, 'mnt/.focker-unit-test-jail')
-                # print('fname:', fname)
+                fname = os.path.join(jfs.path, 'mnt/.focker-unit-test-jail')
                 assert os.path.exists(fname)
                 with open(fname) as f:
                     data = f.read()
                 assert data.strip() == 'foobar'
-            finally:
-                spec.jfs.destroy()
 
     def test05_exec_no_chkout(self):
-        with ExitStack() as stack:
-            spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest' })
-            stack.callback(spec.jfs.destroy)
-            spec.jfs.add_tags([ 'focker-unit-test-jail' ])
+        with clone_image_jailspec({ 'image': 'freebsd-latest' }) as (spec, jfs, _):
+            jfs.add_tags([ 'focker-unit-test-jail' ])
             ospec = OSJailSpec.from_jailspec(spec)
             jail = ospec.add()
             jail.start()
             cmd = [ 'jail', 'exec', 'focker-unit-test-jail', '--', '/bin/sh', '-c', 'touch /.focker-unit-test-jail' ]
             main(cmd)
-            assert os.path.exists(os.path.join(spec.jfs.path, '.focker-unit-test-jail'))
+            assert os.path.exists(os.path.join(jfs.path, '.focker-unit-test-jail'))
 
     def test06_jid(self):
-        with ExitStack() as stack:
-            spec = CloneImageJailSpec.from_dict({ 'image': 'freebsd-latest' })
-            stack.callback(spec.jfs.destroy)
+        with clone_image_jailspec({ 'image': 'freebsd-latest' }) as (spec, jfs, _):
             ospec = OSJailSpec.from_jailspec(spec)
             jail = ospec.add()
             jail.start()
             assert jail.jid is not None
-            assert spec.jfs.jid is not None
-            assert jail.jid == spec.jfs.jid
+            assert jfs.jid is not None
+            assert jail.jid == jfs.jid

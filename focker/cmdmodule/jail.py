@@ -14,7 +14,7 @@ from ..core import JailFs, \
     OSJail, \
     OneExecJailSpec, \
     TemporaryOSJail, \
-    CloneImageJailSpec
+    clone_image_jailspec
 from ..core.jailspec import JailSpec
 from .common import standard_fobject_commands
 from contextlib import ExitStack
@@ -111,8 +111,9 @@ def cmd_jail_oneexec(args):
 
 def cmd_jail_fromimage(args):
     params = { p.split('=')[0]: '='.join(p.split('=')[1:]) for p in args.params }
-    spec = CloneImageJailSpec.from_dict({ 'image': args.image_reference, **params })
-    spec.jfs.add_tags(args.tags)
-    ospec = OSJailSpec.from_jailspec(spec)
-    ospec.add()
-    print('Added jail', ospec.name, 'with path', spec.jfs.path)
+    with clone_image_jailspec({ 'image': args.image_reference, **params }) as (spec, _, jfs_take_ownership):
+        jfs = jfs_take_ownership()
+        jfs.add_tags(args.tags)
+        ospec = OSJailSpec.from_jailspec(spec)
+        ospec.add()
+        print('Added jail', ospec.name, 'with path', jfs.path)
