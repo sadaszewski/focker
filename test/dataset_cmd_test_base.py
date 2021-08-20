@@ -1,8 +1,10 @@
 import pytest
 from focker.__main__ import main
 from focker.core import zfs_exists, \
-    zfs_destroy
-from contextlib import redirect_stdout
+    zfs_destroy, \
+    Volume
+from contextlib import redirect_stdout, \
+    ExitStack
 from io import StringIO
 import re
 
@@ -153,3 +155,18 @@ class DatasetCmdTestBase:
                 main(cmd)
         finally:
             ds.destroy()
+
+    def test16_list_tagged(self):
+        with ExitStack() as stack:
+            ds = self._meta_class.create()
+            stack.callback(ds.destroy)
+            cmd = [ self._meta_class._meta_focker_type, 'list', '-t' ]
+            buf = StringIO()
+            with redirect_stdout(buf):
+                main(cmd)
+            assert ds.path not in buf.getvalue()
+            ds.add_tags([ 'focker-unit-test-dataset-cmd-list-tagged' ])
+            buf = StringIO()
+            with redirect_stdout(buf):
+                main(cmd)
+            assert ds.path in buf.getvalue()

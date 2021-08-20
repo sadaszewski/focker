@@ -30,6 +30,10 @@ def standard_fobject_commands(fobject_class,
                 type=str,
                 default=None,
                 choices=display_fields
+            ),
+            tagged=dict(
+                aliases=['t'],
+                action='store_true'
             )
         ),
         create=dict(
@@ -119,6 +123,8 @@ def standard_fobject_commands(fobject_class,
 
 def cmd_taggable_list(args, tcls):
     lst = tcls.list()
+    if args.tagged:
+        lst = [ t for t in lst if t.tags ]
     def to_string(s):
         if isinstance(s, bool):
             return 'on' if s else 'off'
