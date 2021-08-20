@@ -229,6 +229,40 @@ class Dataset:
     def path(self):
         return self.mountpoint
 
+    @property
+    def origin(self):
+        orig = zfs_get_property(self.name, 'origin')
+        orig = '@'.join(orig.split('@')[:-1])
+        if not orig:
+            return None
+        ds = self._meta_class.from_name(orig)
+        return ds
+
+    @property
+    def origin_tags(self):
+        orig = self.origin
+        if not orig:
+            return None
+        return orig.tags
+
+    @property
+    def origin_mountpoint(self):
+        orig = self.origin
+        if not orig:
+            return None
+        return orig.mountpoint
+
+    @property
+    def origin_sha256(self):
+        orig = self.origin
+        if not orig:
+            return None
+        return orig.sha256
+
+    @property
+    def referred_size(self):
+        return zfs_get_property(self.name, 'refer')
+
     def set_props(self, props):
         zfs_set_props(self.name, props)
 

@@ -143,3 +143,14 @@ class TestDataset:
         zfs_destroy(v.name)
         assert not zfs_exists(v.name)
         assert not v.in_use()
+
+    def test18_test_new_props(self):
+        with ExitStack() as stack:
+            base_im = Image.from_tag('freebsd-latest')
+            im = Image.clone_from(base_im)
+            stack.callback(im.destroy)
+            assert im.origin.sha256 == base_im.sha256
+            assert im.origin_sha256 == base_im.sha256
+            assert im.origin_mountpoint == base_im.mountpoint
+            assert im.origin_tags == base_im.tags
+            assert im.referred_size == base_im.referred_size

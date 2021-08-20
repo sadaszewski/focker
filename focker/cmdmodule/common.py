@@ -11,7 +11,9 @@ import argparse
 
 
 def standard_fobject_commands(fobject_class,
-    display_fields=['name', 'tags', 'sha256', 'mountpoint', 'is_protected', 'is_finalized', 'size'],
+    display_fields=['name', 'tags', 'sha256', 'mountpoint', 'is_protected',
+        'is_finalized', 'size', 'referred_size',
+        'origin_tags', 'origin_mountpoint', 'origin_sha256'],
     **kwargs):
 
     return dict(
@@ -126,7 +128,9 @@ def cmd_taggable_list(args, tcls):
     if args.tagged:
         lst = [ t for t in lst if t.tags ]
     def to_string(s):
-        if isinstance(s, bool):
+        if s is None:
+            return '-'
+        elif isinstance(s, bool):
             return 'on' if s else 'off'
         elif isinstance(s, set):
             return ', '.join(s) if s else '-'
