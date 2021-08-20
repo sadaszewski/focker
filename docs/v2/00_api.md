@@ -40,7 +40,7 @@ from focker.core import ( Volume, clone_image_jailspec, OSJailSpec )
 im = Image.clone_from(Image.from_tag('freebsd-latest'))
 im.add_tags([ 'my-image' ])
 v = Volume.create()
-with clone_image_jailspec.from_dict({ 'image': 'my-image' }) as (spec, _, jfs_take_ownership):
+with clone_image_jailspec({ 'image': 'my-image' }) as (spec, _, jfs_take_ownership):
   _ = jfs_take_ownership()
   ospec = OSJailSpec.from_jailspec(spec)
   jail_1 = ospec.add()
