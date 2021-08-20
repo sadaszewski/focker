@@ -31,7 +31,7 @@ class DatasetCmdTestBase:
         main(cmd)
 
     def test03_list_output(self):
-        cmd = [ self._meta_class._meta_focker_type, 'list', '-o', 'is_protected' ]
+        cmd = [ self._meta_class._meta_focker_type, 'list', '-o', 'is_protected', 'origin_mountpoint' ]
         main(cmd)
 
     @pytest.mark.skip

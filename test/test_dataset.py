@@ -154,3 +154,11 @@ class TestDataset:
             assert im.origin_mountpoint == base_im.mountpoint
             assert im.origin_tags == base_im.tags
             assert im.referred_size == base_im.referred_size
+
+    def test19_test_origin_none(self):
+        im = Image.from_tag('freebsd-latest')
+        assert im.origin is None
+        assert im.origin_sha256 is None
+        assert im.origin_mountpoint is None
+        assert im.origin_tags is None
+        
