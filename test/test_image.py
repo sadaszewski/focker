@@ -284,7 +284,7 @@ class TestImageCmd(DatasetCmdTestBase):
                     ]
                 }, f)
 
-            cmd = [ 'image', 'build', d, '-t', 'focker-unit-test-image-facets' ]
+            cmd = [ 'image', 'build', d, '-a', '-t', 'focker-unit-test-image-facets' ]
             main(cmd)
             im = Image.from_tag('focker-unit-test-image-facets')
             stack.callback(Image.prune)

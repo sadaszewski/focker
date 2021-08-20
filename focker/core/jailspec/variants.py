@@ -13,7 +13,7 @@ from typing import Dict
 import os
 
 
-class clone_image_jailspec():
+class clone_image_jailspec:
     def __init__(self, jailspec: Dict):
         self.jailspec = jailspec
         self.jfs = None
