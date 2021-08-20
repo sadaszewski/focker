@@ -171,6 +171,8 @@ class TestCompose:
                 }, f)
             cmd = [ 'compose', 'build', os.path.join(d, 'focker-compose.yml') ]
             main(cmd)
+            im = Image.from_tag('focker-unit-test-compose-jail')
+            stack.callback(im.destroy)
             jfs_1 = JailFs.from_tag('focker-unit-test-compose-jail')
             stack.callback(lambda: jfs_1.destroy() if zfs_exists(jfs_1.name) else None)
             main(cmd)
