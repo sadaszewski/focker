@@ -36,6 +36,10 @@ class ImagePlugin(Plugin):
                         squeeze=dict(
                             aliases=['s'],
                             action='store_true'
+                        ),
+                        atomic=dict(
+                            aliases=['a'],
+                            action='store_true'
                         )
                     )
                 )
@@ -44,7 +48,7 @@ class ImagePlugin(Plugin):
 
 
 def cmd_image_build(args):
-    bld = ImageBuilder(args.focker_dir, squeeze=args.squeeze)
+    bld = ImageBuilder(args.focker_dir, squeeze=args.squeeze, atomic=args.atomic)
     im = bld.build()
     im.add_tags(args.tags)
     print(f'Created {im.name}, mounted at {im.path}, with tags: {", ".join(args.tags)}')

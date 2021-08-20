@@ -114,6 +114,7 @@ class TestImageCmd(DatasetCmdTestBase):
                 assert data.replace('\r', '') == '1\n2\n3\n'
             finally:
                 im.destroy()
+                Image.prune()
 
     def test21_build_list_expected(self):
         with TemporaryDirectory() as d:
@@ -150,6 +151,7 @@ class TestImageCmd(DatasetCmdTestBase):
                 assert data.replace('\r', '') == 'foo\nbar\n'
             finally:
                 im.destroy()
+                Image.prune()
 
     def test23_build_exists(self):
         with TemporaryDirectory() as d:
@@ -211,6 +213,7 @@ class TestImageCmd(DatasetCmdTestBase):
             cmd = [ 'image', 'build', d, '-t', 'focker-unit-test-image-facets' ]
             main(cmd)
             im = Image.from_tag('focker-unit-test-image-facets')
+            stack.callback(Image.prune)
             stack.callback(im.destroy)
             st_1 = os.stat(os.path.join(im.path, '.focker-unit-test-image-facet-01'))
             st_2 = os.stat(os.path.join(im.path, '.focker-unit-test-image-facet-02'))
@@ -232,7 +235,7 @@ class TestImageCmd(DatasetCmdTestBase):
                     }
                 }, f)
 
-            cmd = [ 'image', 'build', d, '-t', 'focker-unit-test-image-facets' ]
+            cmd = [ 'image', 'build', d, '-a', '-t', 'focker-unit-test-image-facets' ]
             with pytest.raises(KeyError, match='steps'):
                 main(cmd)
 
@@ -256,7 +259,7 @@ class TestImageCmd(DatasetCmdTestBase):
                     }
                 }, f)
 
-            cmd = [ 'image', 'build', d, '-t', 'focker-unit-test-image-facets' ]
+            cmd = [ 'image', 'build', d, '-a', '-t', 'focker-unit-test-image-facets' ]
             with pytest.raises(TypeError, match='same convention'):
                 main(cmd)
 
@@ -284,6 +287,7 @@ class TestImageCmd(DatasetCmdTestBase):
             cmd = [ 'image', 'build', d, '-t', 'focker-unit-test-image-facets' ]
             main(cmd)
             im = Image.from_tag('focker-unit-test-image-facets')
+            stack.callback(Image.prune)
             stack.callback(im.destroy)
             st_1 = os.stat(os.path.join(im.path, '.focker-unit-test-image-facet-01'))
             st_2 = os.stat(os.path.join(im.path, '.focker-unit-test-image-facet-02'))
@@ -301,7 +305,7 @@ class TestImageCmd(DatasetCmdTestBase):
                     'steps': { 'touch /.focker-unit-test-image-facet-01' }
                 }, f)
 
-            cmd = [ 'image', 'build', d, '-t', 'focker-unit-test-image-facets' ]
+            cmd = [ 'image', 'build', d, '-a', '-t', 'focker-unit-test-image-facets' ]
             with pytest.raises(TypeError, match='Unsupported'):
                 main(cmd)
 
