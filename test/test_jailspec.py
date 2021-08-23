@@ -43,6 +43,6 @@ class TestJailSpec:
 
     def test07_variants_image_in_spec_raise(self):
         with pytest.raises(KeyError, match='separately'):
-            OneExecJailSpec.from_image_and_dict(None, { 'image': 'abc' })
+            _ = one_exec_jailspec(None, { 'image': 'abc' })
         with pytest.raises(KeyError, match='separately'):
             ImageBuildJailSpec.from_image_and_dict(None, { 'image': 'abc' })

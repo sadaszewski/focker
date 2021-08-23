@@ -11,6 +11,7 @@ from ..jailfs import JailFs
 from ..image import Image
 from typing import Dict
 import os
+from contextlib import ExitStack
 
 
 class clone_image_jailspec:
@@ -59,17 +60,29 @@ class ImageBuildJailSpec(JailSpec):
         return cls._from_dict(jailspec)
 
 
-class OneExecJailSpec(JailSpec):
-    @classmethod
-    def from_image_and_dict(cls, im: Image, jailspec: Dict = {}):
+class one_exec_jailspec():
+    def __init__(self, im: Image, jailspec: Dict = {}):
         if 'image' in jailspec:
             raise KeyError('image should be specified separately')
-        jfs = JailFs.clone_from(im)
-        jailspec = dict(jailspec)
-        jailspec['path'] = jfs.path
-        name = os.path.split(jfs.path)[-1]
-        jailspec['name'] = 'one_' + name
-        jailspec['host.hostname'] = name
-        res = cls._from_dict(jailspec)
-        res.jfs = jfs
-        return res
+
+        self.im = im
+        self.jailspec = jailspec
+
+        self.jfs = None
+
+    def __enter__(self):
+        with ExitStack() as stack:
+            jfs = JailFs.clone_from(self.im)
+            stack.callback(jfs.destroy)
+            jailspec = dict(self.jailspec)
+            jailspec['path'] = jfs.path
+            name = os.path.split(jfs.path)[-1]
+            jailspec['name'] = 'one_' + name
+            jailspec['host.hostname'] = name
+            _ = stack.pop_all()
+            self.jfs = jfs
+            return JailSpec.from_dict(jailspec), jfs
+
+    def __exit__(self, *_):
+        self.jfs.destroy()
+        self.jfs = None

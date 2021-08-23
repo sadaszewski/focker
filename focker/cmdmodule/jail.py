@@ -12,7 +12,7 @@ from ..core import JailFs, \
     Image, \
     OSJailSpec, \
     OSJail, \
-    OneExecJailSpec, \
+    one_exec_jailspec, \
     TemporaryOSJail, \
     clone_image_jailspec
 from ..core.jailspec import JailSpec
@@ -99,10 +99,8 @@ def cmd_jail_exec(args):
 
 def cmd_jail_oneexec(args):
     im = Image.from_any_id(args.identifier)
-    spec = OneExecJailSpec.from_image_and_dict(im, {})
-    with ExitStack() as stack:
-        stack.callback(spec.jfs.destroy)
-        with TemporaryOSJail(spec) as jail:
+    with one_exec_jailspec(im, {}) as (spec, *_), \
+        TemporaryOSJail(spec) as jail:
             if args.chkout:
                 print(jail.check_output(args.command))
             else:
