@@ -9,7 +9,7 @@
 from .constant import JAIL_FOCKER_PARAMS, \
     JAIL_EXEC_PARAMS, \
     JAIL_PARAMS
-from ..mount import Mount
+from ..mount import MountSpec
 from ..misc import ensure_list
 from ...misc import merge_dicts
 from ..config import FOCKER_CONFIG
@@ -79,7 +79,7 @@ class JailSpec:
         depend = focker_spec.get('depend', [])
 
         mounts = focker_spec.get('mounts', {})
-        mounts = [ Mount(k, v) for k, v in mounts.items() ]
+        mounts = [ MountSpec(k, v) for k, v in mounts.items() ]
         env = focker_spec.get('env', {})
         resolv_conf = focker_spec.get('resolv_conf', 'system')
 

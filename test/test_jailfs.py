@@ -3,7 +3,9 @@ from dataset_cmd_test_base import DatasetCmdTestBase
 from focker.core import JailFs, \
     clone_image_jailspec, \
     OSJailSpec, \
-    OSJail
+    OSJail, \
+    Volume, \
+    TemporaryOSJail
 from focker.__main__ import main
 from contextlib import redirect_stdout, \
     ExitStack
@@ -87,3 +89,34 @@ class TestJailCmd:
             assert jail.jid is not None
             assert jfs.jid is not None
             assert jail.jid == jfs.jid
+
+    def test07_mount_volume(self):
+        with ExitStack() as stack:
+            v = Volume.create()
+            v.add_tags([ 'focker-unit-test-jail-mount-volume' ])
+            stack.callback(v.destroy)
+            spec = clone_image_jailspec({ 'image': 'freebsd-latest',
+                'mounts': { 'focker-unit-test-jail-mount-volume': '/mnt' } })
+            spec, *_ = stack.enter_context(spec)
+            jail = TemporaryOSJail(spec)
+            jail = stack.enter_context(jail)
+            jail.run([ '/bin/sh', '-c', 'echo foo >/mnt/.focker-unit-test-jail' ])
+            assert os.path.exists(os.path.join(v.path, '.focker-unit-test-jail'))
+            with open(os.path.join(v.path, '.focker-unit-test-jail')) as f:
+                assert f.read().strip() == 'foo'
+
+    def test08_mount_volume_subdir(self):
+        with ExitStack() as stack:
+            v = Volume.create()
+            v.add_tags([ 'focker-unit-test-jail-mount-volume' ])
+            os.mkdir(os.path.join(v.path, 'focker-unit-test-subdir'))
+            stack.callback(v.destroy)
+            spec = clone_image_jailspec({ 'image': 'freebsd-latest',
+                'mounts': { 'focker-unit-test-jail-mount-volume/focker-unit-test-subdir': '/mnt' } })
+            spec, *_ = stack.enter_context(spec)
+            jail = TemporaryOSJail(spec)
+            jail = stack.enter_context(jail)
+            jail.run([ '/bin/sh', '-c', 'echo foo >/mnt/.focker-unit-test-jail' ])
+            assert os.path.exists(os.path.join(v.path, 'focker-unit-test-subdir', '.focker-unit-test-jail'))
+            with open(os.path.join(v.path, 'focker-unit-test-subdir', '.focker-unit-test-jail')) as f:
+                assert f.read().strip() == 'foo'

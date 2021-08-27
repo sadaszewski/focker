@@ -13,6 +13,7 @@ from ..misc import load_jailconf, \
     save_jailconf
 from ..jailconf import JailBlock
 from .osjail.osjail import OSJail
+from .mount import mount_from_spec
 
 
 JailSpec = 'JailSpec'
@@ -70,8 +71,10 @@ class OSJailSpec:
             raise ValueError('Unsupported resolv_conf specification')
 
         for m in jailspec.mounts:
+            m = mount_from_spec(m, path)
+
             source = m.source
-            mountpoint = os.path.join(path, m.mountpoint.strip('/'))
+            mountpoint = m.mountpoint
 
             prestart.append(f'mkdir -p {shlex.quote(mountpoint)}')
             prestart.append(f'mount -t {shlex.quote(m.fs_type)} {shlex.quote(source)} {shlex.quote(mountpoint)}')
