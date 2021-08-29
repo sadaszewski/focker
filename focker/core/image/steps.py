@@ -16,12 +16,13 @@ from ..osjail import TemporaryOSJail
 
 
 class RunStep(object):
-    def __init__(self, spec, src_dir):
+    def __init__(self, spec, src_dir, fenv):
         if not isinstance(spec, list) and \
             not isinstance(spec, str):
             raise TypeError('Run spec must be a list or a string')
         self.spec = spec
         self.src_dir = src_dir
+        self.fenv = fenv
 
     def hash(self, base, **kwargs):
         res = hashlib.sha256(
@@ -39,11 +40,12 @@ class RunStep(object):
 
 
 class CopyStep(object):
-    def __init__(self, spec, src_dir):
+    def __init__(self, spec, src_dir, fenv):
         if not isinstance(spec, list):
             raise TypeError('CopyStep spec should be a list')
         self.spec = spec
         self.src_dir = src_dir
+        self.fenv = fenv
 
     def hash(self, base, **kwargs):
         if len(self.spec) == 0:
@@ -75,11 +77,11 @@ class CopyStep(object):
                 os.chown(os.path.join(im.path, target), uid, gid)
 
 
-def create_step(spec, src_dir):
+def create_step(spec, src_dir, fenv):
     if not isinstance(spec, dict):
         raise TypeError(f'Step specification must be a dictionary, got: {spec.__class__.__name__} ({spec})')
     if 'copy' in spec:
-        return CopyStep(spec['copy'], src_dir=src_dir)
+        return CopyStep(spec['copy'], src_dir=src_dir, fenv=fenv)
     elif 'run' in spec:
-        return RunStep(spec['run'], src_dir=src_dir)
+        return RunStep(spec['run'], src_dir=src_dir, fenv=fenv)
     raise ValueError('Unrecognized step spec: ' + json.dumps(spec))

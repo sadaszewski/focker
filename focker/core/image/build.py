@@ -12,6 +12,7 @@ from functools import reduce
 from .steps import create_step
 from .image import Image
 from contextlib import ExitStack
+from ..fenv import fenv_from_spec
 
 
 def validate(spec):
@@ -23,10 +24,11 @@ def validate(spec):
 
 
 class ImageBuilder:
-    def __init__(self, focker_dir, squeeze=False, atomic=False):
+    def __init__(self, focker_dir, squeeze=False, atomic=False, fenv={}):
         self.focker_dir = focker_dir
         self.squeeze = squeeze
         self.atomic = atomic
+        self.fenv = fenv
 
     def build(self) -> Image:
         if not os.path.exists(os.path.join(self.focker_dir, 'Fockerfile')):
@@ -37,14 +39,16 @@ class ImageBuilder:
 
         validate(spec)
 
+        fenv = fenv_from_spec(spec, self.fenv)
+
         if 'steps' in spec:
-            im = self.process_steps(spec)
+            im = self.process_steps(spec, fenv)
         else:
-            im = self.process_facets(spec)
+            im = self.process_facets(spec, fenv)
 
         return im
 
-    def process_steps(self, spec) -> Image:
+    def process_steps(self, spec, fenv) -> Image:
         steps = spec['steps']
 
         if isinstance(steps, list):
@@ -65,7 +69,7 @@ class ImageBuilder:
         with ExitStack() as stack:
             for group in steps:
                 for st in group:
-                    st = create_step(st, self.focker_dir)
+                    st = create_step(st, self.focker_dir, fenv)
                     sha256 = st.hash(sha256)
                 if Image.exists_sha256(sha256):
                     im = Image.from_sha256(sha256)
@@ -73,7 +77,7 @@ class ImageBuilder:
                 im = Image.clone_from(im, sha256=sha256)
                 try:
                     for st in group:
-                        st = create_step(st, self.focker_dir)
+                        st = create_step(st, self.focker_dir, fenv)
                         st.execute(im)
                 except:
                     im.destroy()
@@ -85,7 +89,7 @@ class ImageBuilder:
 
         return im
 
-    def process_facets(self, spec) -> Image:
+    def process_facets(self, spec, fenv) -> Image:
         steps = []
 
         for fname in spec['facets']:
@@ -111,4 +115,4 @@ class ImageBuilder:
         del spec['facets']
         spec['steps'] = steps
 
-        return self.process_steps(spec)
+        return self.process_steps(spec, fenv)

@@ -1,5 +1,7 @@
 import re
 from typing import Dict
+from .. import yaml
+from ..misc import merge_dicts
 
 
 LINE_CONTINUATION = re.compile(r'\\[ \t\r]*\n')
@@ -29,3 +31,17 @@ class handle_subst_marker:
 def substitute_focker_env_vars(s: str, fenv_vars: Dict[str, str]) -> str:
     s = SUBST_MARKER.sub(handle_subst_marker(fenv_vars), s)
     return s
+
+
+def fenv_from_spec(spec: Dict, parent_fenv) -> Dict[str, str]:
+    if 'fenv' in spec:
+        fenv = { k.lower(): v for k, v in spec['fenv'].items() }
+    else:
+        fenv = {}
+    return merge_dicts(parent_fenv, fenv)
+
+
+def fenv_from_file(fname: str, parent_fenv) -> Dict[str, str]:
+    with open(fname, 'r') as f:
+        fenv = yaml.safe_load(f)
+    return merge_dicts(parent_fenv, fenv)
