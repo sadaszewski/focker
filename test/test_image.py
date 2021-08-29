@@ -313,28 +313,28 @@ class TestImageCmd(DatasetCmdTestBase):
 class TestBuildSteps:
     def test01_run_step_spec_type(self):
         with pytest.raises(TypeError):
-            _ = RunStep(1, '.')
-        _ = RunStep('ls -al', '.')
+            _ = RunStep(1, '.', {})
+        _ = RunStep('ls -al', '.', {})
 
     def test02_copy_step_spec_type(self):
         with pytest.raises(TypeError):
-            _ = CopyStep(1, '.')
-        _ = CopyStep([], '.')
+            _ = CopyStep(1, '.', {})
+        _ = CopyStep([], '.', {})
 
     def test03_copy_step_empty_hash(self):
-        assert CopyStep([], '.').hash('1234567xxx') == '70ddf44f1f2ec9d11d7650fc1569707c08e577562fc7fdeb8f03c5cf6ee3a69b'
+        assert CopyStep([], '.', {}).hash('1234567xxx') == '70ddf44f1f2ec9d11d7650fc1569707c08e577562fc7fdeb8f03c5cf6ee3a69b'
 
     def test04_single_copy_hash(self):
         with TemporaryDirectory() as d:
             with open(os.path.join(d, 'a.file'), 'w') as f:
                 pass
-            assert CopyStep([ 'a.file', '/a.file' ], d).hash('1234567xxx') == \
+            assert CopyStep([ 'a.file', '/a.file' ], d, {}).hash('1234567xxx') == \
                 'f0cc46f43a0943125635fee1d056de9a8eec0bb4980d071990342501a58e199c'
 
     def test05_create_step_type_error(self):
         with pytest.raises(TypeError, match='must be a dictionary'):
-            _ = create_step(1, '.')
+            _ = create_step(1, '.', {})
 
     def test06_unrecognized_step(self):
         with pytest.raises(ValueError, match='Unrecognized'):
-            _ = create_step({ 'xxx': {} }, '')
+            _ = create_step({ 'xxx': {} }, '', {})
