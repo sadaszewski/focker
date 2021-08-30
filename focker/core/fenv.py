@@ -33,9 +33,13 @@ def substitute_focker_env_vars(s: str, fenv_vars: Dict[str, str]) -> str:
     return s
 
 
+def lower_keys(d: Dict) -> Dict:
+    return { k.lower(): v for k, v in d.items() }
+
+
 def fenv_from_spec(spec: Dict, parent_fenv) -> Dict[str, str]:
     if 'fenv' in spec:
-        fenv = { k.lower(): v for k, v in spec['fenv'].items() }
+        fenv = lower_keys(spec['fenv'])
     else:
         fenv = {}
     return merge_dicts(fenv, parent_fenv)
@@ -44,4 +48,5 @@ def fenv_from_spec(spec: Dict, parent_fenv) -> Dict[str, str]:
 def fenv_from_file(fname: str, parent_fenv) -> Dict[str, str]:
     with open(fname, 'r') as f:
         fenv = yaml.safe_load(f)
+        fenv = lower_keys(fenv)
     return merge_dicts(fenv, parent_fenv)
