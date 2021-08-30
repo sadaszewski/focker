@@ -10,6 +10,8 @@ from ..plugin import Plugin
 from ..core import Image, \
     ImageBuilder
 from .common import standard_fobject_commands
+from ..core.fenv import fenv_from_file, \
+    fenv_from_list
 
 
 class ImagePlugin(Plugin):
@@ -40,6 +42,11 @@ class ImagePlugin(Plugin):
                         atomic=dict(
                             aliases=['a'],
                             action='store_true'
+                        ),
+                        fenv=dict(
+                            aliases=['e'],
+                            type=str,
+                            nargs='+'
                         )
                     )
                 )
@@ -48,7 +55,13 @@ class ImagePlugin(Plugin):
 
 
 def cmd_image_build(args):
-    bld = ImageBuilder(args.focker_dir, squeeze=args.squeeze, atomic=args.atomic)
+    if not args.fenv:
+        fenv = {}
+    elif len(args.fenv) == 1:
+        fenv = fenv_from_file(args.fenv, {})
+    else:
+        fenv = fenv_from_list(args.fenv, {})
+    bld = ImageBuilder(args.focker_dir, squeeze=args.squeeze, atomic=args.atomic, fenv=fenv)
     im = bld.build()
     im.add_tags(args.tags)
     print(f'Created {im.name}, mounted at {im.path}, with tags: {", ".join(args.tags)}')

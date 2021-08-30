@@ -7,9 +7,12 @@ TODO:
 - [X] Fockerfile
   - [X] CopyStep
   - [X] RunStep
-  - [ ] Tests
+  - [X] Tests
+  - [X] Command-line support
 - [ ] focker-compose.yml
   - [ ] Jail spec
   - [ ] Volume spec
   - [ ] Image spec?
   - [ ] Hooks
+  - [ ] Tests
+  - [ ] Command-line support

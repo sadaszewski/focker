@@ -50,3 +50,11 @@ def fenv_from_file(fname: str, parent_fenv) -> Dict[str, str]:
         fenv = yaml.safe_load(f)
         fenv = lower_keys(fenv)
     return merge_dicts(fenv, parent_fenv)
+
+
+def fenv_from_list(lst, parent_fenv) -> Dict[str, str]:
+    if len(lst) % 2 != 0:
+        raise ValueError('List length expected to be divisible by 2')
+    fenv = { lst[i]: lst[i + 1] for i in range(0, len(lst), 2) }
+    fenv = merge_dicts(fenv, parent_fenv)
+    return fenv
