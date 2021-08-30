@@ -58,3 +58,15 @@ def fenv_from_list(lst, parent_fenv) -> Dict[str, str]:
     fenv = { lst[i]: lst[i + 1] for i in range(0, len(lst), 2) }
     fenv = merge_dicts(fenv, parent_fenv)
     return fenv
+
+
+def fenv_from_arg(arg, parent_fenv) -> Dict[str, str]:
+    if arg is None:
+        fenv = dict(parent_fenv)
+    elif not isinstance(arg, list):
+        raise TypeError('Expected FEnv arg to be a list')
+    elif len(arg) == 1:
+        fenv = fenv_from_file(arg, parent_fenv)
+    else:
+        fenv = fenv_from_list(arg, parent_fenv)
+    return fenv

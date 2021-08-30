@@ -10,8 +10,7 @@ from ..plugin import Plugin
 from ..core import Image, \
     ImageBuilder
 from .common import standard_fobject_commands
-from ..core.fenv import fenv_from_file, \
-    fenv_from_list
+from ..core.fenv import fenv_from_arg
 
 
 class ImagePlugin(Plugin):
@@ -55,12 +54,7 @@ class ImagePlugin(Plugin):
 
 
 def cmd_image_build(args):
-    if not args.fenv:
-        fenv = {}
-    elif len(args.fenv) == 1:
-        fenv = fenv_from_file(args.fenv, {})
-    else:
-        fenv = fenv_from_list(args.fenv, {})
+    fenv = fenv_from_arg(args.fenv, {})
     bld = ImageBuilder(args.focker_dir, squeeze=args.squeeze, atomic=args.atomic, fenv=fenv)
     im = bld.build()
     im.add_tags(args.tags)
