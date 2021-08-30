@@ -38,10 +38,10 @@ def fenv_from_spec(spec: Dict, parent_fenv) -> Dict[str, str]:
         fenv = { k.lower(): v for k, v in spec['fenv'].items() }
     else:
         fenv = {}
-    return merge_dicts(parent_fenv, fenv)
+    return merge_dicts(fenv, parent_fenv)
 
 
 def fenv_from_file(fname: str, parent_fenv) -> Dict[str, str]:
     with open(fname, 'r') as f:
         fenv = yaml.safe_load(f)
-    return merge_dicts(parent_fenv, fenv)
+    return merge_dicts(fenv, parent_fenv)

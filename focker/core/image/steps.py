@@ -14,6 +14,7 @@ from ...misc import filehash
 from ..jailspec import ImageBuildJailSpec
 from ..osjail import TemporaryOSJail
 from ..fenv import substitute_focker_env_vars
+import io
 
 
 class RunStep(object):
@@ -65,7 +66,7 @@ class CopyStepEntry:
                 s = f.read()
                 s = substitute_focker_env_vars(s, self.fenv)
                 s = s.encode('utf-8')
-                return filehash(s)
+                return filehash(io.BytesIO(s))
         else:
             return filehash(self.src_file)
 
