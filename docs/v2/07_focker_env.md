@@ -4,9 +4,10 @@ FEnv variables can parametrize processes of image and composition building. They
 
 
 TODO:
-- [ ] Fockerfile
-  - [ ] CopyStep
-  - [ ] RunStep
+- [X] Fockerfile
+  - [X] CopyStep
+  - [X] RunStep
+  - [ ] Tests
 - [ ] focker-compose.yml
   - [ ] Jail spec
   - [ ] Volume spec

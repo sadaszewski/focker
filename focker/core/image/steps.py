@@ -13,13 +13,18 @@ import shlex
 from ...misc import filehash
 from ..jailspec import ImageBuildJailSpec
 from ..osjail import TemporaryOSJail
+from ..fenv import substitute_focker_env_vars
 
 
 class RunStep(object):
     def __init__(self, spec, src_dir, fenv):
-        if not isinstance(spec, list) and \
-            not isinstance(spec, str):
+        if isinstance(spec, list):
+            spec = [ substitute_focker_env_vars(s, fenv) for s in spec ]
+        elif isinstance(spec, str):
+            spec = substitute_focker_env_vars(spec, fenv)
+        else:
             raise TypeError('Run spec must be a list or a string')
+
         self.spec = spec
         self.src_dir = src_dir
         self.fenv = fenv
@@ -39,6 +44,51 @@ class RunStep(object):
             j.run([ '/bin/sh', '-c', spec ])
 
 
+class CopyStepEntry:
+    def __init__(self, spec, src_dir, fenv):
+        if not isinstance(spec, list):
+            raise TypeError('Copy step specification must be a list')
+        if len(spec) < 2 or len(spec) > 3:
+            raise ValueError('Copy step specification must have 2 or 3 elements')
+        self.spec = spec
+        self.src_dir = src_dir
+        self.fenv = fenv
+
+        self.src_file = os.path.join(self.src_dir, spec[0])
+        self.dst_file = spec[1]
+        self.options = spec[2] if len(spec) > 2 else {}
+        self.use_fenv = self.options.get('use_fenv', False)
+
+    def hash(self):
+        if self.use_fenv:
+            with open(self.src_file) as f:
+                s = f.read()
+                s = substitute_focker_env_vars(s, self.fenv)
+                s = s.encode('utf-8')
+                return filehash(s)
+        else:
+            return filehash(self.src_file)
+
+    def execute(self, im):
+        dst_fnam = os.path.join(im.path, self.dst_file.strip('/'))
+        os.makedirs(os.path.split(dst_fnam)[0], exist_ok=True)
+        if self.use_fenv:
+            with open(self.src_file) as f_1, \
+                open(dst_fnam, 'wb') as f_2:
+                s = f_1.read()
+                s = substitute_focker_env_vars(s, self.fenv)
+                s = s.encode('utf-8')
+                f_2.write(s)
+        else:
+            shutil.copyfile(self.src_file, dst_fnam)
+
+        if 'chmod' in self.options:
+            os.chmod(dst_fnam, self.options['chmod'])
+        if 'chown' in self.options:
+            uid, gid = map(int, self.options['chown'].split(':'))
+            os.chown(dst_fnam, uid, gid)
+
+
 class CopyStep(object):
     def __init__(self, spec, src_dir, fenv):
         if not isinstance(spec, list):
@@ -47,34 +97,23 @@ class CopyStep(object):
         self.src_dir = src_dir
         self.fenv = fenv
 
-    def hash(self, base, **kwargs):
         if len(self.spec) == 0:
-            fh = []
+            self.entries = []
         elif isinstance(self.spec[0], list):
-            fh = list(map(lambda a: filehash(os.path.join(self.src_dir, a[0])), self.spec))
+            self.entries = [ CopyStepEntry(e, src_dir, fenv) for e in self.spec ]
         else:
-            fh = [ filehash(os.path.join(self.src_dir, self.spec[0])) ]
+            self.entries = [ CopyStepEntry(self.spec, src_dir, fenv) ]
+
+    def hash(self, base, **kwargs):
+        fh = [ e.hash() for e in self.entries ]
         res = hashlib.sha256(
             json.dumps(( base, fh, self.spec ))
             .encode('utf-8')).hexdigest()
         return res
 
     def execute(self, im, **kwargs):
-        lst = [ self.spec ] \
-            if not isinstance(self.spec[0], list) \
-            else self.spec
-        for entry in lst:
-            (source, target) = entry[:2]
-            options = entry[2] if len(entry) > 2 else {}
-            target = target.strip('/')
-            os.makedirs(os.path.split(os.path.join(im.path, target))[0], exist_ok=True)
-            shutil.copyfile(os.path.join(self.src_dir, source),
-                os.path.join(im.path, target))
-            if 'chmod' in options:
-                os.chmod(os.path.join(im.path, target), options['chmod'])
-            if 'chown' in options:
-                uid, gid = map(int, options['chown'].split(':'))
-                os.chown(os.path.join(im.path, target), uid, gid)
+        for e in self.entries:
+            e.execute(im)
 
 
 def create_step(spec, src_dir, fenv):
