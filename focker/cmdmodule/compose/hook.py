@@ -10,9 +10,10 @@ import os
 from ...misc import focker_unlock
 from ...core import focker_subprocess_run, \
     CalledProcessError
+from ...core.fenv import substitute_focker_env_vars
 
 
-def exec_hook(spec, path, hook_name='exec.prebuild'):
+def exec_hook(spec, path, fenv, hook_name='exec.prebuild'):
     if isinstance(spec, str):
         spec = [ spec ]
     if not isinstance(spec, list):
@@ -20,6 +21,7 @@ def exec_hook(spec, path, hook_name='exec.prebuild'):
     if not spec:
         return
     spec = ' && '.join(spec)
+    spec = substitute_focker_env_vars(spec, fenv)
     print('Running %s command:' % hook_name, spec)
     spec = [ '/bin/sh', '-c', spec ]
     with focker_unlock():
@@ -29,9 +31,9 @@ def exec_hook(spec, path, hook_name='exec.prebuild'):
             raise RuntimeError('%s failed' % hook_name)
 
 
-def exec_prebuild(spec, path):
-    return exec_hook(spec, path, 'exec.prebuild')
+def exec_prebuild(spec, path, fenv):
+    return exec_hook(spec, path, fenv, 'exec.prebuild')
 
 
-def exec_postbuild(spec, path):
-    return exec_hook(spec, path, 'exec.postbuild')
+def exec_postbuild(spec, path, fenv):
+    return exec_hook(spec, path, fenv, 'exec.postbuild')

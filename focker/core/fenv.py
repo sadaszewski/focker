@@ -33,6 +33,19 @@ def substitute_focker_env_vars(s: str, fenv_vars: Dict[str, str]) -> str:
     return s
 
 
+def rec_subst_fenv_vars(o: object, fenv_vars: Dict[str, str]) -> object:
+    if isinstance(o, str):
+        return substitute_focker_env_vars(o, fenv_vars)
+    elif isinstance(o, list) or isinstance(o, tuple):
+        return o.__class__( rec_subst_fenv_vars(e, fenv_vars) for e in o )
+    elif isinstance(o, dict):
+        return o.__class__( ( k, rec_subst_fenv_vars(v, fenv_vars) ) for k, v in o.items() )
+    elif isinstance(o, set):
+        return o.__class__( rec_subst_fenv_vars(e, fenv_vars) for e in o )
+    else:
+        return o
+
+
 def lower_keys(d: Dict) -> Dict:
     return { k.lower(): v for k, v in d.items() }
 

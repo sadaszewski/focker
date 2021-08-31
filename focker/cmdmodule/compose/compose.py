@@ -13,6 +13,8 @@ from .jail import build_jails
 from .hook import exec_prebuild, \
     exec_postbuild
 from ... import yaml
+from ...core.fenv import fenv_from_arg, \
+    fenv_from_spec
 import os
 
 
@@ -32,6 +34,11 @@ class ComposePlugin(Plugin):
                         ),
                         squeeze=dict(
                             action='store_true'
+                        ),
+                        fenv=dict(
+                            aliases=['e'],
+                            type=str,
+                            nargs='+'
                         )
                     )
                 )
@@ -45,9 +52,12 @@ def cmd_compose_build(args):
 
     spec_dir, _ = os.path.split(args.spec_filename)
 
-    exec_prebuild(spec.get('exec.prebuild', []), spec_dir)
-    build_images(spec.get('images', {}), spec_dir, squeeze=args.squeeze)
-    build_volumes(spec.get('volumes', {}))
+    fenv = fenv_from_arg(args.fenv, {})
+    fenv = fenv_from_spec(spec, fenv)
+
+    exec_prebuild(spec.get('exec.prebuild', []), spec_dir, fenv=fenv)
+    build_images(spec.get('images', {}), spec_dir, fenv=fenv, squeeze=args.squeeze)
+    build_volumes(spec.get('volumes', {}), fenv=fenv)
     if 'jails' in spec:
-        build_jails(spec['jails'])
-    exec_postbuild(spec.get('exec.postbuild', []), spec_dir)
+        build_jails(spec['jails'], fenv=fenv)
+    exec_postbuild(spec.get('exec.postbuild', []), spec_dir, fenv=fenv)
