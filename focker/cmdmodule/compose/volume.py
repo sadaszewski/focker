@@ -24,7 +24,8 @@ def build_volumes(spec, fenv):
         if 'chown' in params:
             os.chown(v.path, *map(int, params['chown'].split(':')))
         if 'chmod' in params:
-            os.chmod(v.path, params['chmod'])
+            mode = params['chmod']
+            os.chmod(v.path, int(mode, 8) if isinstance(mode, str) else mode)
         if 'zfs' in params:
             v.set_props(params['zfs'])
         if 'protect' in params:

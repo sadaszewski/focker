@@ -3,6 +3,7 @@ from focker.core.image.steps import RunStep, \
     CopyStepEntry
 from focker.core.image import ImageBuilder, \
     Image
+from focker.core import Volume
 from focker.core.fenv import substitute_focker_env_vars, \
     fenv_from_file, \
     lower_keys
@@ -12,6 +13,7 @@ import focker.yaml as yaml
 from contextlib import ExitStack
 import pytest
 from focker.__main__ import main
+import stat
 
 
 class TestFEnv:
@@ -194,3 +196,33 @@ class TestFEnv:
             assert os.path.exists(os.path.join(im.path, '.focker-unit-test-fenv'))
             with open(os.path.join(im.path, '.focker-unit-test-fenv')) as f:
                 assert f.read().strip() == 'bazbaf ipsum sit'
+
+    def test11_compose_build_volume(self):
+        with tempfile.TemporaryDirectory() as d, \
+            ExitStack() as stack:
+
+            with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'volumes': {
+                        'focker-unit-test-fenv': {
+                            'chown': '{{ UID }}:{{ GID }}',
+                            'chmod': '{{ PERMS }}'
+                        }
+                    },
+                    'fenv': {
+                        'uid': '80',
+                        'perms': '0742',
+                    }
+                }, f)
+
+            main([ 'compose', 'build', os.path.join(d, 'focker-compose.yml'),
+                '--fenv', 'gid', '1000', 'uid', '1000' ])
+            v = Volume.from_tag('focker-unit-test-fenv')
+            stack.callback(v.destroy)
+
+            assert os.path.exists(v.path)
+            st = os.stat(v.path)
+            assert stat.S_ISDIR(st.st_mode)
+            assert stat.S_IMODE(st.st_mode) == 0o742
+            assert st.st_uid == 1000
+            assert st.st_gid == 1000
