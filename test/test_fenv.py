@@ -1,7 +1,8 @@
 from focker.core.image.steps import RunStep, \
     CopyStep, \
     CopyStepEntry
-from focker.core.image import ImageBuilder
+from focker.core.image import ImageBuilder, \
+    Image
 from focker.core.fenv import substitute_focker_env_vars, \
     fenv_from_file, \
     lower_keys
@@ -158,3 +159,38 @@ class TestFEnv:
 
     def test09_compose_build_exec_postbuild(self):
         return self._compose_build_hook_test('exec.postbuild')
+
+    def test10_compose_build_image(self):
+        with tempfile.TemporaryDirectory() as d, \
+            ExitStack() as stack:
+
+            with open(os.path.join(d, 'Fockerfile'), 'w') as f:
+                yaml.safe_dump({
+                    'base': 'freebsd-latest',
+                    'fenv': {
+                        'foobar': 'amet',
+                        'lorem': 'adpiscin',
+                        'dolor': 'sit'
+                    },
+                    'steps': [
+                        { 'run': 'echo {{ foobar }} {{ lorem }} {{ dolor }} >/.focker-unit-test-fenv' }
+                    ]
+                }, f)
+
+            with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'images': {
+                        'focker-unit-test-fenv': '.'
+                    },
+                    'fenv': {
+                        'foobar': 'bazbaf'
+                    }
+                }, f)
+
+            main([ 'compose', 'build', os.path.join(d, 'focker-compose.yml'), '--fenv', 'lorem', 'ipsum' ])
+            im = Image.from_tag('focker-unit-test-fenv')
+            stack.callback(im.destroy)
+
+            assert os.path.exists(os.path.join(im.path, '.focker-unit-test-fenv'))
+            with open(os.path.join(im.path, '.focker-unit-test-fenv')) as f:
+                assert f.read().strip() == 'bazbaf ipsum sit'
