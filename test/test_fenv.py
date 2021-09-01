@@ -10,6 +10,7 @@ import os
 import focker.yaml as yaml
 from contextlib import ExitStack
 import pytest
+from focker.__main__ import main
 
 
 class TestFEnv:
@@ -137,3 +138,23 @@ class TestFEnv:
         too_long_spec = [ 1, 2, 3, 4 ]
         with pytest.raises(ValueError, match='elements'):
             _ = CopyStepEntry(too_long_spec, '.', {})
+
+    def _compose_build_hook_test(self, hook_name):
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
+                yaml.safe_dump({
+                    hook_name: 'echo {{ foobar }} {{ lorem }} >"%s/.focker-unit-test-fenv"' % d,
+                    'fenv': {
+                        'foobar': 'bazbaf'
+                    }
+                }, f)
+            main([ 'compose', 'build', os.path.join(d, 'focker-compose.yml'), '--fenv', 'lorem', 'ipsum' ])
+            assert os.path.exists(os.path.join(d, '.focker-unit-test-fenv'))
+            with open(os.path.join(d, '.focker-unit-test-fenv')) as f:
+                assert f.read().strip() == 'bazbaf ipsum'
+
+    def test08_compose_build_exec_prebuild(self):
+        return self._compose_build_hook_test('exec.prebuild')
+
+    def test09_compose_build_exec_postbuild(self):
+        return self._compose_build_hook_test('exec.postbuild')
