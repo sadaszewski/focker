@@ -6,7 +6,7 @@ FEnv variables can parametrize processes of image and composition building. They
 
 **Fockerfile**
 
-```
+```yaml
 base: freebsd-latest
 
 fenv:
@@ -30,7 +30,7 @@ to change php from the default `php74` to `php73`.
 
 Using the same `Fockerfile` as above, one could create a `focker-compose.yml` like this:
 
-```
+```yaml
 images:
   foobar: .
 
