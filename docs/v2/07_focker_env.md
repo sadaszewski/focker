@@ -46,12 +46,54 @@ bringing it back to `php74.`
 
 **Volume in a composition**
 
-```diff
--TODO
+Consider the following `focker-compose.yml`:
+
+```yaml
+fenv:
+  ZFS_QUOTA: '10g'
+  UID: '0'
+  GID: '80'
+  PERMS: '0750'
+volumes:
+  foobar:
+    chown: '{{ UID }}:{{ GID }}'
+    chmod: '{{ PERMS }}'
+    zfs:
+      quota: '{{ ZFS_QUOTA }}'
 ```
+
+The `chown`, `chmod` and `zfs quota` parameters are now controlled by FEnv variables with default values of `0:80`, `0750` and `10g` respectively. **Note**: Please observe that the FEnv defaults currently have to be specified as strings. This might be relaxed in the future.
+
+These can be overriden on the command line in the following manner:
+
+`focker compose build ./focker-compose.yml --fenv UID 80 GID 65533 PERMS 0700 ZFS_QUOTA 5g`
 
 **Jail in a composition**
 
-```diff
--TODO
+Consider the following `focker-compose.yml`:
+
+```yaml
+fenv:
+  IP4_ADDR: 127.0.55.1
+  EXEC_FIB: '1'
+  SITE_NAME: foobar
+  JAIL_USER: www
+jails:
+  foobar:
+    image: foobar
+    ip4.addr: '{{ IP4_ADDR }}'
+    exec.fib: '{{ EXEC_FIB }}'
+    env:
+      SITE_NAME: '{{ SITE_NAME }}'
+    exec.jail_user: '{{ JAIL_USER }}'
 ```
+
+The `ip4.addr`, `exec.fib` and `exec.jail_user` parameters, as well as the `SITE_NAME` *regular* environment variable are controlled by respective *FEnv* variables with default values of `127.0.55.1`, `1`, `www` and `foobar`. **Note**: Please observe that the FEnv defaults currently have to be specified as strings. This might be relaxed in the future.
+
+The FEnv variables can now be overriden on the command line like this:
+
+`focker compose build ./focker-compose.yml --fenv IP4_ADDR 127.0.33.1 EXEC_FIB 2 SITE_NAME bafbaz JAIL_USER nobody`
+
+## Escaping FEnv substitution
+
+As demonstrated above, FEnv variables use a double curly braces syntax of the form `{{ VARIABLE_NAME }}`. Variable names can consist of upper- and lowercase letters, digits and the underscore symbol. In order to escape this syntax (i.e. not invoke the substitution), one must express it as follows: `{{ '{{ VARIABLE_NAME }}' }}` - in other words, type the desired text which won't be subject to substitution in-between single- or double-quotes inside of a block surrounded by double curly braces.
