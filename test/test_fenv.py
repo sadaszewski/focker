@@ -3,10 +3,15 @@ from focker.core.image.steps import RunStep, \
     CopyStepEntry
 from focker.core.image import ImageBuilder, \
     Image
-from focker.core import Volume
+from focker.core import Volume, \
+    JailFs, \
+    OSJail
 from focker.core.fenv import substitute_focker_env_vars, \
     fenv_from_file, \
-    lower_keys
+    fenv_from_list, \
+    fenv_from_arg, \
+    lower_keys, \
+    rec_subst_fenv_vars
 import tempfile
 import os
 import focker.yaml as yaml
@@ -226,3 +231,63 @@ class TestFEnv:
             assert stat.S_IMODE(st.st_mode) == 0o742
             assert st.st_uid == 1000
             assert st.st_gid == 1000
+
+    def test12_compose_build_jail(self):
+        with tempfile.TemporaryDirectory() as d, \
+            ExitStack() as stack:
+
+            with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
+                yaml.safe_dump({
+                    'jails': {
+                        'focker-unit-test-fenv': {
+                            'image': '{{ IMAGE }}',
+                            'exec.start': 'echo {{ EXEC_START_TEXT }} >/.focker-unit-test-fenv',
+                            'exec.fib': '{{ EXEC_FIB }}'
+                        }
+                    },
+                    'fenv': {
+                        'IMAGE': 'foobar',
+                        'EXEC_START_TEXT': 'foobar',
+                        'EXEC_FIB': '1'
+                    }
+                }, f)
+
+            main([ 'compose', 'build', os.path.join(d, 'focker-compose.yml'),
+                '--fenv', 'iMaGe', 'freebsd-latest', 'exec_fib', '0' ])
+            jfs = JailFs.from_tag('focker-unit-test-fenv')
+            stack.callback(jfs.destroy)
+            j = OSJail.from_tag('focker-unit-test-fenv')
+            jc = j.conf
+            im = Image.from_tag('freebsd-latest')
+            assert jfs.get_props([ 'origin' ])['origin'].split('@')[0] == im.name
+            # assert jc['path'] == im.path
+            assert jc['exec.start'] == 'echo foobar >/.focker-unit-test-fenv'
+            assert isinstance(jc['exec.fib'], int)
+            assert jc['exec.fib'] == 0
+
+    def test13_fenv_rec_subst_corner_cases(self):
+        lst = rec_subst_fenv_vars([ '{{ FOO }}', '{{ BAR }}', '{{ BAF }}' ],
+            { 'foo': 'lorem', 'bar': 'ipsum', 'baf': 'dolor' })
+        assert isinstance(lst, list)
+        assert lst == [ 'lorem', 'ipsum', 'dolor' ]
+
+        s = rec_subst_fenv_vars({ '{{ FOO }}', '{{ BAR }}', '{{ BAF }}' },
+            { 'foo': 'lorem', 'bar': 'ipsum', 'baf': 'dolor' })
+        assert isinstance(s, set)
+        assert s == { 'lorem', 'ipsum', 'dolor' }
+
+    def test14_fenv_from_list_raise(self):
+        with pytest.raises(ValueError, match='divisible by 2'):
+            _ = fenv_from_list([ 'a', 'b', 'c' ], {})
+
+    def test15_fenv_from_arg_raise(self):
+        with pytest.raises(TypeError, match='list'):
+            _ = fenv_from_arg('alamakota', {})
+
+    def test16_fenv_from_arg_file_fallback(self):
+        with tempfile.NamedTemporaryFile() as f:
+            yaml.safe_dump({ 'foo': 'lorem' }, f)
+            fenv = fenv_from_arg([ f.name ], {})
+            assert len(fenv) == 1
+            assert 'foo' in fenv
+            assert fenv['foo'] == 'lorem'

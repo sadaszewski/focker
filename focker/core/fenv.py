@@ -68,7 +68,7 @@ def fenv_from_file(fname: str, parent_fenv) -> Dict[str, str]:
 def fenv_from_list(lst, parent_fenv) -> Dict[str, str]:
     if len(lst) % 2 != 0:
         raise ValueError('List length expected to be divisible by 2')
-    fenv = { lst[i]: lst[i + 1] for i in range(0, len(lst), 2) }
+    fenv = { lst[i].lower(): lst[i + 1] for i in range(0, len(lst), 2) }
     fenv = merge_dicts(fenv, parent_fenv)
     return fenv
 
@@ -79,7 +79,7 @@ def fenv_from_arg(arg, parent_fenv) -> Dict[str, str]:
     elif not isinstance(arg, list):
         raise TypeError('Expected FEnv arg to be a list')
     elif len(arg) == 1:
-        fenv = fenv_from_file(arg, parent_fenv)
+        fenv = fenv_from_file(arg[0], parent_fenv)
     else:
         fenv = fenv_from_list(arg, parent_fenv)
     return fenv
