@@ -10,8 +10,9 @@ Focker underwent a not-so-slow overhaul in the period of June-August 2021 which 
 - [X] [Configurability](./docs/v2/01_config.md) - at the same time the way Focker's configuration is passed around has been remade, allowing to pass any and all Focker parameters either on the command line OR via environment variables OR by system/user-specific configuration files - /etc/focker.conf, /usr/local/etc/focker.conf and ~/focker.conf,
 - [X] [Plugins](./docs/v2/02_plugins.md) system - the native Focker command modules (image, jail, compose) have become plugins themselves and the rule now is to implement every new block of functionality as a plugin on top of the slim and robust core.
 
-Two important mechanisms have changed:
+Three important mechanisms have changed:
 - [X] [Facets](./docs/v2/04_facets.md) - _facets_ and _dictionary-based steps_ are innovations that vastly improve the image recipe writing experience,
+- [X] [FEnv](./docs/v2/07_focker_env.md) (Focker Environment) Variables can be used to parametrize the processes of image and composition building.
 - [X] [Bootstrap](./docs/v2/05_bootstrap.md) - bootstrap is now more granular and gives user more control.
 
 Focker 2.0 introduced as well many smaller [Improvements](./docs/v2/03_improvements.md):
