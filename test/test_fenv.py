@@ -24,8 +24,8 @@ import stat
 class TestFEnv:
     def test01_run_step_list(self):
         spec = [
-            'ls -al {{ FOO }}',
-            'mv -iv {{ FOO }} {{ BAZ }}'
+            'ls -al (( FOO ))',
+            'mv -iv (( FOO )) (( BAZ ))'
         ]
         src_dir = '.'
         fenv = {
@@ -36,7 +36,7 @@ class TestFEnv:
         assert step.spec == [ 'ls -al bar', 'mv -iv bar lorem' ]
 
     def test02_run_step_single(self):
-        spec = 'ls -al {{ FOO }} && mv -iv {{ FOO }} {{ BAZ }}'
+        spec = 'ls -al (( FOO )) && mv -iv (( FOO )) (( BAZ ))'
         src_dir = '.'
         fenv = {
             'foo': 'bar',
@@ -57,7 +57,7 @@ class TestFEnv:
                         'baz': 'lorem'
                     },
                     'steps': [
-                        { 'run': 'echo "{{ FOO }}" >/.foo && echo "{{ FOO }} {{ BAZ }}" >/.baz' }
+                        { 'run': 'echo "(( FOO ))" >/.foo && echo "(( FOO )) (( BAZ ))" >/.baz' }
                     ]
                 }, f)
 
@@ -92,10 +92,10 @@ class TestFEnv:
                 }, f)
 
             with open(os.path.join(d, 'foo'), 'w') as f:
-                f.write('{{ FOO }} has {{ BAZ }}')
+                f.write('(( FOO )) has (( BAZ ))')
 
             with open(os.path.join(d, 'baz'), 'w') as f:
-                f.write('{{ BAZ }} has {{ FOO }}')
+                f.write('(( BAZ )) has (( FOO ))')
 
             bld = ImageBuilder(d, fenv={ 'baz': 'ipsum' })
             im = bld.build()
@@ -104,7 +104,7 @@ class TestFEnv:
             assert os.path.exists(os.path.join(im.path, '.foo'))
             assert os.path.exists(os.path.join(im.path, '.baz'))
             with open(os.path.join(im.path, '.foo')) as f:
-                assert f.read().strip() == '{{ FOO }} has {{ BAZ }}'
+                assert f.read().strip() == '(( FOO )) has (( BAZ ))'
             with open(os.path.join(im.path, '.baz')) as f:
                 assert f.read().strip() == 'ipsum has bar'
 
@@ -113,22 +113,22 @@ class TestFEnv:
             'foo': 'lorem',
             'bar': 'ipsum'
         }
-        assert substitute_focker_env_vars('x{{}}y', fenv) == 'xy'
-        assert substitute_focker_env_vars('x{{     }}y', fenv) == 'xy'
-        assert substitute_focker_env_vars('x{{  \n\n\n   }}y', fenv) == 'xy'
-        assert substitute_focker_env_vars('x{{  \n\n\n;   }}y', fenv) == 'x{{  \n\n\n;   }}y'
-        assert substitute_focker_env_vars('x {{  FOO  }} y', fenv) == 'x lorem y'
-        assert substitute_focker_env_vars('x {{  FOO  }} {{ BAR }} y', fenv) == 'x lorem ipsum y'
-        assert substitute_focker_env_vars('x {{  {{ }} y', fenv) == 'x {{   y'
-        assert substitute_focker_env_vars('x {{ }} }} y', fenv) == 'x  }} y'
-        assert substitute_focker_env_vars('x {{ {{ }} }} y', fenv) == 'x {{  }} y'
-        assert substitute_focker_env_vars('x {{ ala ma kota }} y', fenv) == 'x {{ ala ma kota }} y'
+        assert substitute_focker_env_vars('x(())y', fenv) == 'xy'
+        assert substitute_focker_env_vars('x((     ))y', fenv) == 'xy'
+        assert substitute_focker_env_vars('x((  \n\n\n   ))y', fenv) == 'xy'
+        assert substitute_focker_env_vars('x((  \n\n\n;   ))y', fenv) == 'x((  \n\n\n;   ))y'
+        assert substitute_focker_env_vars('x ((  FOO  )) y', fenv) == 'x lorem y'
+        assert substitute_focker_env_vars('x ((  FOO  )) (( BAR )) y', fenv) == 'x lorem ipsum y'
+        assert substitute_focker_env_vars('x ((  (( )) y', fenv) == 'x ((   y'
+        assert substitute_focker_env_vars('x (( )) )) y', fenv) == 'x  )) y'
+        assert substitute_focker_env_vars('x (( (( )) )) y', fenv) == 'x ((  )) y'
+        assert substitute_focker_env_vars('x (( ala ma kota )) y', fenv) == 'x (( ala ma kota )) y'
         with pytest.raises(KeyError):
-            _ = substitute_focker_env_vars('x {{ alamakota }} y', fenv)
-        assert substitute_focker_env_vars('x {{ "alamakota" }} y', fenv) == 'x alamakota y'
-        assert substitute_focker_env_vars("x {{ 'alamakota' }} y", fenv) == 'x alamakota y'
-        assert substitute_focker_env_vars("x {{ 'alamakota\" }} y", fenv) == 'x {{ \'alamakota" }} y'
-        assert substitute_focker_env_vars("x {{ '{{ alamakota }}' }} y", fenv) == 'x {{ alamakota }} y'
+            _ = substitute_focker_env_vars('x (( alamakota )) y', fenv)
+        assert substitute_focker_env_vars('x (( "alamakota" )) y', fenv) == 'x alamakota y'
+        assert substitute_focker_env_vars("x (( 'alamakota' )) y", fenv) == 'x alamakota y'
+        assert substitute_focker_env_vars("x (( 'alamakota\" )) y", fenv) == 'x (( \'alamakota" )) y'
+        assert substitute_focker_env_vars("x (( '(( alamakota ))' )) y", fenv) == 'x (( alamakota )) y'
 
     def test06_fenv_from_file(self):
         with tempfile.NamedTemporaryFile() as f:
@@ -151,7 +151,7 @@ class TestFEnv:
         with tempfile.TemporaryDirectory() as d:
             with open(os.path.join(d, 'focker-compose.yml'), 'w') as f:
                 yaml.safe_dump({
-                    hook_name: 'echo {{ foobar }} {{ lorem }} >"%s/.focker-unit-test-fenv"' % d,
+                    hook_name: 'echo (( foobar )) (( lorem )) >"%s/.focker-unit-test-fenv"' % d,
                     'fenv': {
                         'foobar': 'bazbaf'
                     }
@@ -180,7 +180,7 @@ class TestFEnv:
                         'dolor': 'sit'
                     },
                     'steps': [
-                        { 'run': 'echo {{ foobar }} {{ lorem }} {{ dolor }} >/.focker-unit-test-fenv' }
+                        { 'run': 'echo (( foobar )) (( lorem )) (( dolor )) >/.focker-unit-test-fenv' }
                     ]
                 }, f)
 
@@ -210,8 +210,8 @@ class TestFEnv:
                 yaml.safe_dump({
                     'volumes': {
                         'focker-unit-test-fenv': {
-                            'chown': '{{ UID }}:{{ GID }}',
-                            'chmod': '{{ PERMS }}'
+                            'chown': '(( UID )):(( GID ))',
+                            'chmod': '(( PERMS ))'
                         }
                     },
                     'fenv': {
@@ -240,9 +240,9 @@ class TestFEnv:
                 yaml.safe_dump({
                     'jails': {
                         'focker-unit-test-fenv': {
-                            'image': '{{ IMAGE }}',
-                            'exec.start': 'echo {{ EXEC_START_TEXT }} >/.focker-unit-test-fenv',
-                            'exec.fib': '{{ EXEC_FIB }}'
+                            'image': '(( IMAGE ))',
+                            'exec.start': 'echo (( EXEC_START_TEXT )) >/.focker-unit-test-fenv',
+                            'exec.fib': '(( EXEC_FIB ))'
                         }
                     },
                     'fenv': {
@@ -266,12 +266,12 @@ class TestFEnv:
             assert jc['exec.fib'] == 0
 
     def test13_fenv_rec_subst_corner_cases(self):
-        lst = rec_subst_fenv_vars([ '{{ FOO }}', '{{ BAR }}', '{{ BAF }}' ],
+        lst = rec_subst_fenv_vars([ '(( FOO ))', '(( BAR ))', '(( BAF ))' ],
             { 'foo': 'lorem', 'bar': 'ipsum', 'baf': 'dolor' })
         assert isinstance(lst, list)
         assert lst == [ 'lorem', 'ipsum', 'dolor' ]
 
-        s = rec_subst_fenv_vars({ '{{ FOO }}', '{{ BAR }}', '{{ BAF }}' },
+        s = rec_subst_fenv_vars({ '(( FOO ))', '(( BAR ))', '(( BAF ))' },
             { 'foo': 'lorem', 'bar': 'ipsum', 'baf': 'dolor' })
         assert isinstance(s, set)
         assert s == { 'lorem', 'ipsum', 'dolor' }

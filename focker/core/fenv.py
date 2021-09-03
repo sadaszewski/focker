@@ -5,7 +5,7 @@ from ..misc import merge_dicts
 
 
 LINE_CONTINUATION = re.compile(r'\\[ \t\r]*\n')
-SUBST_MARKER = re.compile(r'\{\{[ \n\t\r]*("(\\"|[^"])*"|\'(\\\'|[^\'])*\'|[a-zA-Z0-9_]*)[ \n\t\r]*\}\}')
+SUBST_MARKER = re.compile(r'\(\([ \n\t\r]*("(\\"|[^"])*"|\'(\\\'|[^\'])*\'|[a-zA-Z0-9_]*)[ \n\t\r]*\)\)')
 
 
 class handle_subst_marker:
@@ -17,7 +17,7 @@ class handle_subst_marker:
         s = toks[0]
         s = LINE_CONTINUATION.sub('', s)
         s = s.encode('utf-8').decode('unicode_escape')
-        s = s.strip('{}\n\t\r ')
+        s = s.strip('()\n\t\r ')
         if s == '':
             return ''
         elif s.startswith('"') or s.startswith("'"):
