@@ -53,7 +53,7 @@ fenv:
   ZFS_QUOTA: 10g
   UID: 0
   GID: 80
-  PERMS: 0750
+  PERMS: 0o750
 volumes:
   foobar:
     chown: ${{ UID }}:${{ GID }}
@@ -66,7 +66,7 @@ The `chown`, `chmod` and `zfs quota` parameters are now controlled by FEnv varia
 
 These can be overriden on the command line in the following manner:
 
-`focker compose build ./focker-compose.yml --fenv UID 80 GID 65533 PERMS 0700 ZFS_QUOTA 5g`
+`focker compose build ./focker-compose.yml --fenv UID 80 GID 65533 PERMS 0o700 ZFS_QUOTA 5g`
 
 **Jail in a composition**
 
