@@ -216,7 +216,7 @@ class TestFEnv:
                     },
                     'fenv': {
                         'uid': '80',
-                        'perms': '0742',
+                        'perms': '0o742',
                     }
                 }, f)
 

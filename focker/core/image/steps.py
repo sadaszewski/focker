@@ -84,7 +84,10 @@ class CopyStepEntry:
             shutil.copyfile(self.src_file, dst_fnam)
 
         if 'chmod' in self.options:
-            os.chmod(dst_fnam, self.options['chmod'])
+            mode = self.options['chmod']
+            if isinstance(mode, str):
+                mode = int(mode, 0)
+            os.chmod(dst_fnam, mode)
         if 'chown' in self.options:
             uid, gid = map(int, self.options['chown'].split(':'))
             os.chown(dst_fnam, uid, gid)

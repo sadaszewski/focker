@@ -23,7 +23,7 @@ class handle_subst_marker:
         elif s.startswith('"') or s.startswith("'"):
             return s[1:-1]
         elif s.lower() in self.fenv_vars:
-            return self.fenv_vars[s.lower()]
+            return str(self.fenv_vars[s.lower()])
         else:
             raise KeyError(f'FEnv variable not found: {s}')
 

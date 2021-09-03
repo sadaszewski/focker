@@ -50,10 +50,10 @@ Consider the following `focker-compose.yml`:
 
 ```yaml
 fenv:
-  ZFS_QUOTA: '10g'
-  UID: '0'
-  GID: '80'
-  PERMS: '0750'
+  ZFS_QUOTA: 10g
+  UID: 0
+  GID: 80
+  PERMS: 0750
 volumes:
   foobar:
     chown: ${{ UID }}:${{ GID }}
@@ -62,7 +62,7 @@ volumes:
       quota: ${{ ZFS_QUOTA }}
 ```
 
-The `chown`, `chmod` and `zfs quota` parameters are now controlled by FEnv variables with default values of `0:80`, `0750` and `10g` respectively. **Note**: Please observe that the FEnv defaults currently have to be specified as strings. This might be relaxed in the future.
+The `chown`, `chmod` and `zfs quota` parameters are now controlled by FEnv variables with default values of `0:80`, `0750` and `10g` respectively. **Note**: Please note that FEnv defaults are converted to strings and then parsed backed to the required type depending on the place they appear in.
 
 These can be overriden on the command line in the following manner:
 
@@ -75,7 +75,7 @@ Consider the following `focker-compose.yml`:
 ```yaml
 fenv:
   IP4_ADDR: 127.0.55.1
-  EXEC_FIB: '1'
+  EXEC_FIB: 1
   SITE_NAME: foobar
   JAIL_USER: www
 jails:
@@ -88,7 +88,7 @@ jails:
     exec.jail_user: ${{ JAIL_USER }}
 ```
 
-The `ip4.addr`, `exec.fib` and `exec.jail_user` parameters, as well as the `SITE_NAME` *regular* environment variable are controlled by respective *FEnv* variables with default values of `127.0.55.1`, `1`, `www` and `foobar`. **Note**: Please observe that the FEnv defaults currently have to be specified as strings. This might be relaxed in the future.
+The `ip4.addr`, `exec.fib` and `exec.jail_user` parameters, as well as the `SITE_NAME` *regular* environment variable are controlled by respective *FEnv* variables with default values of `127.0.55.1`, `1`, `www` and `foobar`. **Note**: Please note that FEnv defaults are converted to strings and then parsed backed to the required type depending on the place they appear in.
 
 The FEnv variables can now be overriden on the command line like this:
 
