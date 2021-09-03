@@ -41,7 +41,7 @@ class TestImageCmd(DatasetCmdTestBase):
             finally:
                 im.destroy()
 
-    def test17_build_with_copy(self):
+    def _build_with_copy_test(self, chmod_style):
         with TemporaryDirectory() as d:
             with open(os.path.join(d, 'dummyfile'), 'w') as f:
                 f.write('focker-unit-test-image-build\n')
@@ -50,7 +50,8 @@ class TestImageCmd(DatasetCmdTestBase):
                     base='freebsd-latest',
                     steps=[
                         dict(copy=[
-                            [ 'dummyfile', '/etc/dummyfile', { 'chown': '65534:65534', 'chmod': 0o600 } ]
+                            [ 'dummyfile', '/etc/dummyfile', { 'chown': '65534:65534',
+                                'chmod': 0o600 if chmod_style == 'int' else '0o600' } ]
                         ])
                     ]
                 ), f)
@@ -69,6 +70,12 @@ class TestImageCmd(DatasetCmdTestBase):
                 assert st.st_gid == 65534
             finally:
                 im.destroy()
+
+    def test17a_build_with_copy_chmod_int(self):
+        self._build_with_copy_test(chmod_style='int')
+
+    def test17b_build_with_copy_chmod_str(self):
+        self._build_with_copy_test(chmod_style='str')
 
     def test18_build_validate(self):
         with TemporaryDirectory() as d:
