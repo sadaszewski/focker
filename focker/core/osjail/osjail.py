@@ -41,7 +41,7 @@ class OSJail:
     def from_mountpoint(cls, path, raise_exc=True):
         conf = load_jailconf()
         for k, blk in conf.jail_blocks.items():
-            if blk['path'] == path:
+            if 'path' in blk and blk['path'] == path:
                 return OSJail(init_key=cls._init_key, name=k)
         if raise_exc:
             raise RuntimeError('OSJail with the given mountpoint not found')
