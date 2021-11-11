@@ -39,7 +39,7 @@ def quote_value(s):
     if s == '':
         return "''"
 
-    if not re.match(r'^[a-zA-Z0-9.\-_]*$', s):
+    if not re.match(r'^[a-zA-Z0-9.\-_$/]*$', s):
         s = s.encode('unicode_escape').decode('utf-8')
         s = s.replace('\'', '\\\'')
         s = '\'' + s + '\''
