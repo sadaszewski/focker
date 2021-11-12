@@ -82,6 +82,30 @@ class JailPlugin(Plugin):
                             nargs='*',
                             default=[]
                         )
+                    ),
+                    start=dict(
+                        aliases=['sta', 's'],
+                        func=cmd_jail_start,
+                        jail_reference=dict(
+                            positional=True,
+                            type=str
+                        )
+                    ),
+                    start=dict(
+                        aliases=['sto', 'S'],
+                        func=cmd_jail_stop,
+                        jail_reference=dict(
+                            positional=True,
+                            type=str
+                        )
+                    ),
+                    restart=dict(
+                        aliases=['re', 'r'],
+                        func=cmd_jail_restart,
+                        jail_reference=dict(
+                            positional=True,
+                            type=str
+                        )
                     )
                 )
             )
@@ -115,3 +139,16 @@ def cmd_jail_fromimage(args):
         ospec = OSJailSpec.from_jailspec(spec)
         ospec.add()
         print('Added jail', ospec.name, 'with path', jfs.path)
+
+
+def cmd_jail_start(args):
+    raise NotImplementedError
+
+
+def cmd_jail_stop(args):
+    raise NotImplementedError
+
+
+def cmd_jail_restart(args):
+    cmd_jail_stop(args)
+    cmd_jail_start(args)
