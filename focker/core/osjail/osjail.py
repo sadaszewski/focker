@@ -95,7 +95,7 @@ class OSJail:
         return True
 
     def jls(self):
-        info = focker_subprocess_check_output([ 'jls', '--libxo',  'json', '-n' ])
+        info = focker_subprocess_check_output([ 'jls', '--libxo',  'json', '-n', '-j', self.name ])
         info = json.loads(info)
         info = [ j for j in info['jail-information']['jail']
             if j['name'] == self.name ]
