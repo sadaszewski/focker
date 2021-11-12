@@ -192,3 +192,9 @@ def zfs_set_props(name, props):
 
 def zfs_snapshot(name):
     zfs_run(['zfs', 'snapshot', name])
+
+
+def zfs_properties_cache(focker_type):
+    lst = zfs_parse_output([ 'zfs', 'get', '-H', 'all', f'{FOCKER_CONFIG.zfs.root_dataset}/{focker_type}s' ])
+    res = { (name, propname): propvalue for (name, propname, propvalue, *_) in lst }
+    return res

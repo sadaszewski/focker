@@ -9,6 +9,16 @@
 from .zfs import *
 
 
+#def property(fn):
+#    def inner(self):
+#        if hasattr(self.property_cache) and self.property_cache is not None and \
+#            fn.__name__ in self.property_cache:
+#            return self.property_cache[fn.__name__]
+#        else:
+#            return fn(self)
+#    return inner
+
+
 Dataset = 'Dataset'
 
 class Dataset:
@@ -27,6 +37,7 @@ class Dataset:
         self.name = kwargs['name']
         self.sha256 = kwargs['sha256']
         self.mountpoint = kwargs['mountpoint']
+        self.property_cache = kwargs.get('property_cache')
 
     @classmethod
     def from_name(cls, name):
@@ -61,12 +72,12 @@ class Dataset:
 
     @property
     def is_finalized(self):
-        res = zfs_get_property(self.name, 'rdonly')
+        res = self.get_property('rdonly')
         return (res == 'on')
 
     @property
     def tags(self):
-        res = zfs_get_property(self.name, 'focker:tags')
+        res = self.get_property('focker:tags')
         res = res.split(' ')
         res = [ t for t in res if t != '-' ]
         return set(res)
@@ -77,7 +88,7 @@ class Dataset:
 
     @property
     def size(self):
-        return zfs_get_property(self.name, 'used')
+        return self.get_property('used')
 
     @classmethod
     def list(cls):
@@ -216,7 +227,7 @@ class Dataset:
 
     @property
     def is_protected(self):
-        protect = zfs_get_property(self.name, 'focker:protect')
+        protect = self.get_property('focker:protect')
         return (protect != '-')
 
     def protect(self):
@@ -231,7 +242,7 @@ class Dataset:
 
     @property
     def origin(self):
-        orig = zfs_get_property(self.name, 'origin')
+        orig = self.get_property('origin')
         orig = '@'.join(orig.split('@')[:-1])
         if not orig:
             return None
@@ -261,12 +272,23 @@ class Dataset:
 
     @property
     def referred_size(self):
-        return zfs_get_property(self.name, 'refer')
+        return self.get_property('refer')
 
     def set_props(self, props):
         zfs_set_props(self.name, props)
 
     def get_props(self, props):
-        return { k: zfs_get_property(self.name, k) for k in props }
+        return { k: self.get_property(k) for k in props }
+
+    def get_property(self, propname):
+        if self.property_cache is not None:
+            return self.property_cache.get(( self.name, propname ))
+        return zfs_get_property(self.name, propname)
+
+    @classmethod
+    def cache_properties(cls, datasets):
+        cache = zfs_properties_cache(cls._meta_focker_type)
+        for ds in datasets:
+            ds.property_cache = cache
 
 Dataset._meta_class = Dataset
