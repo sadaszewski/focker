@@ -10,10 +10,16 @@ from tabulate import tabulate
 import argparse
 
 
+DISPLAY_FIELDS = ['name', 'tags', 'sha256', 'mountpoint', 'is_protected',
+    'is_finalized', 'size', 'referred_size',
+    'origin_tags', 'origin_mountpoint', 'origin_sha256']
+
+DEFAULT_DISPLAY_FIELDS = ['tags', 'size', 'mountpoint']
+
+
 def standard_fobject_commands(fobject_class,
-    display_fields=['name', 'tags', 'sha256', 'mountpoint', 'is_protected',
-        'is_finalized', 'size', 'referred_size',
-        'origin_tags', 'origin_mountpoint', 'origin_sha256'],
+    display_fields=AVAILABLE_DISPLAY_FIELDS,
+    default_display_fields=DEFAULT_DISPLAY_FIELDS,
     **kwargs):
 
     return dict(
@@ -23,7 +29,7 @@ def standard_fobject_commands(fobject_class,
             output=dict(
                 aliases=['o'],
                 type=str,
-                default=['tags', 'size', 'mountpoint'],
+                default=default_display_fields,
                 nargs='+',
                 choices=display_fields
             ),

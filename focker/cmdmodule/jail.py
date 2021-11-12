@@ -16,7 +16,9 @@ from ..core import JailFs, \
     TemporaryOSJail, \
     clone_image_jailspec
 from ..core.jailspec import JailSpec
-from .common import standard_fobject_commands
+from .common import standard_fobject_commands,
+    DISPLAY_FIELDS, \
+    DEFAULT_DISPLAY_FIELDS
 from contextlib import ExitStack
 
 
@@ -27,7 +29,9 @@ class JailPlugin(Plugin):
             jail=dict(
                 aliases=['j'],
                 subparsers=dict(
-                    **standard_fobject_commands(JailFs),
+                    **standard_fobject_commands(JailFs,
+                        display_fields=DISPLAY_FIELDS + ['jid'],
+                        default_display_fields=DEFAULT_DISPLAY_FIELDS + ['jid']),
                     exec=dict(
                         aliases=['exe', 'ex', 'e'],
                         func=cmd_jail_exec,
