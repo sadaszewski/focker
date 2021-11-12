@@ -32,7 +32,7 @@ COMMA = Literal(',')
 PLUS_EQUAL = Literal('+=')
 SEMICOLON = Literal(';')
 
-LINE_CONTINUATION = Regex(r'\\[ \t\r]*\n')
+LINE_CONTINUATION = Regex(r'(^|[^\\])\\[ \t\r]*\n')
 UNQUOTED_STRING = Regex(r'(\\[ \t\r]*\n|[^\"\'{}=,+; \t\r\n\\])+')
 DOUBLE_QUOTED_STRING = Regex(r'"(\\"|[^"])*"')
 SINGLE_QUOTED_STRING = Regex(r"'(\\'|[^'])*'")
@@ -51,7 +51,7 @@ string = UNQUOTED_STRING | DOUBLE_QUOTED_STRING | SINGLE_QUOTED_STRING
 def proc_str(toks):
     assert len(toks) == 1
     s = toks[0]
-    s = LINE_CONTINUATION.re.sub('', s)
+    s = LINE_CONTINUATION.re.sub('\\1', s)
     s = s.encode('utf-8').decode('unicode_escape')
     return s
 
