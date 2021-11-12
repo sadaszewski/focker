@@ -16,6 +16,7 @@ import shlex
 import os
 import json
 from typing import Dict
+import subprocess
 
 
 OSJail = 'OSJail'
@@ -88,7 +89,7 @@ class OSJail:
     @property
     def is_running(self):
         try:
-            focker_subprocess_check_output([ 'jls', '-j', self.name ])
+            focker_subprocess_check_output([ 'jls', '-j', self.name ], stderr=subprocess.STDOUT)
         except CalledProcessError:
             return False
         return True

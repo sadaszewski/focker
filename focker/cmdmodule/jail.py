@@ -16,7 +16,7 @@ from ..core import JailFs, \
     TemporaryOSJail, \
     clone_image_jailspec
 from ..core.jailspec import JailSpec
-from .common import standard_fobject_commands,
+from .common import standard_fobject_commands, \
     DISPLAY_FIELDS, \
     DEFAULT_DISPLAY_FIELDS
 from contextlib import ExitStack

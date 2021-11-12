@@ -18,7 +18,7 @@ DEFAULT_DISPLAY_FIELDS = ['tags', 'size', 'mountpoint']
 
 
 def standard_fobject_commands(fobject_class,
-    display_fields=AVAILABLE_DISPLAY_FIELDS,
+    display_fields=DISPLAY_FIELDS,
     default_display_fields=DEFAULT_DISPLAY_FIELDS,
     **kwargs):
 
