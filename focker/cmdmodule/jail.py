@@ -142,11 +142,13 @@ def cmd_jail_fromimage(args):
 
 
 def cmd_jail_start(args):
-    raise NotImplementedError
+    j = OSJail.from_any_id(args.jail_reference)
+    j.start()
 
 
 def cmd_jail_stop(args):
-    raise NotImplementedError
+    j = OSJail.from_any_id(args.jail_reference)
+    j.stop()
 
 
 def cmd_jail_restart(args):
