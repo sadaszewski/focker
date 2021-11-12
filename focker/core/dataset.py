@@ -40,10 +40,15 @@ class Dataset:
         self.property_cache = kwargs.get('property_cache')
 
     @classmethod
-    def from_name(cls, name):
-        sha256 = zfs_get_property(name, 'focker:sha256')
-        mountpoint = zfs_mountpoint(name)
-        return cls(init_key=cls._init_key, name=name, sha256=sha256, mountpoint=mountpoint)
+    def from_name(cls, name, property_cache=None):
+        if property_cache is not None:
+            sha256 = property_cache[( name, 'focker:sha256' )]
+            mountpoint = property_cache[( name, 'mountpoint' )]
+        else:
+            sha256 = zfs_get_property(name, 'focker:sha256')
+            mountpoint = zfs_mountpoint(name)
+        return cls(init_key=cls._init_key, name=name, sha256=sha256,
+            mountpoint=mountpoint, property_cache=property_cache)
 
     @classmethod
     def clone_from(cls, base: Dataset, sha256: str = None) -> Dataset:
@@ -246,7 +251,8 @@ class Dataset:
         orig = '@'.join(orig.split('@')[:-1])
         if not orig:
             return None
-        ds = self._meta_class.from_name(orig)
+        ds = self._meta_class.from_name(orig, property_cache=self.property_cache)
+        # ds.property_cache = self.property_cache
         return ds
 
     @property
