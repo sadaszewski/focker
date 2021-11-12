@@ -91,7 +91,7 @@ class JailPlugin(Plugin):
                             type=str
                         )
                     ),
-                    start=dict(
+                    stop=dict(
                         aliases=['sto', 'S'],
                         func=cmd_jail_stop,
                         jail_reference=dict(
