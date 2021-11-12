@@ -282,7 +282,7 @@ class Dataset:
 
     def get_property(self, propname):
         if self.property_cache is not None:
-            return self.property_cache.get(( self.name, propname ))
+            return self.property_cache.get(( self.name, propname ), '-')
         return zfs_get_property(self.name, propname)
 
     @classmethod

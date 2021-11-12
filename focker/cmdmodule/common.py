@@ -131,6 +131,7 @@ def standard_fobject_commands(fobject_class,
 
 def cmd_taggable_list(args, tcls):
     lst = tcls.list()
+    tcls.cache_properties(lst)
     if args.tagged:
         lst = [ t for t in lst if t.tags ]
     def to_string(s):

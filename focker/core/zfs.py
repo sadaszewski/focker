@@ -195,6 +195,7 @@ def zfs_snapshot(name):
 
 
 def zfs_properties_cache(focker_type):
-    lst = zfs_parse_output([ 'zfs', 'get', '-H', 'all', f'{FOCKER_CONFIG.zfs.root_dataset}/{focker_type}s' ])
+    from .config import FOCKER_CONFIG
+    lst = zfs_parse_output([ 'zfs', 'get', '-r', '-H', 'all', f'{FOCKER_CONFIG.zfs.root_dataset}/{focker_type}s' ])
     res = { (name, propname): propvalue for (name, propname, propvalue, *_) in lst }
     return res
