@@ -35,7 +35,9 @@ class JailFs(Dataset):
 
     @property
     def jid(self):
-        j = OSJail.from_mountpoint(self.mountpoint)
+        j = OSJail.from_mountpoint(self.mountpoint, raise_exc=False)
+        if j is None:
+            return None
         return j.jid
 
     @staticmethod
