@@ -218,3 +218,11 @@ class TestJailconf:
         conf = jc.loads(_TXT)
         res = jc.dumps(conf)
         assert isinstance(res, str)
+
+    def test29_line_continuation(self):
+        assert jc.loads("a='foo bar baf';")['a'] == 'foo bar baf';
+        assert jc.loads("a='foo \\\nbar baf';")['a'] == 'foo bar baf';
+        assert jc.loads("a='foo \\           \nbar baf';")['a'] == 'foo bar baf';
+        assert jc.loads("a='foo \\\n  bar baf';")['a'] == 'foo   bar baf';
+        assert jc.loads("a='foo \\\\\n  bar baf';")['a'] == 'foo \\\n  bar baf';
+        assert jc.loads("a='foo \\\\   \n  bar baf';")['a'] == 'foo \\   \n  bar baf';
