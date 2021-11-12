@@ -21,6 +21,27 @@ class TestJailFs(DatasetTestBase):
 class TestJailFsCmd(DatasetCmdTestBase):
     _meta_class = JailFs
 
+    def test16_start_stop(self):
+        with clone_image_jailspec({ 'image': 'freebsd-latest' }) as (spec, jfs, _):
+             cmd = [ 'jail', 'start', jfs.sha256 ]
+             main(cmd)
+             assert jfs.jid is not None
+             cmd = [ 'jail', 'stop', jfs.sha256 ]
+             main(cmd)
+             assert jfs.jid is None
+
+    def test17_restart(self):
+        with clone_image_jailspec({ 'image': 'freebsd-latest' }) as (spec, jfs, _):
+             cmd = [ 'jail', 'start', jfs.sha256 ]
+             main(cmd)
+             assert jfs.jid is not None
+             cmd = [ 'jail', 'restart', jfs.sha256 ]
+             main(cmd)
+             assert jfs.jid is not None
+             cmd = [ 'jail', 'stop', jfs.sha256 ]
+             main(cmd)
+             assert jfs.jid is None
+
 
 class TestJailCmd:
     def test01_exec(self):
