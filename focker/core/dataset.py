@@ -7,6 +7,7 @@
 
 
 from .zfs import *
+from .cache import ZfsPropertyCache
 
 
 #def property(fn):
@@ -37,13 +38,12 @@ class Dataset:
         self.name = kwargs['name']
         self.sha256 = kwargs['sha256']
         self.mountpoint = kwargs['mountpoint']
-        self.property_cache = kwargs.get('property_cache')
 
     @classmethod
     def from_name(cls, name, property_cache=None):
-        if property_cache is not None:
-            sha256 = property_cache[( name, 'focker:sha256' )]
-            mountpoint = property_cache[( name, 'mountpoint' )]
+        if ZfsPropertyCache.is_available():
+            sha256 = ZfsPropertyCache.instance()[name]['focker:sha256']
+            mountpoint = ZfsPropertyCache.instance()[name]['mountpoint']
         else:
             sha256 = zfs_get_property(name, 'focker:sha256')
             mountpoint = zfs_mountpoint(name)
@@ -287,14 +287,8 @@ class Dataset:
         return { k: self.get_property(k) for k in props }
 
     def get_property(self, propname):
-        if self.property_cache is not None:
-            return self.property_cache.get(( self.name, propname ), '-')
+        if ZfsPropertyCache.is_available():
+            return ZfsPropertyCache.instance()[self.name].get(propname, '-')
         return zfs_get_property(self.name, propname)
-
-    @classmethod
-    def cache_properties(cls, datasets):
-        cache = zfs_properties_cache(cls._meta_focker_type)
-        for ds in datasets:
-            ds.property_cache = cache
 
 Dataset._meta_class = Dataset

@@ -16,6 +16,7 @@ import csv
 import os
 from functools import reduce
 import random
+from collections import defaultdict
 
 
 def zfs_run(command):
@@ -194,8 +195,13 @@ def zfs_snapshot(name):
     zfs_run(['zfs', 'snapshot', name])
 
 
-def zfs_properties_cache(focker_type):
+def zfs_properties_cache(focker_type: str = None):
     from .config import FOCKER_CONFIG
-    lst = zfs_parse_output([ 'zfs', 'get', '-r', '-H', 'all', f'{FOCKER_CONFIG.zfs.root_dataset}/{focker_type}s' ])
-    res = { (name, propname): propvalue for (name, propname, propvalue, *_) in lst }
+    cmd = [ 'zfs', 'get', '-r', '-H', 'all' ]
+    if focker_type is not None:
+        cmd.append(f'{FOCKER_CONFIG.zfs.root_dataset}/{focker_type}s')
+    lst = zfs_parse_output(cmd)
+    res = defaultdict(lambda: {})
+    for (name, propname, propvalue, *_) in lst:
+        res[name][propname] = propvalue
     return res

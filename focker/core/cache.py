@@ -72,15 +72,18 @@ class JlsCache(CacheBase):
 class ZfsPropertyCache(CacheBase):
     context_var = ContextVar('DATASET_CACHE', default=None)
 
-    def __init__(self, focker_type: List[str]):
+    def __init__(self, focker_type: List[str] = None):
         super().__init__()
         self.focker_type = focker_type
         self.data = None
 
     def generate_cache(self):
-        self.data = {}
-        for ft in self.focker_type:
-            self.data.update(zfs_properties_cache(ft))
+        if self.focker_type:
+            self.data = {}
+            for ft in self.focker_type:
+                self.data.update(zfs_properties_cache(ft))
+        else:
+            self.data = zfs_properties_cache()
 
     def _get_property(self, name, propname):
         return self.data.get(( name, propname ), '-')
