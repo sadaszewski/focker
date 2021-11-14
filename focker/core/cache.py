@@ -14,10 +14,11 @@ class CacheBase:
 
     def __init__(self):
         self.tok = None
+        self.data = None
 
     def __enter__(self):
         self.tok = self.context_var.set(self)
-        self.generate_cache()
+        self.data = self.generate_cache()
 
     def __exit__(self, *excinfo):
         self.context_var.reset(self.tok)
@@ -27,8 +28,12 @@ class CacheBase:
         raise NotImplementedError
 
     @classmethod
-    def available(self):
-        return ( self.context_var.get() is not None )
+    def is_available(cls):
+        return ( cls.context_var.get() is not None )
+
+    @classmethod
+    def instance(cls):
+        return cls.context_var.get()
 
     @classmethod
     def get_property(cls, *args):
@@ -39,25 +44,29 @@ class CacheBase:
     def _get_property(self, *args):
         raise NotImplementedError
 
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __contains__(self, item):
+        return item in self.data
+
+    def get(self, key, default=None):
+        return self.data.get(key, default)
+
 
 class JlsCache(CacheBase):
     context_var = ContextVar('JLS_CACHE', default=None)
 
-    def __init__(self):
-        super().__init__()
-        self.data = None
-
     def generate_cache(self):
         info = focker_subprocess_check_output([ 'jls', '--libxo',  'json', '-n' ])
         info = json.loads(info)
-        self.data = {}
+        data = {}
         for j in info['jail-information']['jail']:
             jnam = j['name']
-            for k, v in j.items():
-                self.data[( jnam, k )] = v
-
-    def _get_property(self, name, propname):
-        return self.data[( name, propname )]
+            if jnam in data:
+                raise RuntimeError('More than one jail with the same name')
+            data[jnam] = j
+        return data
 
 
 class ZfsPropertyCache(CacheBase):

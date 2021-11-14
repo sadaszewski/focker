@@ -89,13 +89,15 @@ class OSJail:
 
     @property
     def is_running(self):
+        if JlsCache.is_available():
+            return ( self.name in JlsCache.instance() )
         try:
             focker_subprocess_check_output([ 'jls', '-j', self.name ], stderr=subprocess.STDOUT)
         except CalledProcessError:
             return False
         return True
 
-    def jls(self):
+    def _jls(self):
         try:
             info = focker_subprocess_check_output([ 'jls', '--libxo',  'json', '-n', '-j', self.name ],
                 stderr=subprocess.STDOUT)
@@ -109,6 +111,11 @@ class OSJail:
         if len(info) == 1:
             return info[0]
         raise RuntimeError('Multiple jails with the same name - unsupported')
+
+    def jls(self):
+        if JlsCache.is_available():
+            return JlsCache.instance()[self.name]
+        return self._jls()
 
     def get_runtime_property(self, prop_name):
         info = self.jls()
