@@ -17,6 +17,7 @@ import os
 import json
 from typing import Dict
 import subprocess
+from ..cache import JlsCache
 
 
 OSJail = 'OSJail'

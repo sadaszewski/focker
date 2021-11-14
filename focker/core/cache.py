@@ -2,6 +2,7 @@ from contextvars import ContextVar
 from .process import focker_subprocess_check_output
 from .zfs import zfs_properties_cache
 from typing import List
+import json
 
 
 # JAILS_CACHE = ContextVar('JAILS_CACHE')
@@ -39,27 +40,36 @@ class CacheBase:
         raise NotImplementedError
 
 
-class JailsCache:
+class JlsCache(CacheBase):
+    context_var = ContextVar('JLS_CACHE', default=None)
+
     def __init__(self):
-        self.tok = None
+        super().__init__()
+        self.data = None
 
-    def __enter__(self):
-        self.tok = JAILS_CACHE.set(self)
+    def generate_cache(self):
+        info = focker_subprocess_check_output([ 'jls', '--libxo',  'json', '-n' ])
+        info = json.loads(info)
+        self.data = {}
+        for j in info['jail-information']['jail']:
+            jnam = j['name']
+            for k, v in j.items():
+                self.data[( jnam, k )] = v
 
-    def __exit__(self):
-        JAILS_CACHE.reset(self.tok)
-        self.tok = None
+    def _get_property(self, name, propname):
+        return self.data[( name, propname )]
 
 
-class DatasetCache(CacheBase):
-    context_var = ContextVar('DATASET_CACHE', None)
+class ZfsPropertyCache(CacheBase):
+    context_var = ContextVar('DATASET_CACHE', default=None)
 
     def __init__(self, focker_type: List[str]):
         super().__init__()
         self.focker_type = focker_type
-        self.data = {}
+        self.data = None
 
     def generate_cache(self):
+        self.data = {}
         for ft in self.focker_type:
             self.data.update(zfs_properties_cache(ft))
 
