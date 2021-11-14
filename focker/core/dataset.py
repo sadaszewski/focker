@@ -10,16 +10,6 @@ from .zfs import *
 from .cache import ZfsPropertyCache
 
 
-#def property(fn):
-#    def inner(self):
-#        if hasattr(self.property_cache) and self.property_cache is not None and \
-#            fn.__name__ in self.property_cache:
-#            return self.property_cache[fn.__name__]
-#        else:
-#            return fn(self)
-#    return inner
-
-
 Dataset = 'Dataset'
 
 class Dataset:
@@ -40,7 +30,7 @@ class Dataset:
         self.mountpoint = kwargs['mountpoint']
 
     @classmethod
-    def from_name(cls, name, property_cache=None):
+    def from_name(cls, name):
         if ZfsPropertyCache.is_available():
             sha256 = ZfsPropertyCache.instance()[name]['focker:sha256']
             mountpoint = ZfsPropertyCache.instance()[name]['mountpoint']
@@ -48,7 +38,7 @@ class Dataset:
             sha256 = zfs_get_property(name, 'focker:sha256')
             mountpoint = zfs_mountpoint(name)
         return cls(init_key=cls._init_key, name=name, sha256=sha256,
-            mountpoint=mountpoint, property_cache=property_cache)
+            mountpoint=mountpoint)
 
     @classmethod
     def clone_from(cls, base: Dataset, sha256: str = None) -> Dataset:
@@ -251,8 +241,7 @@ class Dataset:
         orig = '@'.join(orig.split('@')[:-1])
         if not orig:
             return None
-        ds = self._meta_class.from_name(orig, property_cache=self.property_cache)
-        # ds.property_cache = self.property_cache
+        ds = self._meta_class.from_name(orig)
         return ds
 
     @property
