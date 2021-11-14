@@ -16,7 +16,7 @@ from ..core.cache import JailConfCache
 
 def load_jailconf(fname='/etc/jail.conf'):
     if JailConfCache.is_available():
-        return JailConfCache.instance()
+        return JailConfCache.conf()
     elif os.path.exists(fname):
         conf = load(fname)
     else:
