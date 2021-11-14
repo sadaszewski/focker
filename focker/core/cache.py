@@ -100,5 +100,6 @@ class JailConfCache(CacheBase):
         data = jailconf.load(self.path)
         return data
 
-    def conf(self):
-        return self.data
+    @classmethod
+    def conf(cls):
+        return cls.instance().data
