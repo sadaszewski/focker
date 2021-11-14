@@ -3,6 +3,7 @@ from .process import focker_subprocess_check_output
 from .zfs import zfs_properties_cache
 from typing import List
 import json
+import jailconf
 
 
 # JAILS_CACHE = ContextVar('JAILS_CACHE')
@@ -75,15 +76,26 @@ class ZfsPropertyCache(CacheBase):
     def __init__(self, focker_type: List[str] = None):
         super().__init__()
         self.focker_type = focker_type
-        self.data = None
 
     def generate_cache(self):
-        if self.focker_type:
-            self.data = {}
+        if self.focker_type is not None:
+            data = {}
             for ft in self.focker_type:
-                self.data.update(zfs_properties_cache(ft))
+                data.update(zfs_properties_cache(ft))
         else:
-            self.data = zfs_properties_cache()
+            data = zfs_properties_cache()
+        return data
 
     def _get_property(self, name, propname):
         return self.data.get(( name, propname ), '-')
+
+
+class JailConfCache(CacheBase):
+    context_var = ContextVar('JAILCONF_CACHE', default=None)
+
+    def __init__(self, path='/etc/jail.conf'):
+        self.path = path
+
+    def generate_cache(self):
+        data = jailconf.load(self.path)
+        return data
