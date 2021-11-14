@@ -18,3 +18,4 @@ from .osjail import *
 from .process import *
 from .zfs import *
 from .config import FOCKER_CONFIG
+from .cache import *

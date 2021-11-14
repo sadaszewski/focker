@@ -8,6 +8,9 @@
 
 from tabulate import tabulate
 import argparse
+from ..core import JlsCache, \
+    ZfsPropertyCache, \
+    JailConfCache
 
 
 DISPLAY_FIELDS = ['name', 'tags', 'sha256', 'mountpoint', 'is_protected',
@@ -130,26 +133,30 @@ def standard_fobject_commands(fobject_class,
 
 
 def cmd_taggable_list(args, tcls):
-    lst = tcls.list()
-    if args.tagged:
-        lst = [ t for t in lst if t.tags ]
-    def to_string(s):
-        if s is None:
-            return '-'
-        elif isinstance(s, bool):
-            return 'on' if s else 'off'
-        elif isinstance(s, set):
-            return ', '.join(s) if s else '-'
-        else:
-            return str(s)
-    res = [ [ to_string(getattr(t, o)) for o in args.output  ] for t in lst ]
-    headers = [ o[0].upper() + o[1:].replace('_', ' ') for o in args.output ]
-    if args.sort is not None:
-        key = [ to_string(getattr(t, args.sort)) for t in lst ]
-        order = sorted(range(len(lst)), key=lambda i: key[i])
-        res = [ res[i] for i in order ]
-    # res = [ (' '.join(im.tags), im.mountpoint, ) for im in Image.list() ]
-    print(tabulate(res, headers))
+    with ZfsPropertyCache(), \
+        JlsCache(), \
+        JailConfCache():
+        
+        lst = tcls.list()
+        if args.tagged:
+            lst = [ t for t in lst if t.tags ]
+        def to_string(s):
+            if s is None:
+                return '-'
+            elif isinstance(s, bool):
+                return 'on' if s else 'off'
+            elif isinstance(s, set):
+                return ', '.join(s) if s else '-'
+            else:
+                return str(s)
+        res = [ [ to_string(getattr(t, o)) for o in args.output  ] for t in lst ]
+        headers = [ o[0].upper() + o[1:].replace('_', ' ') for o in args.output ]
+        if args.sort is not None:
+            key = [ to_string(getattr(t, args.sort)) for t in lst ]
+            order = sorted(range(len(lst)), key=lambda i: key[i])
+            res = [ res[i] for i in order ]
+        # res = [ (' '.join(im.tags), im.mountpoint, ) for im in Image.list() ]
+        print(tabulate(res, headers))
 
 
 def cmd_fobject_create(args, fobject_class):
