@@ -107,7 +107,7 @@ class OSJail:
         info = [ j for j in info['jail-information']['jail']
             if j['name'] == self.name ]
         if len(info) == 0:
-            raise RuntimeError('Not running')
+            raise RuntimeError('Not running') # pragma: no cover
         if len(info) == 1:
             return info[0]
         raise RuntimeError('Multiple jails with the same name - unsupported')

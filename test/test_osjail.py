@@ -2,7 +2,8 @@ from focker.core import OSJail, \
     OSJailSpec, \
     JailFs, \
     clone_image_jailspec, \
-    Volume
+    Volume, \
+    TemporaryOSJail
 from focker.core.jailspec import JailSpec
 import pytest
 import os

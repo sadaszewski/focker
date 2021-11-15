@@ -88,7 +88,7 @@ class ZfsPropertyCache(CacheBase):
         return data
 
     def _get_property(self, name, propname):
-        return self.data.get(( name, propname ), '-')
+        return self.data.get(name, {}).get(propname, '-')
 
 
 class JailConfCache(CacheBase):
