@@ -101,3 +101,30 @@ class TestZfsPropertyCache:
             assert ZfsPropertyCache.is_available()
             assert ZfsPropertyCache.instance() == zc
             assert v.name not in zc
+
+
+class TestJailConfCache:
+    def test00_cache_after(self):
+        assert not JailConfCache.is_available()
+        with clone_image_jailspec(dict(image='freebsd-latest')) as (spec, jfs, *_), \
+            TemporaryOSJail(spec, create_started=False) as oj, \
+            JailConfCache() as jc:
+
+            assert JailConfCache.is_available()
+            assert JailConfCache.instance() == jc
+            assert oj.name in jc.conf().jail_blocks
+            assert jc.conf().jail_blocks[oj.name]['name'] == oj.name
+            assert jc.conf().jail_blocks[oj.name]['path'] == jfs.path
+
+    def test01_cache_before(self):
+        assert not JailConfCache.is_available()
+        #with JailConfCache() as jc:
+        #    print(str(jc.conf()))
+        with JailConfCache() as jc:
+            with clone_image_jailspec(dict(image='freebsd-latest')) as (spec, *_), \
+                TemporaryOSJail(spec, create_started=False) as oj:
+
+                assert JailConfCache.is_available()
+                assert JailConfCache.instance() == jc
+                # print(oj.name, jc.data.jail_blocks.keys())
+                assert oj.name not in jc.conf().jail_blocks

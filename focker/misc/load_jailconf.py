@@ -12,11 +12,11 @@ from ..jailconf import load, \
     dump, \
     JailConf
 from ..core.cache import JailConfCache
-
+import copy
 
 def load_jailconf(fname='/etc/jail.conf'):
     if JailConfCache.is_available():
-        return JailConfCache.conf()
+        return copy.copy(JailConfCache.conf())
     elif os.path.exists(fname):
         conf = load(fname)
     else:
