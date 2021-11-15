@@ -112,7 +112,7 @@ class TestZfsPropertyCache:
             assert ZfsPropertyCache.instance() == zc
             assert v.name not in zc
             assert im.name in zc
-            assert zc[im.name][mountpoint] == im.mountpoint
+            assert zc[im.name]['mountpoint'] == im.mountpoint
 
 
 class TestJailConfCache:
