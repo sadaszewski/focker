@@ -113,7 +113,7 @@ class TestJailConfCache:
             assert JailConfCache.is_available()
             assert JailConfCache.instance() == jc
             assert oj.name in jc.conf().jail_blocks
-            assert jc.conf().jail_blocks[oj.name]['name'] == oj.name
+            # assert jc.conf().jail_blocks[oj.name]['name'] == oj.name
             assert jc.conf().jail_blocks[oj.name]['path'] == jfs.path
 
     def test01_cache_before(self):
@@ -127,4 +127,4 @@ class TestJailConfCache:
                 assert JailConfCache.is_available()
                 assert JailConfCache.instance() == jc
                 # print(oj.name, jc.data.jail_blocks.keys())
-                assert oj.name not in jc.conf().jail_blocks
+                assert oj.name in jc.conf().jail_blocks
