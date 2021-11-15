@@ -4,7 +4,8 @@ from focker.core import CacheBase, \
     JailConfCache, \
     TemporaryOSJail, \
     clone_image_jailspec, \
-    Volume
+    Volume, \
+    Image
 import pytest
 from contextvars import ContextVar
 
@@ -101,6 +102,17 @@ class TestZfsPropertyCache:
             assert ZfsPropertyCache.is_available()
             assert ZfsPropertyCache.instance() == zc
             assert v.name not in zc
+
+    def test02_image_only(self):
+        im = Image.from_tag('freebsd-latest')
+        with Volume.create() as v, \
+            ZfsPropertyCache(focker_type=['image']) as zc:
+
+            assert ZfsPropertyCache.is_available()
+            assert ZfsPropertyCache.instance() == zc
+            assert v.name not in zc
+            assert im.name in zc
+            assert zc[im.name][mountpoint] == im.mountpoint
 
 
 class TestJailConfCache:
