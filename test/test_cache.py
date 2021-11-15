@@ -3,7 +3,8 @@ from focker.core import CacheBase, \
     ZfsPropertyCache, \
     JailConfCache, \
     TemporaryOSJail, \
-    clone_image_jailspec
+    clone_image_jailspec, \
+    Volume
 import pytest
 from contextvars import ContextVar
 
@@ -81,3 +82,22 @@ class TestJlsCache:
             assert JlsCache.is_available()
             assert JlsCache.instance() == jc
             assert oj.name not in jc
+
+
+class TestZfsPropertyCache:
+    def test00_cache_after(self):
+        with Volume.create() as v, \
+            ZfsPropertyCache() as zc:
+
+            assert ZfsPropertyCache.is_available()
+            assert ZfsPropertyCache.instance() == zc
+            assert v.name in zc
+            assert zc[v.name]['mountpoint'] == v.mountpoint
+
+    def test01_cache_before(self):
+        with ZfsPropertyCache() as zc, \
+            Volume.create() as v:
+
+            assert ZfsPropertyCache.is_available()
+            assert ZfsPropertyCache.instance() == zc
+            assert v.name not in zc

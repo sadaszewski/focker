@@ -280,4 +280,10 @@ class Dataset:
             return ZfsPropertyCache.instance()[self.name].get(propname, '-')
         return zfs_get_property(self.name, propname)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *excinfo):
+        self.destroy()
+
 Dataset._meta_class = Dataset
