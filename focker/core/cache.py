@@ -20,6 +20,7 @@ class CacheBase:
     def __enter__(self):
         self.tok = self.context_var.set(self)
         self.data = self.generate_cache()
+        return self
 
     def __exit__(self, *excinfo):
         self.context_var.reset(self.tok)

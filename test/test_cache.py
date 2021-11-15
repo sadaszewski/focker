@@ -1,4 +1,9 @@
-from focker.core import CacheBase
+from focker.core import CacheBase, \
+    JlsCache, \
+    ZfsPropertyCache, \
+    JailConfCache, \
+    TemporaryOSJail, \
+    clone_image_jailspec
 import pytest
 from contextvars import ContextVar
 
@@ -54,3 +59,25 @@ class TestCacheBase:
         assert cb.get('bar') == 'baf'
         assert cb.get('nonexistent') is None
         assert cb.get('nonexistent', default=0xdeadbeef) == 0xdeadbeef
+
+
+class TestJlsCache:
+    def test00_cache_after(self):
+        with clone_image_jailspec(dict(image='freebsd-latest')) as (spec, jfs, *_), \
+            TemporaryOSJail(spec) as oj, \
+            JlsCache() as jc:
+
+            assert JlsCache.is_available()
+            assert JlsCache.instance() == jc
+            assert oj.name in jc
+            assert jc[oj.name]['name'] == oj.name
+            assert jc[oj.name]['path'] == jfs.path
+
+    def test01_cache_before(self):
+        with JlsCache() as jc, \
+            clone_image_jailspec(dict(image='freebsd-latest')) as (spec, *_), \
+            TemporaryOSJail(spec) as oj:
+
+            assert JlsCache.is_available()
+            assert JlsCache.instance() == jc
+            assert oj.name not in jc
