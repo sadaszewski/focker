@@ -177,3 +177,9 @@ class TestOSJail:
             jail.start()
             jail.run([ 'touch', '/a/nested/mount/path/that/wont/exist/.focker-unit-test-osjail' ])
             assert os.path.exists(os.path.join(v.path, '.focker-unit-test-osjail'))
+
+    def test20_jls_not_running_raise(self):
+        with clone_image_jailspec({ 'image': 'freebsd-latest' }) as (spec, *_), \
+            TemporaryOSJail(spec, create_started=False) as j:
+            with pytest.raises(RuntimeError, match='Not running'):
+                _ = j.jls()

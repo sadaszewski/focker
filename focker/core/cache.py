@@ -66,7 +66,7 @@ class JlsCache(CacheBase):
         for j in info['jail-information']['jail']:
             jnam = j['name']
             if jnam in data:
-                raise RuntimeError('More than one jail with the same name')
+                raise RuntimeError('More than one jail with the same name') # pragma: no cover
             data[jnam] = j
         return data
 
