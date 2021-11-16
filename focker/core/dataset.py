@@ -267,7 +267,7 @@ class Dataset:
 
     @property
     def referred_size(self):
-        return self.get_property('refer')
+        return self.get_property('referenced')
 
     def set_props(self, props):
         zfs_set_props(self.name, props)
