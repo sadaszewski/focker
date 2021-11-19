@@ -4,6 +4,7 @@ from .zfs import zfs_properties_cache
 from typing import List
 import json
 from .. import jailconf
+import os
 
 
 # JAILS_CACHE = ContextVar('JAILS_CACHE')
@@ -98,7 +99,9 @@ class JailConfCache(CacheBase):
         self.path = path
 
     def generate_cache(self):
-        data = jailconf.load(self.path)
+        data = jailconf.load(self.path) \
+            if os.path.exists(self.path) \
+            else jailconf.JailConf()
         return data
 
     @classmethod
