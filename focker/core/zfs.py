@@ -73,6 +73,7 @@ def zfs_init():
 
 def zfs_list(fields=['name'], focker_type='image', zfs_type='filesystem'):
     from .config import FOCKER_CONFIG
+    fields = list(fields)
     fields.append('focker:sha256')
     lst = zfs_parse_output(['zfs', 'list', '-o', ','.join(fields),
         '-H', '-t', zfs_type, '-r', FOCKER_CONFIG.zfs.root_dataset + '/' + focker_type + 's'])
