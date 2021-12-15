@@ -70,9 +70,7 @@ class OSJail:
     def from_sha256(cls, sha256):
         from ..jailfs import JailFs
         jfs = JailFs.from_sha256(sha256)
-        if jfs is not None:
-            return cls.from_mountpoint(jfs.mountpoint)
-        return None
+        return cls.from_mountpoint(jfs.mountpoint)
 
     def start(self):
         focker_subprocess_run([ 'jail', '-c', self.name ])
