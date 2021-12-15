@@ -41,6 +41,22 @@ class Dataset:
             mountpoint=mountpoint)
 
     @classmethod
+    def from_mountpoint(cls, mountpoint):
+        if ZfsPropertyCache.is_available():
+            res = [ (k, v) for k, v in ZfsPropertyCache.instance().items() \
+                if v.get('mountpoint') == mountpoint ]
+            if len(res) != 1:
+                raise ValueError('Expected to find one matching mountpoint')
+            return cls.from_name(res[0][0])
+        else:
+            res = zfs_list(fields=['name', 'mountpoint'],
+                focker_type = cls._meta_focker_type, zfs_type=cls._meta_zfs_type)
+            res = [ item for item in res if item[1] == mountpoint ]
+            if len(res) != 1:
+                raise ValueError('Expected to find one matching mountpoint')
+            return cls.from_name(res[0][0])
+
+    @classmethod
     def clone_from(cls, base: Dataset, sha256: str = None) -> Dataset:
         if cls._meta_cloneable_from is None:
             raise RuntimeError(f'{cls.__name__} cannot be created by cloning')

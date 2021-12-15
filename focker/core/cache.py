@@ -56,6 +56,9 @@ class CacheBase:
     def get(self, key, default=None):
         return self.data.get(key, default)
 
+    def items(self):
+        return self.data.items()
+
 
 class JlsCache(CacheBase):
     context_var = ContextVar('JLS_CACHE', default=None)
