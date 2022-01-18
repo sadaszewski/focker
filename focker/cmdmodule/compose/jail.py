@@ -25,6 +25,7 @@ def build_jails(spec, fenv):
     for tag, jspec in spec.items():
         # tag = substitute_focker_env_vars(tag, fenv)
         jspec = rec_subst_fenv_vars(jspec, fenv)
+        jspec['name'] = jspec.get('name', tag)
         with clone_image_jailspec(jspec) as (jspec, _, jfs_take_ownership):
             jfs = jfs_take_ownership()
             jfs.add_tags([ tag ])
