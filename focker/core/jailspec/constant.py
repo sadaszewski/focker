@@ -39,7 +39,7 @@ JAIL_PARAMS = JAIL_SYSCTL_PARAMS.union(JAIL_PSEUDO_PARAMS)
 
 
 JAIL_FOCKER_PARAMS = { 'image', 'mounts', 'env', 'jailfs', 'path',
-    'name', 'host.hostname', 'depend', 'resolv_conf' }
+    'name', 'host.hostname', 'depend', 'resolv_conf', 'meta' }
 
 
 JAIL_EXEC_PARAMS = {'exec.prestart', 'exec.start', 'command',
