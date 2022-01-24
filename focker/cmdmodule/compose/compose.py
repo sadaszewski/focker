@@ -15,6 +15,7 @@ from .hook import exec_prebuild, \
 from ... import yaml
 from ...core.fenv import fenv_from_arg, \
     fenv_from_spec
+from ...core import OSJail
 import os
 
 
