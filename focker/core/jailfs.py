@@ -27,11 +27,11 @@ class JailFs(Dataset):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def destroy(self):
+    def destroy(self, force=False):
         jail = OSJail.from_mountpoint(self.path, raise_exc=False)
         if jail is not None:
-            jail.remove()
-        super().destroy()
+            jail.remove(force=force)
+        super().destroy(force=force)
 
     @property
     def jid(self):
