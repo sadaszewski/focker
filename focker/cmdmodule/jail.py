@@ -57,6 +57,12 @@ class JailPlugin(Plugin):
                             aliases=['c'],
                             action='store_true'
                         ),
+                        mounts=dict(
+                            aliases=['m'],
+                            nargs='+',
+                            type=str,
+                            default=[]
+                        ),
                         identifier=dict(
                             positional=True,
                             type=str
@@ -127,7 +133,11 @@ def cmd_jail_exec(args):
 
 def cmd_jail_oneexec(args):
     im = Image.from_any_id(args.identifier)
-    with one_exec_jailspec(im, {}) as (spec, *_), \
+    mounts = {}
+    for m in args.mounts:
+        k, v = m.split(':')
+        mounts[k] = v
+    with one_exec_jailspec(im, { 'mounts': mounts }) as (spec, *_), \
         TemporaryOSJail(spec) as jail:
             if args.chkout:
                 print(jail.check_output(args.command))
