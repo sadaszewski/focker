@@ -87,6 +87,9 @@ def standard_fobject_commands(fobject_class,
             reference=dict(
                 positional=True,
                 type=str
+            ),
+            force=dict(
+                action='store_true'
             )
         ),
         set=dict(
@@ -180,7 +183,7 @@ def cmd_fobject_untag(args, fobject_class):
 
 def cmd_fobject_remove(args, fobject_class):
     o = fobject_class.from_any_id(args.reference)
-    o.destroy()
+    o.destroy(force=args.force)
 
 
 def cmd_fobject_set(args, fobject_class):
