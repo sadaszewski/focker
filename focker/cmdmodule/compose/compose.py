@@ -49,7 +49,9 @@ class ComposePlugin(Plugin):
     
 def stop_jails(jail_refs):
     for ref in jail_refs:
-        j = OSJail.from_any_id(ref)
+        j = OSJail.from_any_id(ref, raise_exc=False)
+        if j is None:
+            continue
         if j.is_running:
             j.stop()
     
