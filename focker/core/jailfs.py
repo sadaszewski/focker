@@ -46,6 +46,8 @@ class JailFs(Dataset):
         used = set()
         for k, v in conf.jail_blocks.items():
             for jname in ensure_list(v.safe_get('depend', [])):
+                if jname not in conf:
+                    continue
                 used.add(conf[jname]['path'])
         lst = zfs_list(['name', 'mountpoint'], focker_type='jail')
         lst = [ JailFs.from_name(item[0]) for item in lst if item[1] not in used ]
