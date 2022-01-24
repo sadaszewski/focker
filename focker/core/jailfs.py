@@ -30,7 +30,7 @@ class JailFs(Dataset):
     def destroy(self, force=False):
         jail = OSJail.from_mountpoint(self.path, raise_exc=False)
         if jail is not None:
-            jail.remove(force=force)
+            jail.remove()
         super().destroy(force=force)
 
     @property
