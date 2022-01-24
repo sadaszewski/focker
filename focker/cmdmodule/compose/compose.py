@@ -45,6 +45,13 @@ class ComposePlugin(Plugin):
             )
         )
 
+    
+def stop_jails(jail_refs):
+    for ref in jail_refs:
+        j = OSJail.from_any_id(ref)
+        if j.is_running:
+            j.stop()
+    
 
 def cmd_compose_build(args):
     with open(args.spec_filename, 'r') as f:
@@ -55,6 +62,7 @@ def cmd_compose_build(args):
     fenv = fenv_from_arg(args.fenv, {})
     fenv = fenv_from_spec(spec, fenv)
 
+    stop_jails(spec.get('jails', {}).keys())
     exec_prebuild(spec.get('exec.prebuild', []), spec_dir, fenv=fenv)
     build_images(spec.get('images', {}), spec_dir, fenv=fenv, squeeze=args.squeeze)
     build_volumes(spec.get('volumes', {}), fenv=fenv)
