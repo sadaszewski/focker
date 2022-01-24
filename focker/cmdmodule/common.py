@@ -182,7 +182,9 @@ def cmd_fobject_untag(args, fobject_class):
 
 
 def cmd_fobject_remove(args, fobject_class):
-    o = fobject_class.from_any_id(args.reference)
+    o = fobject_class.from_any_id(args.reference, raise_exc=not args.force)
+    if o is None:
+        continue
     o.destroy(force=args.force)
 
 
