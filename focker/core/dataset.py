@@ -221,8 +221,8 @@ class Dataset:
         zfs_create(name, { 'focker:sha256': sha256 })
         return cls.from_sha256(sha256)
 
-    def destroy(self):
-        if self.in_use():
+    def destroy(self, force=False):
+        if self.in_use() and not force:
             raise RuntimeError(f'This {self.__class__.__name__.lower()} is in use')
         zfs_destroy(self.name)
 
