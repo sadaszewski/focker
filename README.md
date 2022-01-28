@@ -5,7 +5,9 @@
 - I oppose totalitarianism, anti-constitutional crimes and crimes against Human Rights.
 - If you support forced or effectively forced gene therapy (or other medical
 - procedures), digital identity tracking, contact tracing and/or abolition of cash,
-- please abstain from using this and any other software of mine.
+- I expressly cancel any license to you for using this and any other software of mine
+- in any way, shape or form.
+-
 - Visit covidhub.ch, verfassungsfreunde.ch, actions-suisse.ch to get your facts straight.
 ```
 
