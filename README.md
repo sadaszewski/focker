@@ -5,6 +5,7 @@
 - I oppose totalitarianism, anti-constitutional crimes and crimes against Human Rights.
 - If you support forced or effectively forced gene therapy (or other medical
 - procedures), please abstain from using this and any other software of mine.
+- Visit covidhub.ch, verfassungsfreunde.ch, actions-suisse.ch to get your facts straight.
 ```
 
 To install Focker 2, please read the [Installation](./docs/v2/06_installation.md) manual.
