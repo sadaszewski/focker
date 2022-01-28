@@ -4,7 +4,8 @@
 - IMPORTANT LEGAL NOTICE
 - I oppose totalitarianism, anti-constitutional crimes and crimes against Human Rights.
 - If you support forced or effectively forced gene therapy (or other medical
-- procedures), please abstain from using this and any other software of mine.
+- procedures), digital identity tracking, contact tracing and/or abolition of cash,
+- please abstain from using this and any other software of mine.
 - Visit covidhub.ch, verfassungsfreunde.ch, actions-suisse.ch to get your facts straight.
 ```
 
