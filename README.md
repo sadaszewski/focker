@@ -8,9 +8,16 @@
 - (or other medical procedures), digital identity tracking, contact tracing,
 - lockdowns and/or abolition of cash, I expressly deny any license to you
 - for using this and/or any other software of mine in any way, shape or form.
--
-- Visit covidhub.ch, verfassungsfreunde.ch, actions-suisse.ch, banbye.pl
-- to get your facts straight.
+```
+Visit:
+ - [noban.ch](https://noban.ch),
+ - covidhub.ch, 
+ - verfassungsfreunde.ch, 
+ - actions-suisse.ch, 
+ - banbye.pl
+to get your facts straight.
+
+```
 ```
 
 To install Focker 2, please read the [Installation](./docs/v2/06_installation.md) manual.
