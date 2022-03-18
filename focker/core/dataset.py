@@ -158,8 +158,8 @@ class Dataset:
             mountpoint=mountpoint)
 
     @classmethod
-    def from_sha256(cls, sha256: str):
-        return cls.from_predicate(lambda e: e[2] == sha256)
+    def from_sha256(cls, sha256: str, raise_exc=True):
+        return cls.from_predicate(lambda e: e[2] == sha256, raise_exc=raise_exc)
 
     @classmethod
     def from_tag(cls, tag: str, raise_exc=True):
