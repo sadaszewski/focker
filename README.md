@@ -10,7 +10,6 @@
 - for using this and/or any other software of mine in any way, shape or form.
 ```
 Visit:
- - [noban.ch](https://noban.ch),
  - covidhub.ch, 
  - verfassungsfreunde.ch, 
  - actions-suisse.ch, 
