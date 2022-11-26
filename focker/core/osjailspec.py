@@ -22,6 +22,8 @@ JailSpec = 'JailSpec'
 def gen_env_command(command, env):
     if any(map(lambda a: ' ' in a, env.keys())):
         raise ValueError('Environment variable names cannot contain spaces')
+    if not command:
+        return ''
     env = [ 'export ' + k + '=' + shlex.quote(v) \
         for (k, v) in env.items() ]
     command = ' && '.join(env + [ command ])
