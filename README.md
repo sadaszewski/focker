@@ -25,9 +25,6 @@ Visit:
 
 to get your facts straight.
 
-```
-```
-
 To install Focker 2, please read the [Installation](./docs/v2/06_installation.md) manual.
 
 For introduction, see [Basic Usage Guide](./docs/Basic_Usage_Guide.md) or [Detailed Intro](./docs/Detailed_Intro.md). For an end-to-end example with description, see the [scm-manager](./example/scm-manager/README.md) example.
