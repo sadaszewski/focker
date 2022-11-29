@@ -9,6 +9,14 @@
 - lockdowns and/or abolition of cash, I expressly deny any license to you
 - for using this and/or any other software of mine in any way, shape or form.
 ```
+
+```diff
+- GPL COMPATIBILITY NOTICE
+-
+- Whenever GPLv3 contains a statement conflicting with the above Legal Notice
+- the above Legal Notice shall prevail.
+```
+
 Visit:
  - covidhub.ch, 
  - verfassungsfreunde.ch, 
