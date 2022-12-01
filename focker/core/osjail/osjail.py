@@ -10,7 +10,6 @@ from ..process import focker_subprocess_run, \
     focker_subprocess_check_output, \
     CalledProcessError
 from ...misc import load_jailconf, \
-    save_jailconf, \
     focker_unlock
 import shlex
 import os
@@ -34,15 +33,14 @@ class OSJail:
     @classmethod
     def from_name(cls, name):
         conf = load_jailconf()
-        for k, blk in conf.jail_blocks.items():
-            if k == name:
-                return OSJail(init_key=cls._init_key, name=name)
+        if name in conf:
+            return OSJail(init_key=cls._init_key, name=name)
         raise RuntimeError('OSJail with the given name not found')
 
     @classmethod
     def from_mountpoint(cls, path, raise_exc=True):
         conf = load_jailconf()
-        for k, blk in conf.jail_blocks.items():
+        for k, blk in conf.items():
             if 'path' in blk and blk['path'] == path:
                 return OSJail(init_key=cls._init_key, name=k)
         if raise_exc:
@@ -152,8 +150,7 @@ class OSJail:
         if self.is_running:
             self.stop()
         conf = load_jailconf()
-        del conf[self.name]
-        save_jailconf(conf)
+        os.unlink(os.path.join(conf[self.name]['path'], '.ssman', 'jail_config.json'))
 
     @property
     def conf(self):

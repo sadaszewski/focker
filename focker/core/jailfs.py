@@ -14,8 +14,6 @@ from .process import focker_subprocess_check_output
 from .misc import ensure_list
 from .osjail import OSJail
 import json
-from ..misc import load_jailconf, \
-    save_jailconf
 
 
 JailFs = 'JailFs'
@@ -42,15 +40,16 @@ class JailFs(Dataset):
 
     @staticmethod
     def list_unused():
-        conf = load_jailconf()
+        conf, lst = load_jailconf(return_jfs_list=True)
         used = set()
-        for k, v in conf.jail_blocks.items():
-            for jname in ensure_list(v.safe_get('depend', [])):
+        for k, v in conf.items():
+            for jname in v.get('depend', []):
                 if jname not in conf:
                     continue
                 used.add(conf[jname]['path'])
-        lst = zfs_list(['name', 'mountpoint'], focker_type='jail')
-        lst = [ JailFs.from_name(item[0]) for item in lst if item[1] not in used ]
+        lst = [ JailFs.from_name(name) \
+            for name, mountpoint, *_ in lst \
+                if mountpoint not in used ]
         return lst
 
 JailFs._meta_class = JailFs

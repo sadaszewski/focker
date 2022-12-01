@@ -9,8 +9,7 @@
 from tabulate import tabulate
 import argparse
 from ..core import JlsCache, \
-    ZfsPropertyCache, \
-    JailConfCache
+    ZfsPropertyCache
 
 
 DISPLAY_FIELDS = ['name', 'tags', 'sha256', 'mountpoint', 'is_protected',
@@ -137,8 +136,7 @@ def standard_fobject_commands(fobject_class,
 
 def cmd_taggable_list(args, tcls):
     with ZfsPropertyCache(), \
-        JlsCache(), \
-        JailConfCache():
+        JlsCache():
         
         lst = tcls.list()
         if args.tagged:

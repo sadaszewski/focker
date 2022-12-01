@@ -5,25 +5,31 @@
 # URL: https://adared.ch/focker
 #
 
-
-from .backup_file import backup_file
+from ..core.zfs import zfs_list
 import os
-from ..jailconf import load, \
-    dump, \
-    JailConf
-from ..core.cache import JailConfCache
-
-def load_jailconf(fname='/etc/jail.conf'):
-    if JailConfCache.is_available():
-        return JailConfCache.conf()
-    elif os.path.exists(fname):
-        conf = load(fname)
-    else:
-        conf = JailConf()
-    return conf
+import json
 
 
-def save_jailconf(conf, fname='/etc/jail.conf'):
-    backup_file(fname)
-    with open(fname, 'w') as f:
-        dump(conf, f)
+def load_jailconf(*, jail_name=None, return_jfs_list=False):
+    lst = zfs_list(['name', 'mountpoint'], focker_type='jail')
+    conf = {}
+    for name, mountpoint, *_ in lst:
+        tmp = os.path.join(mountpoint, '.ssman', 'jail_config.json')
+        if not os.path.exists(tmp):
+            continue
+        with open(tmp) as f:
+            tmp = json.load(f)
+            conf[tmp['name']] = tmp
+    if jail_name:
+        conf = conf[jail_name]
+    res = conf
+    if return_jfs_list:
+        res = (res,) + (lst,)
+    return res
+
+
+def save_jailconf(conf, *, jail_name):
+    conf = dict(conf)
+    conf['name'] = jail_name
+    with open(os.path.join(conf['path'], '.ssman', 'jail_config.json'), 'w') as f:
+        json.dump(self.params, f)

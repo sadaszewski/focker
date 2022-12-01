@@ -107,13 +107,11 @@ class OSJailSpec:
         blk = JailBlock.create(self.name, self.params)
         return blk
 
-    def add(self, fname='/etc/jail.conf') -> OSJail:
-        conf = load_jailconf(fname)
-        conf[self.name] = self.to_jail_block()
-        save_jailconf(conf, fname)
+    def add(self) -> OSJail:
+        save_jailconf(self.params, jail_name=self.name)
         return OSJail.from_name(self.name)
 
-    def remove(self, fname='/etc/jail.conf'):
-        conf = load_jailconf(fname)
-        del conf[self.name]
-        save_jailconf(conf, fname)
+    def remove(self):
+        conf = load_jailconf(jail_name=self.name)
+        os.unlink(os.path.join(conf['path'], '.ssman', 'jail_config.json'))
+

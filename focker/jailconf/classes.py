@@ -233,6 +233,14 @@ class Block:
 
         self.statements.append(KeyValueToggle([ '\n' + ' ' * self.indent, Key(name), ';' ]))
 
+    def keys(self):
+        for s in self.statements:
+            if hasattr(s, 'key'):
+                yield s.key
+
+    def to_dict(self):
+        return { k: self.get(k) for k in self.keys() }
+
     def get(self, name):
         res = []
         for s in self.statements:
