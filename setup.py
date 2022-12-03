@@ -13,7 +13,8 @@ setup(
     license='The GNU General Public License v3.0',
     description='Focker is a FreeBSD image orchestration tool in the vein of Docker.',
     long_description='Focker is a FreeBSD image orchestration tool in the vein of Docker.',
-    scripts=['scripts/focker', 'scripts/focker-bsdinstall', 'scripts/focker-mirrorselect'],
+    scripts=['scripts/focker', 'scripts/focker-bsdinstall', 'scripts/focker-mirrorselect',
+        'scripts/migrate_jailconf.py', 'scripts/focker_service'],
     install_requires=[
         "tabulate",
         "pyparsing",

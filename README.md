@@ -1,6 +1,17 @@
 # Focker 2
 
 ```diff
+Important backwards incompatible change. Focker now uses its own service
+to start the jails on boot. Use focker bootstrap filesystem to create
+the new necessary filesystem (/focker/jailconf). Use
+scripts/migrate_jailconf.py to migrate your jail configs to the new
+location. Furthermore, you need to place and enable scripts/focker_service
+in /usr/local/etc/rc.d/.
+```
+
+________________
+
+```diff
 - IMPORTANT LEGAL NOTICE
 -
 - I oppose totalitarianism, anti-constitutional crimes and crimes against
