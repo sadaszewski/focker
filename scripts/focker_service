@@ -23,6 +23,7 @@ from focker.misc import load_jailconf
 from focker.core import OSJail
 from subprocess import DEVNULL
 import sys
+
 conf = load_jailconf()
 for name, entry in conf.items():
   import sys
@@ -30,7 +31,8 @@ for name, entry in conf.items():
   sys.stdout.flush()
   oj = OSJail.from_name(name)
   try:
-    oj.start(capture_output=True)
+    with open('/tmp/log.txt', 'wb') as f:
+      oj.start(stdout=DEVNULL, stderr=DEVNULL)
     print('OK')
   except:
     print('Fail')
@@ -52,7 +54,7 @@ for name, entry in conf.items():
   sys.stdout.write(f'Stopping {name} ({entry.get("host.hostname")}) ... ')
   sys.stdout.flush()
   try:
-    oj.stop(capture_output=True)
+    oj.stop(stdout=DEVNULL, stderr=DEVNULL)
     print('OK')
   except:
     print('Fail')
