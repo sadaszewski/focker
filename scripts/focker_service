@@ -17,48 +17,71 @@ load_rc_config $name
 export HOME=/root
 export PYTHONPATH=/home/sadaszew/workspace/focker
 
-focker_service_start() {
+_helper() {
+  STARTING=$1
+  STARTED=$2
+  START=$3
+  START_L=$4
+  SWITCH=$5
+
   /usr/local/bin/python3 <<EOF
 from focker.misc import load_jailconf
-from focker.core import OSJail
-from subprocess import DEVNULL
-import sys
+from focker.jailconf import JailConf, \
+  JailBlock
+from asyncio.subprocess import DEVNULL
+import asyncio
+import multiprocessing as mp
+import tempfile
+import os
+
+async def task(name, entry):
+  print(f'${STARTING} {name} ({entry.get("host.hostname")}) ... ')
+  try:
+    with tempfile.TemporaryDirectory() as d:
+      os.chmod(d, 0o700)
+      blk = JailBlock.create(name, entry)
+      jc = JailConf()
+      jc[name] = blk
+      with open(os.path.join(d, 'jail_conf.tmp'), 'w') as f:
+          f.write(str(jc))
+      cmd = [ 'jail', '-f', os.path.join(d, 'jail_conf.tmp'), '${SWITCH}', name ]
+      proc = await asyncio.create_subprocess_exec(cmd[0], *cmd[1:], stdout=DEVNULL, stderr=DEVNULL)
+      await proc.communicate()
+      print(f'${STARTED}: {name} ({entry.get("host.hostname")})')
+  except Exception as e:
+    print(f'${START} failed: {name} ({entry.get("host.hostname")}) - {e}')
 
 conf = load_jailconf()
-for name, entry in conf.items():
-  import sys
-  sys.stdout.write(f'Starting {name} ({entry.get("host.hostname")}) ... ')
-  sys.stdout.flush()
-  oj = OSJail.from_name(name)
-  try:
-    with open('/tmp/log.txt', 'wb') as f:
-      oj.start(stdout=DEVNULL, stderr=DEVNULL)
-    print('OK')
-  except:
-    print('Fail')
+queue = [ (name, entry) for name, entry in conf.items() ]
+
+n_cpu = mp.cpu_count()
+loop = asyncio.get_event_loop()
+print(f'${STARTING} Focker jails in parallel ({n_cpu}) ...')
+
+while True:
+  q = len(queue)
+  n = len(asyncio.all_tasks(loop))
+  if q == 0 and n == 0:
+    break
+  if n < n_cpu:
+    end = min(q, n_cpu - n)
+    batch = queue[:end]
+    queue = queue[end:]
+    for name, entry in batch:
+      loop.create_task(task(name, entry))
+  loop.run_until_complete(asyncio.sleep(0.2))
+
+print('Focker jails ${START_L} complete.')
+
 EOF
 }
 
+focker_service_start() {
+  _helper Starting Started Start start -c
+}
+
 focker_service_stop() {
-  /usr/local/bin/python3 <<EOF
-from focker.misc import load_jailconf
-from focker.core import OSJail
-from subprocess import DEVNULL
-import sys
-conf = load_jailconf()
-for name, entry in conf.items():
-  import sys
-  oj = OSJail.from_name(name)
-  if not oj.is_running:
-    continue
-  sys.stdout.write(f'Stopping {name} ({entry.get("host.hostname")}) ... ')
-  sys.stdout.flush()
-  try:
-    oj.stop(stdout=DEVNULL, stderr=DEVNULL)
-    print('OK')
-  except:
-    print('Fail')
-EOF
+  _helper Stopping Stopped Stop stop -r
 }
 
 run_rc_command "$1"
