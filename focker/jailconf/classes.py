@@ -251,6 +251,14 @@ class Block:
             return res[0]
         return res
 
+    def keys(self):
+        for s in self.statements:
+            if hasattr(s, 'key'):
+                yield s.key
+
+    def to_dict(self):
+        return { k: self.get(k) for k in self.keys() }
+
     def safe_get(self, name, default=None):
         try:
             return self.get(name)

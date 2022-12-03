@@ -19,9 +19,9 @@ class Volume(Dataset):
     def list_unused(cls):
         conf = load_jailconf()
         used = set()
-        for k, blk in conf.jail_blocks.items():
+        for k, blk in conf.items():
             for v in Volume.list():
-                 if f'mount -t nullfs {v.path} ' in blk.safe_get('exec.prestart', ''):
+                 if f'mount -t nullfs {v.path} ' in blk.get('exec.prestart', ''):
                      used.add(v.path)
         lst = Volume.list()
         lst = [ v for v in lst if v.path not in used ]

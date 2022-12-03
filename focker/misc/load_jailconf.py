@@ -6,24 +6,72 @@
 #
 
 
-from .backup_file import backup_file
 import os
-from ..jailconf import load, \
-    dump, \
-    JailConf
-from ..core.cache import JailConfCache
+import json
 
-def load_jailconf(fname='/etc/jail.conf'):
-    if JailConfCache.is_available():
-        return JailConfCache.conf()
-    elif os.path.exists(fname):
-        conf = load(fname)
+
+def jailconf_dir():
+    from ..core.config import FOCKER_CONFIG
+    return os.path.join(FOCKER_CONFIG.zfs.root_mountpoint, 'jailconf')
+
+
+def _parse_str_values(d):
+    def _inner(v):
+        if v.__class__ == str and v.isnumeric():
+            v = int(v)
+        elif v == 'true':
+            v = True
+        elif v == 'false':
+            v = False
+        return v
+
+    if isinstance(d, dict):
+        return { k: _parse_str_values(v) for k, v in d.items() }
+    elif isinstance(d, list):
+        return [ _inner(v) for v in d ]
     else:
-        conf = JailConf()
+        return _inner(d)
+
+
+def _json_load(f):
+    return _parse_str_values(json.load(f))
+
+
+def _json_dump(entry, f):
+    json.dump(_parse_str_values(entry), f)
+
+
+def load_jailconf():
+    conf = {}
+    dnam = jailconf_dir()
+    for fnam in os.listdir(dnam):
+        if not fnam.endswith('.json'):
+            continue
+        with open(os.path.join(dnam, fnam)) as f:
+            entry = _json_load(f)
+        name, _ = os.path.splitext(fnam)
+        conf[name] = entry
     return conf
 
 
-def save_jailconf(conf, fname='/etc/jail.conf'):
-    backup_file(fname)
-    with open(fname, 'w') as f:
-        dump(conf, f)
+def jailconf_load_jail(*, name):
+    fnam = os.path.join(jailconf_dir(), f'{name}.json')
+    with open(fnam) as f:
+        return _json_load(f)
+
+
+def jailconf_jail_exists(*, name):
+    fnam = os.path.join(jailconf_dir(), f'{name}.json')
+    return os.path.exists(fnam)
+
+
+def jailconf_add_jail(*, name, entry):
+    fnam = os.path.join(jailconf_dir(), f'{name}.json')
+    with open(fnam + '.tmp', 'w') as f:
+        _json_dump(entry, f)
+    os.rename(fnam + '.tmp', fnam)
+
+
+def jailconf_remove_jail(*, name):
+    fnam = os.path.join(jailconf_dir(), f'{name}.json')
+    os.unlink(fnam)

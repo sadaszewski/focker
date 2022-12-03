@@ -9,9 +9,7 @@
 OSJailSpec = 'OSJailSpec'
 import shlex
 import os
-from ..misc import load_jailconf, \
-    save_jailconf
-from ..jailconf import JailBlock
+from ..misc.load_jailconf import *
 from .osjail.osjail import OSJail
 from .mount import mount_from_spec
 
@@ -102,18 +100,9 @@ class OSJailSpec:
     def to_dict(self):
         return dict(self.params)
 
-    def to_jail_block(self):
-        print('blk:', self.params)
-        blk = JailBlock.create(self.name, self.params)
-        return blk
-
-    def add(self, fname='/etc/jail.conf') -> OSJail:
-        conf = load_jailconf(fname)
-        conf[self.name] = self.to_jail_block()
-        save_jailconf(conf, fname)
+    def add(self) -> OSJail:
+        jailconf_add_jail(name=self.name, entry=self.params)
         return OSJail.from_name(self.name)
 
-    def remove(self, fname='/etc/jail.conf'):
-        conf = load_jailconf(fname)
-        del conf[self.name]
-        save_jailconf(conf, fname)
+    def remove(self):
+        jailconf_remove_jail(name=self.name)

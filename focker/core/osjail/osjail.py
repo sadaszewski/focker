@@ -9,15 +9,17 @@
 from ..process import focker_subprocess_run, \
     focker_subprocess_check_output, \
     CalledProcessError
-from ...misc import load_jailconf, \
-    save_jailconf, \
-    focker_unlock
+from ...misc import focker_unlock
+from ...misc.load_jailconf import *
 import shlex
 import os
 import json
 from typing import Dict
 import subprocess
 from ..cache import JlsCache
+import tempfile
+from ...jailconf import JailConf, \
+    JailBlock
 
 
 OSJail = 'OSJail'
@@ -33,16 +35,15 @@ class OSJail:
 
     @classmethod
     def from_name(cls, name):
-        conf = load_jailconf()
-        for k, blk in conf.jail_blocks.items():
-            if k == name:
-                return OSJail(init_key=cls._init_key, name=name)
-        raise RuntimeError('OSJail with the given name not found')
+        if not jailconf_jail_exists(name=name):
+            raise RuntimeError('OSJail with the given name not found')
+        return OSJail(init_key=cls._init_key, name=name)
+
 
     @classmethod
     def from_mountpoint(cls, path, raise_exc=True):
         conf = load_jailconf()
-        for k, blk in conf.jail_blocks.items():
+        for k, blk in conf.items():
             if 'path' in blk and blk['path'] == path:
                 return OSJail(init_key=cls._init_key, name=k)
         if raise_exc:
@@ -74,11 +75,40 @@ class OSJail:
             return cls.from_mountpoint(jfs.mountpoint, raise_exc=raise_exc)
         return None
 
-    def start(self):
-        focker_subprocess_run([ 'jail', '-c', self.name ])
+    def params_to_cmdline(self):
+        cmd = []
+        conf = jailconf_load_jail(name=self.name)
+        cmd.append('name=' + self.name)
+        for k, v in conf.items():
+            if isinstance(v, list):
+                if v:
+                    cmd.append(f'{k}={",".join(v)}')
+            elif isinstance(v, bool):
+                if v:
+                    cmd.append(k)
+                else:
+                    cmd.append(f'no{k}')
+            else:
+                cmd.append(f'{k}={v}')
+        return cmd
 
-    def stop(self):
-        focker_subprocess_run([ 'jail', '-r', self.name ])
+    def start(self, **kwargs):
+        cmd = [ 'jail', '-f', '/dev/null', '-c' ]
+        cmd += self.params_to_cmdline()
+        # print('cmd:', cmd)
+        focker_subprocess_run(cmd, **kwargs)
+
+    def stop(self, **kwargs):
+        with tempfile.TemporaryDirectory() as d:
+            os.chmod(d, 0o700)
+            blk = JailBlock.create(self.name, self.conf)
+            jc = JailConf()
+            jc[self.name] = blk
+            with open(os.path.join(d, 'jail_conf.tmp'), 'w') as f:
+                f.write(str(jc))
+            cmd = [ 'jail', '-f', os.path.join(d, 'jail_conf.tmp'), '-r', self.name ]
+            # print('cmd:', cmd)
+            focker_subprocess_run(cmd, **kwargs)
 
     def jexec(self, cmd, wrapper, *args, **kwargs):
         final_cmd = []
@@ -141,8 +171,7 @@ class OSJail:
 
     @property
     def exec_fib(self):
-        conf = load_jailconf()
-        blk = conf[self.name]
+        blk = jailconf_load_jail(name=self.name)
         if 'exec.fib' in blk:
             return blk['exec.fib']
         else:
@@ -151,11 +180,9 @@ class OSJail:
     def remove(self):
         if self.is_running:
             self.stop()
-        conf = load_jailconf()
-        del conf[self.name]
-        save_jailconf(conf)
+        jailconf_remove_jail(name=self.name)
 
     @property
     def conf(self):
-        conf = load_jailconf()
-        return conf[self.name]
+        blk = jailconf_load_jail(name=self.name)
+        return blk

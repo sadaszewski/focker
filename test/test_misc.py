@@ -10,6 +10,7 @@ import pytest
 from argparse import ArgumentParser
 import tempfile
 import os
+import pytest
 
 
 class TestMisc:
@@ -22,9 +23,12 @@ class TestMisc:
             pass
         assert focker_lock.fd is None
 
-    def test02_load_jailconf_missing(self):
-        res = load_jailconf('/this/file/surely/cannot/exist')
-        assert isinstance(res, JailConf)
+    def test02_load_jailconf_missing(self, monkeypatch):
+        from focker.core import FOCKER_CONFIG
+        with monkeypatch.context() as c:
+            c.setattr(FOCKER_CONFIG.zfs, 'root_mountpoint', '/this/directory/surely/cannot/exist')
+            with pytest.raises(FileNotFoundError):
+                res = load_jailconf()
 
     def test03_backup_file_missing(self):
         res = backup_file('/this/file/surely/cannot/exist')

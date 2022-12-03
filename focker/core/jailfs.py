@@ -14,8 +14,7 @@ from .process import focker_subprocess_check_output
 from .misc import ensure_list
 from .osjail import OSJail
 import json
-from ..misc import load_jailconf, \
-    save_jailconf
+from ..misc import load_jailconf
 
 
 JailFs = 'JailFs'
@@ -44,8 +43,8 @@ class JailFs(Dataset):
     def list_unused():
         conf = load_jailconf()
         used = set()
-        for k, v in conf.jail_blocks.items():
-            for jname in ensure_list(v.safe_get('depend', [])):
+        for k, v in conf.items():
+            for jname in v.get('depend', []):
                 if jname not in conf:
                     continue
                 used.add(conf[jname]['path'])

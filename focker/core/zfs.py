@@ -69,6 +69,7 @@ def zfs_init():
     zfs_create(FOCKER_CONFIG.zfs.root_dataset + '/images', dict(canmount='off'), exist_ok=True)
     zfs_create(FOCKER_CONFIG.zfs.root_dataset + '/volumes', dict(canmount='off'), exist_ok=True)
     zfs_create(FOCKER_CONFIG.zfs.root_dataset + '/jails', dict(canmount='off'), exist_ok=True)
+    zfs_create(FOCKER_CONFIG.zfs.root_dataset + '/jailconf', exist_ok=True)
 
 
 def zfs_list(fields=['name'], focker_type='image', zfs_type='filesystem'):
