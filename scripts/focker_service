@@ -28,7 +28,7 @@ _helper() {
 from focker.misc import load_jailconf
 from focker.jailconf import JailConf, \
   JailBlock
-from asyncio.subprocess import DEVNULL
+from asyncio.subprocess import DEVNULL, PIPE
 import asyncio
 import multiprocessing as mp
 import tempfile
@@ -37,17 +37,13 @@ import os
 async def task(name, entry):
   print(f'${STARTING} {name} ({entry.get("host.hostname")}) ... ')
   try:
-    with tempfile.TemporaryDirectory() as d:
-      os.chmod(d, 0o700)
-      blk = JailBlock.create(name, entry)
-      jc = JailConf()
-      jc[name] = blk
-      with open(os.path.join(d, 'jail_conf.tmp'), 'w') as f:
-          f.write(str(jc))
-      cmd = [ 'jail', '-f', os.path.join(d, 'jail_conf.tmp'), '${SWITCH}', name ]
-      proc = await asyncio.create_subprocess_exec(cmd[0], *cmd[1:], stdout=DEVNULL, stderr=DEVNULL)
-      await proc.communicate()
-      print(f'${STARTED}: {name} ({entry.get("host.hostname")})')
+    blk = JailBlock.create(name, entry)
+    jc = JailConf()
+    jc[name] = blk
+    cmd = [ 'jail', '-f', '-', '${SWITCH}', name ]
+    proc = await asyncio.create_subprocess_exec(cmd[0], *cmd[1:], stdout=DEVNULL, stderr=DEVNULL, stdin=PIPE)
+    await proc.communicate(input=str(jc).encode('utf-8'))
+    print(f'${STARTED}: {name} ({entry.get("host.hostname")})')
   except Exception as e:
     print(f'${START} failed: {name} ({entry.get("host.hostname")}) - {e}')
 
