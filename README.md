@@ -7,7 +7,7 @@
 - focker bootstrap filesystem to create the new necessary filesystem
 - (/focker/jailconf). Use scripts/migrate_jailconf.py to migrate your
 - jail configs to the new location. Furthermore, you need to place and
-- enable scripts/focker_servicein /usr/local/etc/rc.d/.
+- enable scripts/focker_service in /usr/local/etc/rc.d/.
 ```
 
 ________________
