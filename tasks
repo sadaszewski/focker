@@ -1,0 +1,3 @@
+{"type": "ADD", "timestamp": "2022-12-04T13:31:24.621049", "description": "Use full sha256 for dataset names, trim for display only", "taskId": 1}
+{"type": "ADD", "timestamp": "2022-12-04T13:32:22.408439", "description": "Dataset list should take care of caching the necessary ZFS attributes", "taskId": 2}
+{"type": "ADD", "timestamp": "2022-12-04T13:32:50.740319", "description": "OSJail should take care of caching its jailconf when first needed", "taskId": 3}
