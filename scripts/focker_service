@@ -65,7 +65,8 @@ while True:
     queue = queue[end:]
     for name, entry in batch:
       loop.create_task(task(name, entry))
-  loop.run_until_complete(asyncio.sleep(0.2))
+  loop.run_until_complete(asyncio.wait(asyncio.all_tasks(loop),
+    return_when=asyncio.FIRST_COMPLETED))
 
 print('Focker jails ${START_L} complete.')
 
