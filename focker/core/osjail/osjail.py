@@ -93,22 +93,20 @@ class OSJail:
         return cmd
 
     def start(self, **kwargs):
-        cmd = [ 'jail', '-f', '/dev/null', '-c' ]
-        cmd += self.params_to_cmdline()
+        blk = JailBlock.create(self.name, self.conf)
+        jc = JailConf()
+        jc[self.name] = blk
+        cmd = [ 'jail', '-f', '-', '-c', self.name ]
         # print('cmd:', cmd)
-        focker_subprocess_run(cmd, **kwargs)
+        focker_subprocess_run(cmd, input=str(jc).encode('utf-8'), **kwargs)
 
     def stop(self, **kwargs):
-        with tempfile.TemporaryDirectory() as d:
-            os.chmod(d, 0o700)
-            blk = JailBlock.create(self.name, self.conf)
-            jc = JailConf()
-            jc[self.name] = blk
-            with open(os.path.join(d, 'jail_conf.tmp'), 'w') as f:
-                f.write(str(jc))
-            cmd = [ 'jail', '-f', os.path.join(d, 'jail_conf.tmp'), '-r', self.name ]
-            # print('cmd:', cmd)
-            focker_subprocess_run(cmd, **kwargs)
+        blk = JailBlock.create(self.name, self.conf)
+        jc = JailConf()
+        jc[self.name] = blk
+        cmd = [ 'jail', '-f', '-', '-r', self.name ]
+        # print('cmd:', cmd)
+        focker_subprocess_run(cmd, input=str(jc).encode('utf-8'), **kwargs)
 
     def jexec(self, cmd, wrapper, *args, **kwargs):
         final_cmd = []
