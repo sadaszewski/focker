@@ -110,7 +110,7 @@ class JailPlugin(Plugin):
                         )
                     ),
                     restart=dict(
-                        aliases=['re', 'r'],
+                        aliases=['re'],
                         func=cmd_jail_restart,
                         jail_reference=dict(
                             positional=True,

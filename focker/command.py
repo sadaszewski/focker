@@ -16,6 +16,7 @@ from .core import FOCKER_CONFIG
 def materialize_parsers(defs, subp, overrides, hook_name=[]):
     for k, v in defs.items():
         o = overrides.get(k, {})
+        # print(k, v.get('aliases', []))
         parser = subp.add_parser(k, aliases=v.get('aliases', []))
         if ('subparsers' in v) + ('func' in v) != 1:
             raise KeyError('Exactly one of "subparsers" or "func" must be specified')
@@ -51,7 +52,7 @@ def create_parser():
         # print('Extending parsers with:', p.extend_parsers())
         provided_parsers = merge_dicts(provided_parsers, p.extend_parsers())
 
-    # print('provided_parsers:', provided_parsers)
+    # print('provided_parsers:', list(provided_parsers.keys()))
 
     materialize_parsers(provided_parsers, subp, FOCKER_CONFIG.command.overrides)
 

@@ -7,6 +7,7 @@
 
 
 import importlib
+import importlib.metadata
 import pkgutil
 from .core import FOCKER_CONFIG
 from .misc import merge_dicts
@@ -41,10 +42,10 @@ class PluginManager:
 
     def load(self):
         self.discovered_modules = {
-            name: importlib.import_module(name)
-            for finder, name, ispkg
-            in pkgutil.iter_modules()
-            if name == 'focker' or name.startswith('focker_')
+            d.name: importlib.import_module(d.name)
+            for d
+            in importlib.metadata.distributions()
+            if d.name == 'focker' or d.name.startswith('focker_')
         }
         for m in self.discovered_modules.values():
             for k, v in m.__dict__.items():
