@@ -22,6 +22,7 @@ JailFs = 'JailFs'
 class JailFs(Dataset):
     _meta_focker_type = 'jail'
     _meta_cloneable_from = Image
+    _meta_can_snapshot = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

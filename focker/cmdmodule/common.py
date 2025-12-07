@@ -11,6 +11,7 @@ import argparse
 from ..core import JlsCache, \
     ZfsPropertyCache, \
     JailConfCache
+from functools import partial
 
 
 DISPLAY_FIELDS = ['name', 'tags', 'sha256', 'mountpoint', 'is_protected',
@@ -25,7 +26,7 @@ def standard_fobject_commands(fobject_class,
     default_display_fields=DEFAULT_DISPLAY_FIELDS,
     **kwargs):
 
-    return dict(
+    res = dict(
         list=dict(
             aliases=['lst', 'ls', 'l'],
             func=kwargs.get('list', lambda args: cmd_taggable_list(args, fobject_class)),
@@ -134,6 +135,80 @@ def standard_fobject_commands(fobject_class,
         )
     )
 
+    if fobject_class._meta_can_snapshot:
+        res.update(dict(
+            snapshot_info = dict(
+                aliases=['si'],
+                func=partial(cmd_fobject_snapshot_info, fobject_class=fobject_class),
+                reference=dict(
+                    positional=True,
+                    type=str
+                )
+            ),
+
+            snapshot = dict(
+                aliases=['ss'],
+                func=partial(cmd_fobject_snapshot, fobject_class=fobject_class),
+                reference=dict(
+                    positional=True,
+                    type=str
+                ),
+                snapshot_name=dict(
+                    positional=True,
+                    type=str
+                )
+            ),
+
+            rollback = dict(
+                aliases=['rb'],
+                func=partial(cmd_fobject_rollback, fobject_class=fobject_class),
+                reference=dict(
+                    positional=True,
+                    type=str
+                ),
+                snapshot_name=dict(
+                    positional=True,
+                    type=str
+                ),
+                force=dict(
+                    aliases=['f'],
+                    action='store_true'
+                )
+            ),
+
+            snapshot_destroy = dict(
+                aliases=['sd'],
+                func=partial(cmd_fobject_snapshot_destroy, fobject_class=fobject_class),
+                reference=dict(
+                    positional=True,
+                    type=str
+                ),
+                snapshot_name=dict(
+                    positional=True,
+                    type=str
+                )
+            ),
+
+            rollback_destroy = dict(
+                aliases=['rbd'],
+                func=partial(cmd_fobject_rollback_destroy, fobject_class=fobject_class),
+                reference=dict(
+                    positional=True,
+                    type=str
+                ),
+                snapshot_name=dict(
+                    positional=True,
+                    type=str
+                ),
+                force=dict(
+                    aliases=['f'],
+                    action='store_true'
+                )
+            )
+        ))
+
+    return res
+
 
 def cmd_taggable_list(args, tcls):
     with ZfsPropertyCache(), \
@@ -213,3 +288,52 @@ def cmd_fobject_protect(args, fobject_class):
 def cmd_fobject_unprotect(args, fobject_class):
     o = fobject_class.from_any_id(args.reference)
     o.unprotect()
+
+
+def cmd_fobject_snapshot_info(args, fobject_class):
+    obj = fobject_class.from_any_id(args.reference)
+    snapshots = obj.list_snapshots()
+    if len(snapshots) == 0:
+        print("No snapshots.")
+        return
+    res = [ dict(tags=", ".join(obj.tags), name=f"{obj.name}@{s}") for s in snapshots ]
+    print(tabulate(res, headers=dict(name="Name", tags="Tags")))
+
+
+def cmd_fobject_snapshot(args, fobject_class):
+    obj = fobject_class.from_any_id(args.reference)
+    obj.snapshot(args.snapshot_name)
+    print(f"Snapshot made: {obj.name}@{args.snapshot_name}")
+
+
+def cmd_fobject_rollback(args, fobject_class):
+    obj = fobject_class.from_any_id(args.reference)
+    snapshots = obj.list_snapshots()
+    if len(snapshots) == 0:
+        print("No snapshots to roll back.")
+        return
+    if args.snapshot_name not in snapshots:
+        print("Snapshot name not found.")
+        return
+    if args.force:
+        print("Using -r: more recent snapshots will be destroyed")
+    obj.rollback(args.snapshot_name, force=args.force)
+    print(f"Rolled back snapshot: {obj.name}@{args.snapshot_name}")
+
+
+def cmd_fobject_snapshot_destroy(args, fobject_class):
+    obj = fobject_class.from_any_id(args.reference)
+    snapshots = obj.list_snapshots()
+    if len(snapshots) == 0:
+        print("No snapshots to destroy.")
+        return
+    if args.snapshot_name not in snapshots:
+        print("Snapshot name not found.")
+        return
+    obj.snapshot_destroy(args.snapshot_name)
+    print(f"Snapshot destroyed: {obj.name}@{args.snapshot_name}")
+
+
+def cmd_fobject_rollback_destroy(args, fobject_class):
+    cmd_fobject_rollback(args, fobject_class)
+    cmd_fobject_snapshot_destroy(args, fobject_class)

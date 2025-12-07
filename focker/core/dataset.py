@@ -8,6 +8,7 @@
 
 from .zfs import *
 from .cache import ZfsPropertyCache
+from operator import itemgetter, attrgetter, methodcaller
 
 
 Dataset = 'Dataset'
@@ -19,6 +20,7 @@ class Dataset:
     _meta_zfs_type = 'filesystem'
     _meta_cloneable_from = None
     _meta_can_finalize = True
+    _meta_can_snapshot = False
     _init_key = object()
 
     def __init__(self, **kwargs):
@@ -301,5 +303,37 @@ class Dataset:
 
     def __exit__(self, *excinfo):
         self.destroy()
+
+    def list_snapshots(self):
+        if not self._meta_can_snapshot:
+            raise NotImplementedError
+        _= zfs_list(focker_type=self._meta_focker_type, zfs_type='snapshot')
+        _= map(itemgetter(0), _)
+        _= filter(methodcaller("startswith", f"{self.name}@"), _)
+        _= map(methodcaller("split", "@"), _)
+        _= map(itemgetter(1), _)
+        snapshots = list(_)
+        return snapshots
+    
+    def snapshot(self, snapshot_name: str):
+        snapshots = self.list_snapshots()
+        if snapshot_name in snapshots:
+            raise ValueError("Snapshot with that name already exists")
+        zfs_snapshot(f"{self.name}@{snapshot_name}")
+        return f"{self.name}@{snapshot_name}"
+    
+    def rollback(self, snapshot_name: str, force: bool = False):
+        snapshots = self.list_snapshots()
+        if snapshot_name not in snapshots:
+            raise ValueError("Snapshot name not found.")
+        zfs_rollback(f"{self.name}@{snapshot_name}", force=force)
+        return f"{self.name}@{snapshot_name}"
+
+    def snapshot_destroy(self, snapshot_name: str):
+        snapshots = self.list_snapshots()
+        if snapshot_name not in snapshots:
+            raise ValueError("Snapshot name not found.")
+        zfs_destroy(f"{self.name}@{snapshot_name}")
+        return f"{self.name}@{snapshot_name}"
 
 Dataset._meta_class = Dataset

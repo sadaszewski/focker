@@ -17,7 +17,7 @@ from ...core.fenv import fenv_from_arg, \
     fenv_from_spec
 from ...core import OSJail
 import os
-from ...core import Volume
+from ...core import Volume, JailFs
 
 
 class ComposePlugin(Plugin):
@@ -137,6 +137,11 @@ def cmd_compose_snapshot(args):
         res = v.snapshot(args.snapshot_name)
         print(f"Volume snapshot created: {res}")
 
+    for tag in spec.get('jails', {}).keys():
+        jfs = JailFs.from_tag(tag)
+        res = jfs.snapshot(args.snapshot_name)
+        print(f"JailFs snapshot created: {res}")
+
 
 def cmd_compose_rollback_destroy(args):
     with open(args.spec_filename, 'r') as f:
@@ -146,9 +151,15 @@ def cmd_compose_rollback_destroy(args):
 
     for tag in spec.get('volumes', {}).keys():
         v = Volume.from_tag(tag)
-        v.rollback(args.snapshot_name)
+        v.rollback(args.snapshot_name, force=args.force)
         res = v.snapshot_destroy(args.snapshot_name)
         print(f"Volume snapshot rolled back and destroyed: {res}")
+
+    for tag in spec.get('jails', {}).keys():
+        jfs = JailFs.from_tag(tag)
+        jfs.rollback(args.snapshot_name, force=args.force)
+        res = jfs.snapshot_destroy(args.snapshot_name)
+        print("JailFs snapshot rolled back and destroyed: {res}")
 
 
 def cmd_compose_stop(args):
