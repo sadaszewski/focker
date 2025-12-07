@@ -37,6 +37,9 @@ import os
 async def task(name, entry):
   print(f'${STARTING} {name} ({entry.get("host.hostname")}) ... ')
   try:
+    entry = dict(entry)
+    if 'depend' in entry:
+      del entry['depend']
     blk = JailBlock.create(name, entry)
     jc = JailConf()
     jc[name] = blk
