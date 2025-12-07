@@ -18,6 +18,7 @@ from ...core.fenv import fenv_from_arg, \
 from ...core import OSJail
 import os
 from ...core import Volume, JailFs
+from pathlib import Path
 
 
 class ComposePlugin(Plugin):
@@ -93,6 +94,30 @@ class ComposePlugin(Plugin):
             )
         )
 
+
+def deep_update(d_1: dict, d_2: dict):
+    for k, v in d_2.items():
+        if k in d_1 and isinstance(d_1[k], dict):
+            deep_update(d_1[k], v)
+        else:
+            d_1[k] = v
+
+
+def load_spec(filename: str):
+    with open(filename, 'r') as f:
+        spec = yaml.safe_load(f)
+
+    if 'base' in spec:
+        base = Path(spec['base'])
+        if not base.is_absolute():
+            base = Path(filename).parent / base
+        base = base.resolve()
+        base = load_spec(base)
+        deep_update(base, spec)
+        spec = base
+
+    return spec
+
     
 def stop_jails(jail_refs):
     for ref in jail_refs:
@@ -113,8 +138,7 @@ def start_jails(jail_refs):
 
 
 def cmd_compose_build(args):
-    with open(args.spec_filename, 'r') as f:
-        spec = yaml.safe_load(f)
+    spec = load_spec(args.spec_filename)
 
     spec_dir, _ = os.path.split(args.spec_filename)
 
@@ -131,8 +155,7 @@ def cmd_compose_build(args):
 
 
 def cmd_compose_snapshot(args):
-    with open(args.spec_filename, 'r') as f:
-        spec = yaml.safe_load(f)
+    spec = load_spec(args.spec_filename)
 
     stop_jails(spec.get('jails', {}).keys())
 
@@ -144,8 +167,7 @@ def cmd_compose_snapshot(args):
 
 
 def cmd_compose_rollback_destroy(args):
-    with open(args.spec_filename, 'r') as f:
-        spec = yaml.safe_load(f)
+    spec = load_spec(args.spec_filename)
 
     stop_jails(spec.get('jails', {}).keys())
 
@@ -158,8 +180,7 @@ def cmd_compose_rollback_destroy(args):
 
 
 def cmd_compose_stop(args):
-    with open(args.spec_filename, 'r') as f:
-        spec = yaml.safe_load(f)
+    spec = load_spec(args.spec_filename)
 
     if len(spec.get('jails', {})) == 0:
         print("No jails to stop.")
@@ -170,8 +191,7 @@ def cmd_compose_stop(args):
 
 
 def cmd_compose_start(args):
-    with open(args.spec_filename, 'r') as f:
-        spec = yaml.safe_load(f)
+    spec = load_spec(args.spec_filename)
 
     if len(spec.get('jails', {})) == 0:
         print("No jails to start.")
