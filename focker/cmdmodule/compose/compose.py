@@ -67,6 +67,10 @@ class ComposePlugin(Plugin):
                         snapshot_name=dict(
                             positional=True,
                             type=str
+                        ),
+                        force=dict(
+                            aliases=['f'],
+                            action='store_true'
                         )
                     ),
 
@@ -132,15 +136,11 @@ def cmd_compose_snapshot(args):
 
     stop_jails(spec.get('jails', {}).keys())
 
-    for tag in spec.get('volumes', {}).keys():
-        v = Volume.from_tag(tag)
-        res = v.snapshot(args.snapshot_name)
-        print(f"Volume snapshot created: {res}")
-
-    for tag in spec.get('jails', {}).keys():
-        jfs = JailFs.from_tag(tag)
-        res = jfs.snapshot(args.snapshot_name)
-        print(f"JailFs snapshot created: {res}")
+    for key, cls in [('volumes', Volume), ('jails', JailFs)]:
+        for tag in spec.get(key, {}).keys():
+            obj = cls.from_tag(tag)
+            res = obj.snapshot(args.snapshot_name)
+            print(f"{cls.__name__} snapshot created: {res}")
 
 
 def cmd_compose_rollback_destroy(args):
@@ -149,17 +149,12 @@ def cmd_compose_rollback_destroy(args):
 
     stop_jails(spec.get('jails', {}).keys())
 
-    for tag in spec.get('volumes', {}).keys():
-        v = Volume.from_tag(tag)
-        v.rollback(args.snapshot_name, force=args.force)
-        res = v.snapshot_destroy(args.snapshot_name)
-        print(f"Volume snapshot rolled back and destroyed: {res}")
-
-    for tag in spec.get('jails', {}).keys():
-        jfs = JailFs.from_tag(tag)
-        jfs.rollback(args.snapshot_name, force=args.force)
-        res = jfs.snapshot_destroy(args.snapshot_name)
-        print("JailFs snapshot rolled back and destroyed: {res}")
+    for key, cls in [('volumes', Volume), ('jails', JailFs)]:
+        for tag in spec.get(key, {}).keys():
+            obj = cls.from_tag(tag)
+            obj.rollback(args.snapshot_name, force=args.force)
+            res = obj.snapshot_destroy(args.snapshot_name)
+            print(f"{cls.__name__} snapshot rolled back and destroyed: {res}")
 
 
 def cmd_compose_stop(args):
