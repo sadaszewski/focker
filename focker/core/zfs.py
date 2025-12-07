@@ -197,8 +197,11 @@ def zfs_snapshot(name):
     zfs_run(['zfs', 'snapshot', name])
 
 
-def zfs_rollback(name):
-    zfs_run(['zfs', 'rollback', name])
+def zfs_rollback(name, force=False):
+    if force:
+        zfs_run(['zfs', 'rollback', '-r', name])
+    else:
+        zfs_run(['zfs', 'rollback', name])
 
 
 def zfs_properties_cache(focker_type: str = None):

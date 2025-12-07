@@ -38,6 +38,10 @@ class VolumePlugin(Plugin):
                         reference=dict(
                             positional=True,
                             type=str
+                        ),
+                        snapshot_name=dict(
+                            positional=True,
+                            type=str
                         )
                     ),
 
@@ -47,6 +51,44 @@ class VolumePlugin(Plugin):
                         reference=dict(
                             positional=True,
                             type=str
+                        ),
+                        snapshot_name=dict(
+                            positional=True,
+                            type=str
+                        ),
+                        force=dict(
+                            aliases=['f'],
+                            action='store_true'
+                        )
+                    ),
+
+                    snapshot_destroy = dict(
+                        aliases=['sd'],
+                        func=cmd_volume_snapshot_destroy,
+                        reference=dict(
+                            positional=True,
+                            type=str
+                        ),
+                        snapshot_name=dict(
+                            positional=True,
+                            type=str
+                        )
+                    ),
+
+                    rollback_destroy = dict(
+                        aliases=['rbd'],
+                        func=cmd_volume_rollback_destroy,
+                        reference=dict(
+                            positional=True,
+                            type=str
+                        ),
+                        snapshot_name=dict(
+                            positional=True,
+                            type=str
+                        ),
+                        force=dict(
+                            aliases=['f'],
+                            action='store_true'
                         )
                     )
                 )
@@ -56,25 +98,48 @@ class VolumePlugin(Plugin):
 
 def cmd_volume_snapshot_info(args):
     vol = Volume.from_any_id(args.reference)
-    _, max_id = vol.list_snapshots()
-    if max_id == 0:
+    snapshots = vol.list_snapshots()
+    if len(snapshots) == 0:
         print("No snapshots.")
         return
-    res = [ dict(tags=", ".join(vol.tags), name=f"{vol.name}@{i}") for i in range(1, max_id + 1) ]
+    res = [ dict(tags=", ".join(vol.tags), name=f"{vol.name}@{s}") for s in snapshots ]
     print(tabulate(res, headers=dict(name="Name", tags="Tags")))
 
 
 def cmd_volume_snapshot(args):
     vol = Volume.from_any_id(args.reference)
-    res = vol.snapshot()
-    print(f"Snapshot made: {res}")
+    vol.snapshot(args.snapshot_name)
+    print(f"Snapshot made: {vol.name}@{args.snapshot_name}")
 
 
 def cmd_volume_rollback(args):
     vol = Volume.from_any_id(args.reference)
-    _, max_id = vol.list_snapshots()
-    if max_id == 0:
-        print("No snapshots to roll back")
+    snapshots = vol.list_snapshots()
+    if len(snapshots) == 0:
+        print("No snapshots to roll back.")
         return
-    vol.rollback()
-    print(f"Rolled back and destroyed snapshot: {vol.name}@{max_id}")
+    if args.snapshot_name not in snapshots:
+        print("Snapshot name not found.")
+        return
+    if args.force:
+        print("Using -r: more recent snapshots will be destroyed")
+    vol.rollback(args.snapshot_name, force=args.force)
+    print(f"Rolled back snapshot: {vol.name}@{args.snapshot_name}")
+
+
+def cmd_volume_snapshot_destroy(args):
+    vol = Volume.from_any_id(args.reference)
+    snapshots = vol.list_snapshots()
+    if len(snapshots) == 0:
+        print("No snapshots to destroy.")
+        return
+    if args.snapshot_name not in snapshots:
+        print("Snapshot name not found.")
+        return
+    vol.snapshot_destroy(args.snapshot_name)
+    print(f"Snapshot destroyed: {vol.name}@{args.snapshot_name}")
+
+
+def cmd_volume_rollback_destroy(args):
+    cmd_volume_rollback(args)
+    cmd_volume_snapshot_destroy(args)
