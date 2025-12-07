@@ -116,6 +116,16 @@ def load_spec(filename: str):
         deep_update(base, spec)
         spec = base
 
+    if 'prefix' in spec:
+        prefix = spec['prefix']
+        spec['volumes'] = { f'{prefix}{k}': v for k, v in spec.get('volumes', {}).items() }
+        spec['jails'] = { f'{prefix}{k}': v for k, v in spec.get('jails', {}).items() }
+        for jspec in spec.get('jails', {}).values():
+            for m in jspec.get('mounts', {}):
+                if not m[0].startswith('/'):
+                    m[0] = f"{prefix}{m[0]}"
+            jspec['depend'] = [ f"{prefix}{d}" for d in jspec.get('depend', []) ]
+
     return spec
 
     
