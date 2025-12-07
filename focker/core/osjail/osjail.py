@@ -93,19 +93,17 @@ class OSJail:
         return cmd
 
     def start(self, **kwargs):
-        blk = JailBlock.create(self.name, self.conf)
         jc = JailConf()
-        jc[self.name] = blk
+        for k, v in load_jailconf().items():
+            jc[k] = JailBlock.create(k, v)
         cmd = [ 'jail', '-f', '-', '-c', self.name ]
-        # print('cmd:', cmd)
         focker_subprocess_run(cmd, input=str(jc).encode('utf-8'), **kwargs)
 
     def stop(self, **kwargs):
-        blk = JailBlock.create(self.name, self.conf)
         jc = JailConf()
-        jc[self.name] = blk
+        for k, v in load_jailconf().items():
+            jc[k] = JailBlock.create(k, v)
         cmd = [ 'jail', '-f', '-', '-r', self.name ]
-        # print('cmd:', cmd)
         focker_subprocess_run(cmd, input=str(jc).encode('utf-8'), **kwargs)
 
     def jexec(self, cmd, wrapper, *args, **kwargs):
