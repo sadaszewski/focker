@@ -11,6 +11,7 @@ import importlib.metadata
 import pkgutil
 from .core import FOCKER_CONFIG
 from .misc import merge_dicts
+from functools import reduce
 
 
 class Plugin:
@@ -37,16 +38,25 @@ class Plugin:
 
 class PluginManager:
     def __init__(self):
+        self.discovered_distributions = {}
         self.discovered_modules = {}
         self.discovered_plugins = []
 
     def load(self):
-        self.discovered_modules = {
+        self.discovered_distributions = {
             d.name: importlib.import_module(d.name)
-            for d
-            in importlib.metadata.distributions()
+            for d in importlib.metadata.distributions()
             if d.name == 'focker' or d.name.startswith('focker_')
         }
+
+        self.discovered_modules = dict(reduce(list.__add__, [
+            [
+                (p.name, importlib.import_module(p.name))
+                for p in pkgutil.walk_packages(d.__path__, prefix=f"{d.__name__}.", onerror=lambda _: None)
+            ] for d in self.discovered_distributions.values()
+        ]))
+        self.discovered_modules.update(self.discovered_distributions)
+
         for m in self.discovered_modules.values():
             for k, v in m.__dict__.items():
                 if k.endswith('Plugin') and issubclass(v, Plugin):
