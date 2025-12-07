@@ -121,3 +121,44 @@ class DatasetTestBase:
             zfs_set_props(ds.name, { 'focker:protect': 'on' })
             ds.unprotect()
             assert zfs_get_property(ds.name, 'focker:protect') == '-'
+
+    def test11_list_snapshots(self):
+        if not self._meta_class._meta_can_snapshot:
+            pytest.skip()
+        with ExitStack() as stack:
+            ds = self._meta_class.create()
+            stack.callback(ds.destroy)
+            assert len(ds.list_snapshots()) == 0
+            ds.snapshot("test")
+            assert "test" in ds.list_snapshots()
+            ds.snapshot_destroy("test")
+            assert len(ds.list_snapshots()) == 0
+
+    def test12_snapshot(self):
+        if not self._meta_class._meta_can_snapshot:
+            pytest.skip()
+        with ExitStack() as stack:
+            ds = self._meta_class.create()
+            stack.callback(ds.destroy)
+            ds.snapshot("test")
+            with pytest.raises(ValueError):
+                ds.snapshot("test")
+
+    def test13_rollback(self):
+         if not self._meta_class._meta_can_snapshot:
+            pytest.skip()
+         with ExitStack() as stack:
+            ds = self._meta_class.create()
+            stack.callback(ds.destroy)
+            with pytest.raises(ValueError):
+                ds.rollback("test")
+
+    def test14_snapshot_destroy(self):
+        if not self._meta_class._meta_can_snapshot:
+            pytest.skip()
+        with ExitStack() as stack:
+            ds = self._meta_class.create()
+            stack.callback(ds.destroy)
+            with pytest.raises(ValueError):
+                ds.snapshot_destroy("test")
+
