@@ -19,6 +19,7 @@ from ...core import OSJail
 import os
 from ...core import Volume, JailFs
 from pathlib import Path
+import json
 
 
 class ComposePlugin(Plugin):
@@ -28,6 +29,19 @@ class ComposePlugin(Plugin):
             compose=dict(
                 aliases=['comp', 'cmp', 'c'],
                 subparsers=dict(
+                    info=dict(
+                        aliases=['i'],
+                        func=cmd_compose_info,
+                        spec_filename=dict(
+                            positional=True,
+                            type=str
+                        ),
+                        raw=dict(
+                            aliases=['r'],
+                            action='store_true'
+                        )
+                    ),
+
                     build=dict(
                         aliases=['bld', 'b'],
                         func=cmd_compose_build,
@@ -121,9 +135,10 @@ def load_spec(filename: str):
         spec['volumes'] = { f'{prefix}{k}': v for k, v in spec.get('volumes', {}).items() }
         spec['jails'] = { f'{prefix}{k}': v for k, v in spec.get('jails', {}).items() }
         for jspec in spec.get('jails', {}).values():
-            for m in jspec.get('mounts', {}):
-                if not m[0].startswith('/'):
-                    m[0] = f"{prefix}{m[0]}"
+            jspec['mounts'] = {
+                (k if k.startswith("/") else f"{prefix}{k}"): v
+                    for k, v in jspec.get('mounts', {}).items()
+            }
             jspec['depend'] = [ f"{prefix}{d}" for d in jspec.get('depend', []) ]
 
     return spec
@@ -145,6 +160,15 @@ def start_jails(jail_refs):
             continue
         if not j.is_running:
             j.start()
+
+
+def cmd_compose_info(args):
+    if args.raw:
+        with open(args.spec_filename, 'r') as f:
+            spec = yaml.safe_load(f)
+    else:
+        spec = load_spec(args.spec_filename)
+    print(json.dumps(spec, indent=4))
 
 
 def cmd_compose_build(args):
