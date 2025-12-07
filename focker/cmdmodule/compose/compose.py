@@ -17,6 +17,7 @@ from ...core.fenv import fenv_from_arg, \
     fenv_from_spec
 from ...core import OSJail
 import os
+from ...core import Volume
 
 
 class ComposePlugin(Plugin):
@@ -41,7 +42,49 @@ class ComposePlugin(Plugin):
                             type=str,
                             nargs='+'
                         )
-                    )
+                    ),
+
+                    snapshot=dict(
+                        aliases=['ss'],
+                        func=cmd_compose_snapshot,
+                        spec_filename=dict(
+                            positional=True,
+                            type=str
+                        ),
+                        snapshot_name=dict(
+                            positional=True,
+                            type=str
+                        )
+                    ),
+
+                    rollback_destroy=dict(
+                        aliases=['rbd'],
+                        func=cmd_compose_rollback_destroy,
+                        spec_filename=dict(
+                            positional=True,
+                            type=str
+                        ),
+                        snapshot_name=dict(
+                            positional=True,
+                            type=str
+                        )
+                    ),
+
+                    stop=dict(
+                        func=cmd_compose_stop,
+                        spec_filename=dict(
+                            positional=True,
+                            type=str
+                        )
+                    ),
+
+                    start=dict(
+                        func=cmd_compose_start,
+                        spec_filename=dict(
+                            positional=True,
+                            type=str
+                        )
+                    ),
                 )
             )
         )
@@ -54,7 +97,16 @@ def stop_jails(jail_refs):
             continue
         if j.is_running:
             j.stop()
-    
+
+
+def start_jails(jail_refs):
+    for ref in jail_refs:
+        j = OSJail.from_any_id(ref, raise_exc=False)
+        if j is None:
+            continue
+        if not j.is_running:
+            j.start()
+
 
 def cmd_compose_build(args):
     with open(args.spec_filename, 'r') as f:
@@ -72,3 +124,52 @@ def cmd_compose_build(args):
     if 'jails' in spec:
         build_jails(spec['jails'], fenv=fenv)
     exec_postbuild(spec.get('exec.postbuild', []), spec_dir, fenv=fenv)
+
+
+def cmd_compose_snapshot(args):
+    with open(args.spec_filename, 'r') as f:
+        spec = yaml.safe_load(f)
+
+    stop_jails(spec.get('jails', {}).keys())
+
+    for tag in spec.get('volumes', {}).keys():
+        v = Volume.from_tag(tag)
+        res = v.snapshot(args.snapshot_name)
+        print(f"Volume snapshot created: {res}")
+
+
+def cmd_compose_rollback_destroy(args):
+    with open(args.spec_filename, 'r') as f:
+        spec = yaml.safe_load(f)
+
+    stop_jails(spec.get('jails', {}).keys())
+
+    for tag in spec.get('volumes', {}).keys():
+        v = Volume.from_tag(tag)
+        v.rollback(args.snapshot_name)
+        res = v.snapshot_destroy(args.snapshot_name)
+        print(f"Volume snapshot rolled back and destroyed: {res}")
+
+
+def cmd_compose_stop(args):
+    with open(args.spec_filename, 'r') as f:
+        spec = yaml.safe_load(f)
+
+    if len(spec.get('jails', {})) == 0:
+        print("No jails to stop.")
+        return
+
+    stop_jails(spec.get('jails', {}).keys())
+    print("Jails stopped.")
+
+
+def cmd_compose_start(args):
+    with open(args.spec_filename, 'r') as f:
+        spec = yaml.safe_load(f)
+
+    if len(spec.get('jails', {})) == 0:
+        print("No jails to start.")
+        return
+
+    start_jails(spec.get('jails', {}).keys())
+    print("Jails started.")

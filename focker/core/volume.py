@@ -49,12 +49,14 @@ class Volume(Dataset):
         if snapshot_name not in snapshots:
             raise ValueError("Snapshot name not found.")
         zfs_rollback(f"{self.name}@{snapshot_name}", force=force)
+        return f"{self.name}@{snapshot_name}"
 
     def snapshot_destroy(self, snapshot_name: str):
         snapshots = self.list_snapshots()
         if snapshot_name not in snapshots:
             raise ValueError("Snapshot name not found.")
         zfs_destroy(f"{self.name}@{snapshot_name}")
+        return f"{self.name}@{snapshot_name}"
         
 
 Volume._meta_class = Volume
