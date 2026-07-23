@@ -6,4 +6,7 @@
 #
 
 
-from .cmdmodule import *
+import platform
+
+if platform.system().lower() == "freebsd":
+    from .cmdmodule import *
