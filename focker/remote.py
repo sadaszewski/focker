@@ -13,7 +13,7 @@ def main():
         log_level = os.environ["FOCKER_REMOTE_LOG_LEVEL"]
         if log_level.upper() in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
             log_level = getattr(logging, log_level.upper())
-            logging.basicConfig(level=logging.DEBUG)
+            logging.basicConfig(level=log_level)
     logger = logging.getLogger("focker.remote")
 
     if "FOCKER_REMOTE_HOST" not in os.environ:
