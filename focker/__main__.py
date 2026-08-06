@@ -6,7 +6,7 @@
 #
 
 
-from .command import create_parser
+from .command.create_parser import create_parser
 from .plugin import PLUGIN_MANAGER
 from .misc import focker_lock
 import sys

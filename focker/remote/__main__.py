@@ -6,7 +6,7 @@ import getpass
 import sys
 import shlex
 import logging
-from ..materialize_parsers import materialize_parsers
+from ..command import materialize_parsers, CommandConfig
 from . import image, volume, compose
 from ..misc import merge_dicts
 from functools import reduce
@@ -23,7 +23,9 @@ def create_parser():
     parser = ArgumentParser(allow_abbrev=False)
     subp = parser.add_subparsers()
 
-    materialize_parsers(PARSER_DEFS, subp, {})
+    command_config = CommandConfig()
+
+    materialize_parsers(PARSER_DEFS, subp, command_config.overrides)
 
     return parser
 
