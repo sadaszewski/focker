@@ -7,7 +7,6 @@
 
 
 import os
-import fcntl
 from contextlib import ContextDecorator
 
 
@@ -15,6 +14,8 @@ class focker_lock(ContextDecorator):
     fd = None
 
     def __enter__(self):
+        import fcntl
+
         os.makedirs('/var/lock', exist_ok=True)
         if focker_lock.fd is not None:
             raise RuntimeError('focker_lock.fd expected to be None here')
@@ -24,6 +25,8 @@ class focker_lock(ContextDecorator):
         print('Lock acquired.')
 
     def __exit__(self, *_):
+        import fcntl
+
         fcntl.flock(focker_lock.fd, fcntl.LOCK_UN)
         print('Lock released')
         focker_lock.fd.close()
@@ -32,12 +35,16 @@ class focker_lock(ContextDecorator):
 
 class focker_unlock(ContextDecorator):
     def __enter__(self):
+        import fcntl
+
         if focker_lock.fd is None:
             return
         fcntl.flock(focker_lock.fd, fcntl.LOCK_UN)
         print('Lock released temporarily')
 
     def __exit__(self, *_):
+        import fcntl
+        
         if focker_lock.fd is None:
             return
         print('Waiting for /var/lock/focker.lock ...')

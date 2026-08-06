@@ -18,6 +18,7 @@ setup(
     install_requires=[
         "tabulate",
         "pyparsing",
-        "ruamel-yaml"
+        "ruamel-yaml",
+        "paramiko",
     ]
 )
