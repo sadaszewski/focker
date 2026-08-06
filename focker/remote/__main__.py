@@ -48,13 +48,12 @@ def main():
             args.func(args)
             return
 
-    if "-h" in sys.argv[1:] or "--help" in sys.argv[1]:
+    if "-h" in sys.argv[1:] or "--help" in sys.argv[1:]:
         parser.print_help()
-        forward_command()
+        forward_command(setup_client())
         return
 
-    client = setup_client()
-    forward_command(client)
+    forward_command(setup_client())
 
 
 if __name__ == "__main__":
