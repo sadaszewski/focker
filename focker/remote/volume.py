@@ -17,6 +17,7 @@ PARSERS = {
                     type=str,
                 ),
                 local_backup_file=dict(
+                    aliases=["f"],
                     required=False,
                     type=str,
                 ),
@@ -28,6 +29,7 @@ PARSERS = {
                     type=str,
                 ),
                 local_backup_file=dict(
+                    aliases=["f"],
                     required=False,
                     type=str,
                 ),
