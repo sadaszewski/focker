@@ -15,4 +15,4 @@ __pycache__
 /focker.build
 /focker2/focker/jailconf/*.c
 /focker2/focker/jailconf/*.h
-
+/python-env/

@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 import os
-from paramiko import SSHConfig, SSHClient, WarningPolicy, PKey
+from paramiko import SSHConfig, SSHClient, RejectPolicy, PKey, Agent
 import getpass
 import shlex
 import sys
@@ -38,8 +38,13 @@ def setup_client():
     
     port = port or "22"
     username = username or getpass.getuser()
+    agent = Agent()
 
-    if identityfile is not None:
+    if len(agent.get_keys()) > 0:
+        pkey = agent.get_keys()[0]
+        logger.debug("Using PKey from agent...")
+        password = None
+    elif identityfile is not None:
         passphrase = os.environ.get("FOCKER_IDENTITY_FILE_PASSPHRASE").encode() \
             if "FOCKER_IDENTITY_FILE_PASSPHRASE" in os.environ else None
         pkey = PKey.from_path(identityfile, password=passphrase)
@@ -52,7 +57,8 @@ def setup_client():
     logger.debug(f"{hostname=}, {port=}, {username=}, {identityfile=}")
     
     client = SSHClient()
-    client.set_missing_host_key_policy(WarningPolicy())
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(RejectPolicy())
     client.connect(username=username, hostname=hostname, port=int(port), pkey=pkey, password=password)
     logger.debug("SSH connected!")
     return client
