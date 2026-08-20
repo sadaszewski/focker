@@ -8,5 +8,5 @@
 
 import platform
 
-if platform.system().lower() == "freebsd":
+if platform.system().lower().startswith("freebsd"):
     from .cmdmodule import *

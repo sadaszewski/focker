@@ -17,6 +17,7 @@ import os
 from functools import reduce
 import random
 from collections import defaultdict
+import sys
 
 
 def zfs_run(command):
@@ -32,6 +33,8 @@ def zfs_parse_output(command):
 
 
 def zfs_poolname():
+    if not sys.platform.lower().startswith('freebsd'):
+        raise RuntimeError('No ZFS pool on non-FreeBSD OS')
     poolname = zfs_parse_output(['zfs', 'list', '-H', '/'])
     if len(poolname) == 0:
         raise RuntimeError('The root filesystem is not ZFS')

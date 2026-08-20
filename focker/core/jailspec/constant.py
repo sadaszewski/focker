@@ -7,9 +7,12 @@
 
 
 from ..process import focker_subprocess_check_output
+import sys
 
 
 def get_jail_sysctl_params():
+    if not sys.platform.lower().startswith('freebsd'):
+        return set()
     _params = focker_subprocess_check_output(['sysctl', '-N', 'security.jail.param'])
     _params = _params.decode('utf-8')
     _params = _params.split('\n')
