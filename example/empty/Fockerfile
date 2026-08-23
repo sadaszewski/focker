@@ -1,1 +1,5 @@
 base: freebsd-latest
+
+steps:
+  - run:
+    - echo 'Hello, world!' >/etc/hello_world.txt

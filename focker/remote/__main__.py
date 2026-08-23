@@ -40,6 +40,8 @@ def setup_logging():
 
 
 def main():
+    setup_logging()
+    
     parser = create_parser()
 
     for k, v in PARSER_DEFS.items():

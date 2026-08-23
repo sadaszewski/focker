@@ -24,6 +24,29 @@ def read_outputs(stdout: ChannelFile, stderr: ChannelFile, stdin: ChannelFile, s
     return stdout, stderr, exit_status
 
 
+def forward_outputs(
+    stdout: ChannelFile, stderr: ChannelFile, stdin: ChannelFile, *,
+    stdin_fp=None, stdout_fp=None, stderr_fp=None,
+):
+    if stdout_fp is None:
+        stdout_fp = sys.stdout.buffer
+    if stderr_fp is None:
+        stderr_fp = sys.stderr.buffer
+    exit_status = stdout.channel
+    with ThreadPoolExecutor(max_workers=3) as ex:
+        if stdin_fp is None:
+            stdin.close()
+        else:
+            stdin_fut = ex.submit(shutil.copyfileobj, stdin_fp, stdin)
+        stdout = ex.submit(shutil.copyfileobj, stdout, stdout_fp)
+        stderr = ex.submit(shutil.copyfileobj, stderr, stderr_fp)
+        if stdin_fp is not None:
+            _ = stdin_fut.result()
+        stdin.close()
+    exit_status = exit_status.recv_exit_status()
+    return exit_status
+
+
 def check_output(client: SSHClient, command: list[str], stdin_fp=None):
     stdin, stdout, stderr = client.exec_command(shlex.join(command))
     stdout, stderr, exit_status = read_outputs(stdout, stderr, stdin, stdin_fp)
@@ -34,11 +57,37 @@ def check_output(client: SSHClient, command: list[str], stdin_fp=None):
     return stdout
 
 
+def run(client: SSHClient, command: list[str], *, stdin_fp=None, stdout_fp=None, stderr_fp=None, raise_for_exit_status=True):
+    stdin, stdout, stderr = client.exec_command(shlex.join(command))
+    exit_status = forward_outputs(
+        stdout, stderr, stdin,
+        stdin_fp=stdin_fp, stdout_fp=stdout_fp, stderr_fp=stderr_fp
+    )
+    if exit_status != 0 and raise_for_exit_status:
+        raise RuntimeError(f"Command returned exit status: {exit_status}")
+
+
 def unpack_tar_gz(client: SSHClient, dest: str, archive_fp):
     check_output(
         client,
         ["tar", "-C", dest, "-zx"],
         archive_fp,
+    )
+
+
+def safe_delete(client: SSHClient, dirname: str, safe_prefixes=[]):
+    logger = logging.getLogger("focker.remote")
+    res: bytes = check_output(
+        client,
+        ["find", dirname, "-mindepth", "1", "-print"]
+    )
+    res = res.decode().splitlines()
+    logger.debug(f"{res=}")
+    if dirname == "/" or not all(any(p.startswith(x) for x in safe_prefixes) for p in res):
+        raise RuntimeError("Unsafe delete attempted")
+    check_output(
+        client,
+        ["find", dirname, "-mindepth", "1", "-delete"]
     )
 
 
