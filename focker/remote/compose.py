@@ -29,14 +29,17 @@ def cmd_remote_compose_build(args):
             "gzip",
             str(Path(d) / "context.tar"),
         ])
+        context_size = (Path(d) / "context.tar.gz").stat().st_size
+        print("Context size: {:.02f} MB ({} bytes)".format(context_size / (1024 * 1024), context_size))
         client = setup_client()
         with misc.TemporaryDirectory(client) as d_remote, \
-            (Path(d) / "context.tar.gz").open("rb") as f:
+            (Path(d) / "context.tar.gz").open("rb") as f, \
+            misc.UnpackTarGz(client, d_remote, safe_prefixes=[f"{tempfile.gettempdir()}/"]) as u:
 
             logger.debug(f"{d_remote=}")
 
             print("Sending context...")
-            misc.unpack_tar_gz(client, d_remote, f)
+            u.unpack(f)
 
             cmd = [
                 "focker",
@@ -51,9 +54,6 @@ def cmd_remote_compose_build(args):
             cmd.append((Path(d_remote) / local_spec_filename).as_posix())
             print("Running...")
             misc.run(client, cmd, raise_for_exit_status=False)
-
-            print("Cleaning up...")
-            misc.safe_delete(client, d_remote, [f"{tempfile.gettempdir()}/"])
 
             print("Done.")
 

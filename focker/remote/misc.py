@@ -75,6 +75,22 @@ def unpack_tar_gz(client: SSHClient, dest: str, archive_fp):
     )
 
 
+class UnpackTarGz:
+    def __init__(self, client: SSHClient, dest: str, *, safe_prefixes=[]):
+        self.client = client
+        self.dest = dest
+        self.safe_prefixes = safe_prefixes
+
+    def unpack(self, archive_fp):
+        unpack_tar_gz(self.client, self.dest, archive_fp)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        safe_delete(self.client, self.dest, self.safe_prefixes)
+
+
 def safe_delete(client: SSHClient, dirname: str, safe_prefixes=[]):
     logger = logging.getLogger("focker.remote")
     res: bytes = check_output(
